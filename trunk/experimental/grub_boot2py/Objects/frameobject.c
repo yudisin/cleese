@@ -47,7 +47,7 @@ static PyObject *builtin_object;
 int _PyFrame_Init()
 {
 //	print(">>>PyFrameInit ");
-	void *builtin_objec = PyString_InternFromString("__builtins__");
+	void *builtin_object = PyString_InternFromString("__builtins__");
 //	print("<<<PyFrameInit ");
   	return (builtin_object != NULL);
 }
