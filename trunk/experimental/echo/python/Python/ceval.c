@@ -321,6 +321,16 @@ eval_frame(PyFrameObject *f)
 
 		/* case STOP_CODE: this is an error! */
 
+		case LOAD_FAST:
+			x = GETLOCAL(oparg);
+			if (x != NULL) {
+				Py_INCREF(x);
+				PUSH(x);
+				goto fast_next_opcode;
+			}
+			/* ERROR? */
+			break;
+
 		case LOAD_CONST:
 //			print(" LOAD_CONST ");
 			x = GETITEM(consts, oparg);
