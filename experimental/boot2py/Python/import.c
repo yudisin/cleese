@@ -44,6 +44,7 @@ PyImport_ImportFrozenModule(char *name)
 
 	if (p == NULL)
 		return 0;
+	size = p->size;
 
 	co = PyMarshal_ReadObjectFromString((char *)p->code, size);
 
