@@ -6,18 +6,19 @@ isr.setvec()
 
 print '-- test stacks'
 
-def foo():
-	i = init
-	while i:
+def recurse(i):
+	if i:
 		print '-- swapped: %d' % i
-		i = stack.swap(i - 1)
-	stack.swap(None)
-	print '** not reached **'
+		recurse(stack.swap(i - 1))
+	else:
+		stack.swap(None)
 
-newstack = buf.bss(1024)
-stack.init(newstack, foo)
+def worker():
+	recurse(8)
 
-init = 8
+newstack = buf.bss(0x800)
+stack.init(newstack, worker)
+
 i = stack.swap(None, newstack)
 while i:
 	print '-- swapped back: %d' % i
