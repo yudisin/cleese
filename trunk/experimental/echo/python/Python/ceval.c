@@ -506,7 +506,8 @@ eval_frame(PyFrameObject *f)
 				x = PyDict_GetItem(f->f_builtins, w);
 				if (x == NULL) {
 				  load_global_error:
-					/* ERROR */
+					print("LOAD_GLOBAL ERROR:");
+					print(((PyStringObject *)w)->ob_sval);
 					break;
 				}
 			}
