@@ -37,6 +37,7 @@ outfp.write("""
 struct _frozen frozenModules[] = {
 \t{"__main__", kernel_bytecode, %d},
 \t{0, 0, 0} /* sentinel */
+};
 """ % len(code_string))
 
 outfp.close()
