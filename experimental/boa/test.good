@@ -101,4 +101,11 @@ mov disp(%esi,%ecx,2),%eax
 mov 0x10(%edi,%ebx,2),%eax
 ret
 .text 255
+.text 0
+.globl sizing
+sizing:
+mov $33,%eax
+movl $33,(%eax)
+ret
+.text 255
 # escape sequence

@@ -20,13 +20,13 @@ import token
 #-------------------------------------------------------------------------------
 
 opcodes = """
-    add andl cli cld cmp dec inb inc int lea lodsb lodsw movsb movsl movl
-    nop orl outb pop popa push pusha rep ret shl shr std sti stosb stosw
-    stosl sub test xlat xor
+    add andl cli cld cmp dec inb inc int inw lea lodsb lodsw lodsl
+    movsb movsl movl nop orl outb outw pop popa push pusha rep ret
+    shl shr std sti stosb stosw stosl sub test xlat xor
 	  """.split()
 
 reversed = """
-    add andl cmp inb lea movl orl outb shl shr sub test xor
+    add andl cmp inb inw lea movl orl outb outw shl shr sub test xor
 	   """.split()
 
 #-------------------------------------------------------------------------------
@@ -56,6 +56,12 @@ def arg(t):
 		else:		return "%s"           % y[:1]
 	elif x == 'reg':	return y
 	else:			return "$" + y
+
+def size(t):
+	""" return size byte for at&t """
+	(x,y) = t
+	if x == 'reg':	return ''
+	else:		return 'l'
 
 def cint(s):
 	""" return value of a C-style numeric constant """
@@ -155,7 +161,7 @@ def gcode():
 	elif equals.has_key(x):
 		a = toks.pop()
 		b = toks.pop()
-		print "%s %s,%s" % (equals[x], arg(a), arg(b))
+		print "%s%s %s,%s" % (equals[x], size(b), arg(a), arg(b))
 	elif x == token.STRING:	pass
 	else:
 		toks.append((x,y))
