@@ -2,22 +2,22 @@
 #define Py_COMPILE_H
 
 typedef struct {
-  PyObject_HEAD
-  int co_argcount;		/* #arguments, except *args */
-  int co_nlocals;		/* #local variables */
-  int co_stacksize;		/* #entries needed for evaluation stack */
-  int co_flags;		        /* CO_..., see below */
-  PyObject *co_code;		/* instruction opcodes */
-  PyObject *co_consts;	        /* list (constants used) */
-  PyObject *co_names;		/* list of strings (names used) */
-  PyObject *co_varnames;	/* tuple of strings (local variable names) */
-  PyObject *co_freevars;	/* tuple of strings (free variable names) */
-  PyObject *co_cellvars;        /* tuple of strings (cell variable names) */
-  /* The rest doesn't count for hash/cmp */
-  PyObject *co_filename;	/* string (where it was loaded from) */
-  PyObject *co_name;		/* string (name, for reference) */
-  int co_firstlineno;		/* first source line number */
-  PyObject *co_lnotab;	        /* string (encoding addr<->lineno mapping) */
+	PyObject_HEAD
+	int co_argcount;		/* #arguments, except *args */
+	int co_nlocals;		/* #local variables */
+	int co_stacksize;		/* #entries needed for evaluation stack */
+	int co_flags;		        /* CO_..., see below */
+	PyObject *co_code;		/* instruction opcodes */
+	PyObject *co_consts;	        /* list (constants used) */
+	PyObject *co_names;		/* list of strings (names used) */
+	PyObject *co_varnames;	/* tuple of strings (local variable names) */
+	PyObject *co_freevars;	/* tuple of strings (free variable names) */
+	PyObject *co_cellvars;        /* tuple of strings (cell variable names) */
+	/* The rest doesn't count for hash/cmp */
+	PyObject *co_filename;	/* string (where it was loaded from) */
+	PyObject *co_name;		/* string (name, for reference) */
+	int co_firstlineno;		/* first source line number */
+	PyObject *co_lnotab;	        /* string (encoding addr<->lineno mapping) */
 } PyCodeObject;
 
 /* Masks for co_flags above */
