@@ -65,6 +65,9 @@ PyAPI_FUNC(void) _PyErr_BadInternalCall(char *filename, int lineno);
 PyAPI_FUNC(PyObject *) PyErr_NewException(char *name, PyObject *base,
                                          PyObject *dict);
 
+/* Issue a warning or exception */
+PyAPI_FUNC(int) PyErr_Warn(PyObject *, char *);
+
 /* These APIs aren't really part of the error implementation, but
    often needed to format error messages; the native C lib APIs are
    not available on all platforms, which is why we provide emulations
