@@ -1,7 +1,6 @@
-.SUFFIXES: .asm
+.SUFFIXES:	.boa
 
 LDSCRIPT = cleese.ld
-NASM     = nasm -f elf
 CC       = gcc -Wall -O2 -nostdinc -fno-builtin #-DVERBOSE_MALLOC -DVERBOSE_MEMCPY -DVERBOSE_MARSHAL
 LD       = ld -T $(LDSCRIPT) -nostdlib
 
@@ -60,17 +59,18 @@ clean:
 	-rm -f KERNEL.BIN
 	-rm -f kernel.lst kernel.map
 	find . -name '*.o' -exec rm -f {} ';'
+	find . -name '*.s' -exec rm -f {} ';'
 
 clobber: clean
 	-rm -f bochsout.txt
 	-rm -f disk/*.img
 	find . -name '*~' -exec rm -f {} ';'
 
-.asm.o:
-	$(NASM) -o $@ $<
-
 .c.o:
 	$(CC) -c -I./include -I./python/Include -o $@ $<
+
+.boa.o:
+	python util/boa < $< | as -o $@
 
 c.img: KERNEL.BIN
 	MTOOLSRC=disk/mtools.conf mtools -c mcopy -o $< C:
