@@ -7,8 +7,6 @@
 /* Forward */
 static PyObject *class_lookup(PyClassObject *, PyObject *,
 			      PyClassObject **);
-static PyObject *instance_getattr1(PyInstanceObject *, PyObject *);
-static PyObject *instance_getattr2(PyInstanceObject *, PyObject *);
 
 static PyObject *getattrstr, *setattrstr, *delattrstr;
 

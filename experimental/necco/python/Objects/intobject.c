@@ -59,6 +59,9 @@ PyInt_AsLong(register PyObject *op)
 		return PyInt_AS_LONG((PyIntObject*) op);
 
 	Py_FatalError("PyInt_AsLong not fully supported");
+	
+	/* this will never be reached */
+	return 0;
 }
 
 unsigned long
