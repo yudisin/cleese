@@ -11,4 +11,6 @@ PyAPI_FUNC(int) Py_MakePendingCalls(void);
 PyAPI_DATA(volatile int) _Py_Ticker;
 PyAPI_DATA(int) _Py_CheckInterval;
 
+PyAPI_FUNC(int) _PyEval_SliceIndex(PyObject *, int *);
+
 #endif /* !Py_CEVAL_H */

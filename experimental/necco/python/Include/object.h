@@ -219,14 +219,21 @@ PyAPI_DATA(PyTypeObject) PyType_Type;
 PyAPI_DATA(PyTypeObject) PyBaseObject_Type;
 
 PyAPI_FUNC(int) PyType_Ready(PyTypeObject *);
+PyAPI_FUNC(PyObject *) PyType_GenericAlloc(PyTypeObject *, int);
+PyAPI_FUNC(PyObject *) PyType_GenericNew(PyTypeObject *,
+					 PyObject *, PyObject *);
 
 PyAPI_FUNC(int) PyObject_Print(PyObject *);
+PyAPI_FUNC(PyObject *) PyObject_Repr(PyObject *);
 PyAPI_FUNC(PyObject *) PyObject_Str(PyObject *);
 
 PyAPI_FUNC(PyObject *) PyObject_RichCompare(PyObject *, PyObject *, int);
 PyAPI_FUNC(int) PyObject_RichCompareBool(PyObject *, PyObject *, int);
+PyAPI_FUNC(PyObject *) PyObject_GetAttrString(PyObject *, char *);
+PyAPI_FUNC(int) PyObject_SetAttrString(PyObject *, char *, PyObject *);
 
 PyAPI_FUNC(PyObject *) PyObject_GetAttr(PyObject *, PyObject *);
+PyAPI_FUNC(PyObject *) PyObject_SelfIter(PyObject *);
 PyAPI_FUNC(PyObject *) PyObject_GenericGetAttr(PyObject *, PyObject *);
 
 PyAPI_FUNC(long) PyObject_Hash(PyObject *);
@@ -235,6 +242,12 @@ PyAPI_FUNC(int) PyObject_IsTrue(PyObject *);
 PyAPI_FUNC(int) PyNumber_CoerceEx(PyObject **, PyObject **);
 
 extern int _PyObject_SlotCompare(PyObject *, PyObject *);
+
+
+/* Helpers for printing recursive container types */
+PyAPI_FUNC(int) Py_ReprEnter(PyObject *);
+PyAPI_FUNC(void) Py_ReprLeave(PyObject *);
+
 
 /* PyBufferProcs contains bf_getcharbuffer */
 #define Py_TPFLAGS_HAVE_GETCHARBUFFER  (1L<<0)

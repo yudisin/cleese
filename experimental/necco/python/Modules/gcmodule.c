@@ -22,6 +22,23 @@ static struct gc_generation generations[NUM_GENERATIONS] = {
 PyGC_Head *_PyGC_generation0 = GEN_HEAD(0);
 
 #define GC_UNTRACKED _PyGC_REFS_UNTRACKED
+#define GC_REACHABLE			_PyGC_REFS_REACHABLE
+#define GC_TENTATIVELY_UNREACHABLE	_PyGC_REFS_TENTATIVELY_UNREACHABLE
+
+#define IS_TRACKED(o) ((AS_GC(o))->gc.gc_refs != GC_UNTRACKED)
+#define IS_REACHABLE(o) ((AS_GC(o))->gc.gc_refs == GC_REACHABLE)
+#define IS_TENTATIVELY_UNREACHABLE(o) ( \
+	(AS_GC(o))->gc.gc_refs == GC_TENTATIVELY_UNREACHABLE)
+
+
+static void
+gc_list_remove(PyGC_Head *node)
+{
+	node->gc.gc_prev->gc.gc_next = node->gc.gc_next;
+	node->gc.gc_next->gc.gc_prev = node->gc.gc_prev;
+	node->gc.gc_next = NULL; /* object is not currently tracked */
+}
+
 
 #undef PyObject_GC_Track
 #undef PyObject_GC_UnTrack
@@ -73,4 +90,37 @@ _PyObject_GC_NewVar(PyTypeObject *tp, int nitems)
 	if (op != NULL)
 		op = PyObject_INIT_VAR(op, tp, nitems);
 	return op;
+}
+
+PyVarObject *
+_PyObject_GC_Resize(PyVarObject *op, int nitems)
+{
+	const size_t basicsize = _PyObject_VAR_SIZE(op->ob_type, nitems);
+	PyGC_Head *g = AS_GC(op);
+	g = PyObject_REALLOC(g,  sizeof(PyGC_Head) + basicsize);
+	if (g == NULL)
+		return (PyVarObject *)PyErr_NoMemory();
+	op = (PyVarObject *) FROM_GC(g);
+	op->ob_size = nitems;
+	return op;
+}
+
+void
+PyObject_GC_Del(void *op)
+{
+	PyGC_Head *g = AS_GC(op);
+	if (IS_TRACKED(op))
+		gc_list_remove(g);
+	if (generations[0].count > 0) {
+		generations[0].count--;
+	}
+	PyObject_FREE(g);
+}
+
+/* for binary compatibility with 2.2 */
+#undef _PyObject_GC_Del
+void
+_PyObject_GC_Del(PyObject *op)
+{
+    PyObject_GC_Del(op);
 }

@@ -78,5 +78,9 @@ _PyBuiltin_Init(void)
 
 	SETBUILTIN("None",		Py_None);
 
+  	SETBUILTIN("list",		&PyList_Type);
+
+	//	SETBUILTIN("tuple",		&PyTuple_Type);
+
 	return mod;
 }

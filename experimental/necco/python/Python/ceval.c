@@ -826,6 +826,16 @@ PyEval_GetBuiltins(void)
 }
 
 PyObject *
+PyEval_GetGlobals(void)
+{
+	PyFrameObject *current_frame = PyEval_GetFrame();
+	if (current_frame == NULL)
+		return NULL;
+	else
+		return current_frame->f_globals;
+}
+
+PyObject *
 PyEval_CallObject(PyObject *func, PyObject *arg)
 {
 	return PyEval_CallObjectWithKeywords(func, arg, (PyObject *)NULL);

@@ -4,8 +4,24 @@
 #include "pymem.h"
 
 #define PyObject_MALLOC  PyMem_MALLOC
+#define PyObject_REALLOC	PyMem_REALLOC
+/* This is an odd one!  For backward compatability with old extensions, the
+   PyMem "release memory" functions have to invoke the object allocator's
+   free() function.  When pymalloc isn't enabled, that leaves us using
+   the platform free(). */
+#define PyObject_FREE		free
 
 PyAPI_FUNC(PyObject *) PyObject_Init(PyObject *, PyTypeObject *);
+PyAPI_FUNC(PyVarObject *) PyObject_InitVar(PyVarObject *,
+                                                 PyTypeObject *, int);
+PyAPI_FUNC(PyObject *) _PyObject_New(PyTypeObject *);
+PyAPI_FUNC(PyVarObject *) _PyObject_NewVar(PyTypeObject *, int);
+
+#define PyObject_New(type, typeobj) \
+		( (type *) _PyObject_New(typeobj) )
+#define PyObject_NewVar(type, typeobj, n) \
+		( (type *) _PyObject_NewVar((typeobj), (n)) )
+
 
 #define PyObject_INIT(op, typeobj) \
 	( (op)->ob_type = (typeobj), _Py_NewReference((PyObject *)(op)), (op) )
@@ -27,6 +43,21 @@ PyAPI_FUNC(PyObject *) PyObject_Init(PyObject *, PyTypeObject *);
 ( (type *) PyObject_Init( \
 	(PyObject *) PyObject_MALLOC( _PyObject_SIZE(typeobj) ), (typeobj)) )
 
+
+/*
+ * Garbage Collection Support
+ * ==========================
+ */
+
+/* C equivalent of gc.collect(). */
+long PyGC_Collect(void);
+
+/* Test if a type has a GC head */
+#define PyType_IS_GC(t) PyType_HasFeature((t), Py_TPFLAGS_HAVE_GC)
+
+/* Test if an object has a GC head */
+#define PyObject_IS_GC(o) (PyType_IS_GC((o)->ob_type) && \
+	((o)->ob_type->tp_is_gc == NULL || (o)->ob_type->tp_is_gc(o)))
 
 PyAPI_FUNC(PyVarObject *) _PyObject_GC_Resize(PyVarObject *, int);
 #define PyObject_GC_Resize(type, op, n) \
