@@ -29,7 +29,6 @@ PyAPI_FUNC(PyThreadState *) Py_NewInterpreter(void);
 PyAPI_FUNC(void) Py_EndInterpreter(PyThreadState *);
 
 PyAPI_FUNC(int) PyRun_SimpleFile(FILE *, const char *);
-
 PyAPI_FUNC(struct symtable *) Py_SymtableString(const char *, const char *, int);
 
 PyAPI_FUNC(void) PyErr_Print(void);
