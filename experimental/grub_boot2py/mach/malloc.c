@@ -1,6 +1,7 @@
 #include "Python.h"
 
-static void *curr = (void *) 0x00200000;
+extern _end;
+static void *curr = &_end;
 
 void *
 malloc(size_t size)
