@@ -1,3 +1,6 @@
+extern unsigned char in(unsigned short);
+extern void out(unsigned short, unsigned char);
+
 void clrscr()
 {
   unsigned char *vidmem = (unsigned char *)0xB8000;
