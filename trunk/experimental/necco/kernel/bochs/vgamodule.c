@@ -1,5 +1,6 @@
 #include "Python.h"
 
+static unsigned char font0[8192];
 static unsigned char savebuffer[0x10000];
 extern unsigned char bootscreen[];
 
@@ -25,6 +26,8 @@ _VGA_Init(void)
 		PyBuffer_FromReadWriteMemory((void *)savebuffer, 0x10000));
 	SETBUILTIN("splashscreen",
 		PyBuffer_FromMemory(bootscreen, 0x10000));
+	SETBUILTIN("font0",
+		PyBuffer_FromReadWriteMemory((void *)font0, 8192));
 
 	init_screen();
 
