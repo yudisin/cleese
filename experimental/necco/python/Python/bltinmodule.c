@@ -100,7 +100,7 @@ _PyBuiltin_Init(void)
 
   	SETBUILTIN("list",		&PyList_Type);
 
-	//	SETBUILTIN("tuple",		&PyTuple_Type);
+	SETBUILTIN("tuple",		&PyTuple_Type);
 
 	return mod;
 }
