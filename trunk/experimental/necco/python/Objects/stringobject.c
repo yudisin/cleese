@@ -1,5 +1,7 @@
 #include "Python.h"
 
+#include "ctype.h"
+
 #define UCHAR_MAX 255
 
 static PyStringObject *characters[UCHAR_MAX + 1];
@@ -539,6 +541,135 @@ string_subscript(PyStringObject* self, PyObject* item)
 	Py_FatalError("only integer indices supported");
 }
 
+static PyObject *
+string_concat(register PyStringObject *a, register PyObject *bb)
+{
+	register unsigned int size;
+	register PyStringObject *op;
+	if (!PyString_Check(bb)) {
+		PyErr_Format(PyExc_TypeError,
+			     "cannot concatenate 'str' and '%.200s' objects",
+			     bb->ob_type->tp_name);
+		return NULL;
+	}
+#define b ((PyStringObject *)bb)
+	/* Optimize cases with empty left or right operand */
+	if ((a->ob_size == 0 || b->ob_size == 0) &&
+	    PyString_CheckExact(a) && PyString_CheckExact(b)) {
+		if (a->ob_size == 0) {
+			Py_INCREF(bb);
+			return bb;
+		}
+		Py_INCREF(a);
+		return (PyObject *)a;
+	}
+	size = a->ob_size + b->ob_size;
+	/* Inline PyObject_NewVar */
+	op = (PyStringObject *)
+		PyObject_MALLOC(sizeof(PyStringObject) + size * sizeof(char));
+	if (op == NULL)
+		return PyErr_NoMemory();
+	PyObject_INIT_VAR(op, &PyString_Type, size);
+	op->ob_shash = -1;
+	op->ob_sstate = SSTATE_NOT_INTERNED;
+	memcpy(op->ob_sval, a->ob_sval, (int) a->ob_size);
+	memcpy(op->ob_sval + a->ob_size, b->ob_sval, (int) b->ob_size);
+	op->ob_sval[size] = '\0';
+	return (PyObject *) op;
+#undef b
+}
+
+static PyObject *
+string_join(PyStringObject *self, PyObject *orig)
+{
+	char *sep = PyString_AS_STRING(self);
+	const int seplen = PyString_GET_SIZE(self);
+	PyObject *res = NULL;
+	char *p;
+	int seqlen = 0;
+	size_t sz = 0;
+	int i;
+	PyObject *seq, *item;
+
+	seq = PySequence_Fast(orig, "");
+	if (seq == NULL) {
+		if (PyErr_ExceptionMatches(PyExc_TypeError))
+			PyErr_Format(PyExc_TypeError,
+				     "sequence expected, %.80s found",
+				     orig->ob_type->tp_name);
+		return NULL;
+	}
+
+	seqlen = PySequence_Size(seq);
+	if (seqlen == 0) {
+		Py_DECREF(seq);
+		return PyString_FromString("");
+	}
+	if (seqlen == 1) {
+		item = PySequence_Fast_GET_ITEM(seq, 0);
+		if (!PyString_Check(item)) {
+			PyErr_Format(PyExc_TypeError,
+				     "sequence item 0: expected string,"
+				     " %.80s found",
+				     item->ob_type->tp_name);
+			Py_DECREF(seq);
+			return NULL;
+		}
+		Py_INCREF(item);
+		Py_DECREF(seq);
+		return item;
+	}
+
+	/* There are at least two things to join.  Do a pre-pass to figure out
+	 * the total amount of space we'll need (sz), see whether any argument
+	 * is absurd, and defer to the Unicode join if appropriate.
+	 */
+	for (i = 0; i < seqlen; i++) {
+		const size_t old_sz = sz;
+		item = PySequence_Fast_GET_ITEM(seq, i);
+		if (!PyString_Check(item)){
+			PyErr_Format(PyExc_TypeError,
+				     "sequence item %i: expected string,"
+				     " %.80s found",
+				     i, item->ob_type->tp_name);
+			Py_DECREF(seq);
+			return NULL;
+		}
+		sz += PyString_GET_SIZE(item);
+		if (i != 0)
+			sz += seplen;
+		if (sz < old_sz || sz > INT_MAX) {
+			PyErr_SetString(PyExc_OverflowError,
+				"join() is too long for a Python string");
+			Py_DECREF(seq);
+			return NULL;
+		}
+	}
+
+	/* Allocate result space. */
+	res = PyString_FromStringAndSize((char*)NULL, (int)sz);
+	if (res == NULL) {
+		Py_DECREF(seq);
+		return NULL;
+	}
+
+	/* Catenate everything. */
+	p = PyString_AS_STRING(res);
+	for (i = 0; i < seqlen; ++i) {
+		size_t n;
+		item = PySequence_Fast_GET_ITEM(seq, i);
+		n = PyString_GET_SIZE(item);
+		memcpy(p, PyString_AS_STRING(item), n);
+		p += n;
+		if (i < seqlen - 1) {
+			memcpy(p, sep, seplen);
+			p += seplen;
+		}
+	}
+
+	Py_DECREF(seq);
+	return res;
+}
 
 static PyObject *
 string_mod(PyObject *v, PyObject *w)
@@ -560,7 +691,7 @@ static PyNumberMethods string_as_number = {
 
 static PySequenceMethods string_as_sequence = {
 	0, //(inquiry)string_length, /*sq_length*/
-	0, //(binaryfunc)string_concat, /*sq_concat*/
+	(binaryfunc)string_concat, /*sq_concat*/
 	0, //(intargfunc)string_repeat, /*sq_repeat*/
 	0, //(intargfunc)string_item, /*sq_item*/
 	0, //(intintargfunc)string_slice, /*sq_slice*/
@@ -661,12 +792,99 @@ PyTypeObject PyString_Type = {
 	0, //PyObject_Del,	                	/* tp_free */
 };
 
+PyObject *
+_PyString_Join(PyObject *sep, PyObject *x)
+{
+	assert(sep != NULL && PyString_Check(sep));
+	assert(x != NULL);
+	return string_join((PyStringObject *)sep, x);
+}
+
+void
+PyString_Concat(register PyObject **pv, register PyObject *w)
+{
+	register PyObject *v;
+	if (*pv == NULL)
+		return;
+	if (w == NULL || !PyString_Check(*pv)) {
+		Py_DECREF(*pv);
+		*pv = NULL;
+		return;
+	}
+	v = string_concat((PyStringObject *) *pv, w);
+	Py_DECREF(*pv);
+	*pv = v;
+}
+
+void
+PyString_ConcatAndDel(register PyObject **pv, register PyObject *w)
+{
+	PyString_Concat(pv, w);
+	Py_XDECREF(w);
+}
+
+static int
+string_getsize(register PyObject *op)
+{
+    	char *s;
+    	int len;
+	if (PyString_AsStringAndSize(op, &s, &len))
+		return -1;
+	return len;
+}
+
+int
+PyString_Size(register PyObject *op)
+{
+	if (!PyString_Check(op))
+		return string_getsize(op);
+	return ((PyStringObject *)op) -> ob_size;
+}
+
 /*const*/ char *
 PyString_AsString(register PyObject *op)
 {
 //	if (!PyString_Check(op))
 //		return string_getbuffer(op);
 	return ((PyStringObject *)op) -> ob_sval;
+}
+
+int
+PyString_AsStringAndSize(register PyObject *obj,
+			 register char **s,
+			 register int *len)
+{
+	if (s == NULL) {
+		PyErr_BadInternalCall();
+		return -1;
+	}
+
+	if (!PyString_Check(obj)) {
+#ifdef Py_USING_UNICODE
+		if (PyUnicode_Check(obj)) {
+			obj = _PyUnicode_AsDefaultEncodedString(obj, NULL);
+			if (obj == NULL)
+				return -1;
+		}
+		else
+#endif
+		{
+			PyErr_Format(PyExc_TypeError,
+				     "expected string or Unicode object, "
+				     "%.200s found", obj->ob_type->tp_name);
+			return -1;
+		}
+	}
+
+	*s = PyString_AS_STRING(obj);
+	if (len != NULL)
+		*len = PyString_GET_SIZE(obj);
+	else if ((int)strlen(*s) != PyString_GET_SIZE(obj)) {
+		PyErr_SetString(PyExc_TypeError,
+				"expected string without null bytes");
+		return -1;
+	}
+	return 0;
 }
 
 PyObject *
@@ -691,3 +909,177 @@ _PyString_Eq(PyObject *o1, PyObject *o2)
           && memcmp(a->ob_sval, b->ob_sval, a->ob_size) == 0;
 }
 
+PyObject *
+PyString_FromFormatV(const char *format, va_list vargs)
+{
+	va_list count;
+	int n = 0;
+	const char* f;
+	char *s;
+	PyObject* string;
+
+#ifdef VA_LIST_IS_ARRAY
+	memcpy(count, vargs, sizeof(va_list));
+#else
+#ifdef  __va_copy
+	__va_copy(count, vargs);
+#else
+	count = vargs;
+#endif
+#endif
+	/* step 1: figure out how large a buffer we need */
+	for (f = format; *f; f++) {
+		if (*f == '%') {
+			const char* p = f;
+			while (*++f && *f != '%' && !isalpha(Py_CHARMASK(*f)))
+				;
+
+			/* skip the 'l' in %ld, since it doesn't change the
+			   width.  although only %d is supported (see
+			   "expand" section below), others can be easily
+			   added */
+			if (*f == 'l' && *(f+1) == 'd')
+				++f;
+
+			switch (*f) {
+			case 'c':
+				(void)va_arg(count, int);
+				/* fall through... */
+			case '%':
+				n++;
+				break;
+			case 'd': case 'i': case 'x':
+				(void) va_arg(count, int);
+				/* 20 bytes is enough to hold a 64-bit
+				   integer.  Decimal takes the most space.
+				   This isn't enough for octal. */
+				n += 20;
+				break;
+			case 's':
+				s = va_arg(count, char*);
+				n += strlen(s);
+				break;
+			case 'p':
+				(void) va_arg(count, int);
+				/* maximum 64-bit pointer representation:
+				 * 0xffffffffffffffff
+				 * so 19 characters is enough.
+				 * XXX I count 18 -- what's the extra for?
+				 */
+				n += 19;
+				break;
+			default:
+				/* if we stumble upon an unknown
+				   formatting code, copy the rest of
+				   the format string to the output
+				   string. (we cannot just skip the
+				   code, since there's no way to know
+				   what's in the argument list) */
+				n += strlen(p);
+				goto expand;
+			}
+		} else
+			n++;
+	}
+ expand:
+	/* step 2: fill the buffer */
+	/* Since we've analyzed how much space we need for the worst case,
+	   use sprintf directly instead of the slower PyOS_snprintf. */
+	string = PyString_FromStringAndSize(NULL, n);
+	if (!string)
+		return NULL;
+
+	s = PyString_AsString(string);
+
+	for (f = format; *f; f++) {
+		if (*f == '%') {
+			const char* p = f++;
+			int i, longflag = 0;
+			/* parse the width.precision part (we're only
+			   interested in the precision value, if any) */
+			n = 0;
+			while (isdigit(Py_CHARMASK(*f)))
+				n = (n*10) + *f++ - '0';
+			if (*f == '.') {
+				f++;
+				n = 0;
+				while (isdigit(Py_CHARMASK(*f)))
+					n = (n*10) + *f++ - '0';
+			}
+			while (*f && *f != '%' && !isalpha(Py_CHARMASK(*f)))
+				f++;
+			/* handle the long flag, but only for %ld.  others
+			   can be added when necessary. */
+			if (*f == 'l' && *(f+1) == 'd') {
+				longflag = 1;
+				++f;
+			}
+
+			switch (*f) {
+			case 'c':
+				*s++ = va_arg(vargs, int);
+				break;
+			case 'd':
+				if (longflag)
+					sprintf(s, "%ld", va_arg(vargs, long));
+				else
+					sprintf(s, "%d", va_arg(vargs, int));
+				s += strlen(s);
+				break;
+			case 'i':
+				sprintf(s, "%i", va_arg(vargs, int));
+				s += strlen(s);
+				break;
+			case 'x':
+				sprintf(s, "%x", va_arg(vargs, int));
+				s += strlen(s);
+				break;
+			case 's':
+				p = va_arg(vargs, char*);
+				i = strlen(p);
+				if (n > 0 && i > n)
+					i = n;
+				memcpy(s, p, i);
+				s += i;
+				break;
+			case 'p':
+				sprintf(s, "%p", va_arg(vargs, void*));
+				/* %p is ill-defined:  ensure leading 0x. */
+				if (s[1] == 'X')
+					s[1] = 'x';
+				else if (s[1] != 'x') {
+					memmove(s+2, s, strlen(s)+1);
+					s[0] = '0';
+					s[1] = 'x';
+				}
+				s += strlen(s);
+				break;
+			case '%':
+				*s++ = '%';
+				break;
+			default:
+				strcpy(s, p);
+				s += strlen(s);
+				goto end;
+			}
+		} else
+			*s++ = *f;
+	}
+
+ end:
+	_PyString_Resize(&string, s - PyString_AS_STRING(string));
+	return string;
+}
+
+PyObject *
+PyString_FromFormat(const char *format, ...)
+{
+	PyObject* ret;
+	va_list vargs;
+
+	va_start(vargs, format);
+
+	ret = PyString_FromFormatV(format, vargs);
+	va_end(vargs);
+	return ret;
+}

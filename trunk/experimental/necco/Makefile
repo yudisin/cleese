@@ -1,6 +1,7 @@
 .SUFFIXES:	.boa
 
-CC       = gcc -Wall -O2 -nostdinc -fno-builtin 
+CC       = gcc -Wall -O2 -nostdinc -fno-builtin
+#CC      += -fno-leading-underscore
 #CC	+= -DVERBOSE_MALLOC -DVERBOSE_MEMCPY -DVERBOSE_MARSHAL
 LD       = ld -nostdlib
 PYTHON	 = python
@@ -42,7 +43,10 @@ PYTHON_OBJS =	\
 		python/Python/compile.o \
 		python/Python/bltinmodule.o \
 		python/Python/getargs.o \
-		python/Python/modsupport.o
+		python/Python/modsupport.o \
+		python/Python/errors.o \
+		python/Python/exceptions.o \
+		python/Python/mysnprintf.o
 
 PYTHON_OBJS +=	\
 		python/Objects/frameobject.o \
@@ -59,7 +63,11 @@ PYTHON_OBJS +=	\
 		python/Objects/funcobject.o \
 		python/Objects/boolobject.o \
 		python/Objects/listobject.o \
-		python/Objects/bufferobject.o
+		python/Objects/bufferobject.o \
+		python/Objects/longobject.o \
+		python/Objects/floatobject.o \
+		python/Objects/iterobject.o \
+		python/Objects/sliceobject.o
 
 PYTHON_OBJS +=	\
 		python/Modules/gcmodule.o
@@ -68,7 +76,10 @@ LDSCRIPT =	lib/bochs/cleese.ld
 CRT0	 =	lib/bochs/crt0.o
 LIB_OBJS =	\
 		lib/string.o \
-		lib/malloc.o
+		lib/malloc.o \
+		lib/ctype.o \
+		lib/snprintf.o
+
 LIB_OBJS +=	\
 		lib/bochs/video.o \
 		lib/bochs/ports.o \

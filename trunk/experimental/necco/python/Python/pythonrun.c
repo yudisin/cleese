@@ -1,5 +1,26 @@
 #include "Python.h"
 
+/* Reference to 'warnings' module, to avoid importing it
+   on the fly when the import lock may be held.  See 683658/771097
+*/
+static PyObject *warnings_module = NULL;
+
+/* Returns a borrowed reference to the 'warnings' module, or NULL.
+   If the module is returned, it is guaranteed to have been obtained
+   without acquiring the import lock
+*/
+PyObject *PyModule_GetWarningsModule()
+{
+        PyObject *typ, *val, *tb;
+        PyObject *all_modules;
+        /* If we managed to get the module at init time, just use it */
+        if (warnings_module)
+                return warnings_module;
+	
+	Py_FatalError("warnings not initialized");
+	/* ... */
+}
+
 static int initialized = 0;
 
 void

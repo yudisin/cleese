@@ -256,6 +256,98 @@ PyDict_DelItem(PyObject *op, PyObject *key)
 	return 0;
 }
 
+void
+PyDict_Clear(PyObject *op)
+{
+	dictobject *mp;
+	dictentry *ep, *table;
+	int table_is_malloced;
+	int fill;
+	dictentry small_copy[PyDict_MINSIZE];
+
+	if (!PyDict_Check(op))
+		return;
+	mp = (dictobject *)op;
+
+	table = mp->ma_table;
+	assert(table != NULL);
+	table_is_malloced = table != mp->ma_smalltable;
+
+	/* This is delicate.  During the process of clearing the dict,
+	 * decrefs can cause the dict to mutate.  To avoid fatal confusion
+	 * (voice of experience), we have to make the dict empty before
+	 * clearing the slots, and never refer to anything via mp->xxx while
+	 * clearing.
+	 */
+	fill = mp->ma_fill;
+	if (table_is_malloced)
+		EMPTY_TO_MINSIZE(mp);
+
+	else if (fill > 0) {
+		/* It's a small table with something that needs to be cleared.
+		 * Afraid the only safe way is to copy the dict entries into
+		 * another small table first.
+		 */
+		memcpy(small_copy, table, sizeof(small_copy));
+		table = small_copy;
+		EMPTY_TO_MINSIZE(mp);
+	}
+	/* else it's a small table that's already empty */
+
+	/* Now we can finally clear things.  If C had refcounts, we could
+	 * assert that the refcount on table is 1 now, i.e. that this function
+	 * has unique access to it, so decref side-effects can't alter it.
+	 */
+	for (ep = table; fill > 0; ++ep) {
+		if (ep->me_key) {
+			--fill;
+			Py_DECREF(ep->me_key);
+			Py_XDECREF(ep->me_value);
+		}
+	}
+
+	if (table_is_malloced)
+		PyMem_DEL(table);
+}
+
+/*
+ * Iterate over a dict.  Use like so:
+ *
+ *     int i;
+ *     PyObject *key, *value;
+ *     i = 0;   # important!  i should not otherwise be changed by you
+ *     while (PyDict_Next(yourdict, &i, &key, &value)) {
+ *              Refer to borrowed references in key and value.
+ *     }
+ *
+ * CAUTION:  In general, it isn't safe to use PyDict_Next in a loop that
+ * mutates the dict.  One exception:  it is safe if the loop merely changes
+ * the values associated with the keys (but doesn't insert new keys or
+ * delete keys), via PyDict_SetItem().
+ */
+int
+PyDict_Next(PyObject *op, int *ppos, PyObject **pkey, PyObject **pvalue)
+{
+	int i;
+	register dictobject *mp;
+	if (!PyDict_Check(op))
+		return 0;
+	mp = (dictobject *)op;
+	i = *ppos;
+	if (i < 0)
+		return 0;
+	while (i <= mp->ma_mask && mp->ma_table[i].me_value == NULL)
+		i++;
+	*ppos = i+1;
+	if (i > mp->ma_mask)
+		return 0;
+	if (pkey)
+		*pkey = mp->ma_table[i].me_key;
+	if (pvalue)
+		*pvalue = mp->ma_table[i].me_value;
+	return 1;
+}
+
 PyTypeObject PyDict_Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,

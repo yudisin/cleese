@@ -1,8 +1,75 @@
 #include "Python.h"
+#include "ctype.h"
+#include "structmember.h"
+#include "longintrepr.h"
 
 #define NEW_STYLE_NUMBER(o) PyType_HasFeature((o)->ob_type, \
 				Py_TPFLAGS_CHECKTYPES)
 
+/* Shorthands to return certain errors */
+
+static PyObject *
+type_error(const char *msg)
+{
+	PyErr_SetString(PyExc_TypeError, msg);
+	return NULL;
+}
+
+static PyObject *
+null_error(void)
+{
+	if (!PyErr_Occurred())
+		PyErr_SetString(PyExc_SystemError,
+				"null argument to internal routine");
+	return NULL;
+}
+
+/* Operations on any object */
+
+int
+PyObject_Cmp(PyObject *o1, PyObject *o2, int *result)
+{
+	int r;
+
+	if (o1 == NULL || o2 == NULL) {
+		null_error();
+		return -1;
+	}
+	r = PyObject_Compare(o1, o2);
+	if (PyErr_Occurred())
+		return -1;
+	*result = r;
+	return 0;
+}
+
+PyObject *
+PyObject_Type(PyObject *o)
+{
+	PyObject *v;
+
+	if (o == NULL)
+		return null_error();
+	v = (PyObject *)o->ob_type;
+	Py_INCREF(v);
+	return v;
+}
+
+int
+PyObject_Size(PyObject *o)
+{
+	PySequenceMethods *m;
+
+	if (o == NULL) {
+		null_error();
+		return -1;
+	}
+
+	m = o->ob_type->tp_as_sequence;
+	if (m && m->sq_length)
+		return m->sq_length(o);
+
+	return PyMapping_Size(o);
+}
 
 
 int
@@ -36,6 +103,16 @@ PyObject_SetItem(PyObject *o, PyObject *key, PyObject *value)
         return -1;
 }
 
+
+/* Operations on numbers */
+
+int
+PyNumber_Check(PyObject *o)
+{
+	return o && o->ob_type->tp_as_number &&
+	       (o->ob_type->tp_as_number->nb_int ||
+		o->ob_type->tp_as_number->nb_float);
+}
 
 #define NB_SLOT(x) offsetof(PyNumberMethods, x)
 #define NB_BINOP(nb_methods, slot) \
@@ -149,6 +226,144 @@ PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw)
 	return NULL;
 }
 
+PyObject *
+PyObject_CallFunction(PyObject *callable, char *format, ...)
+{
+	va_list va;
+	PyObject *args, *retval;
+
+	if (callable == NULL)
+		return null_error();
+
+	if (format && *format) {
+		va_start(va, format);
+		args = Py_VaBuildValue(format, va);
+		va_end(va);
+	}
+	else
+		args = PyTuple_New(0);
+
+	if (args == NULL)
+		return NULL;
+
+	if (!PyTuple_Check(args)) {
+		PyObject *a;
+
+		a = PyTuple_New(1);
+		if (a == NULL)
+			return NULL;
+		if (PyTuple_SetItem(a, 0, args) < 0)
+			return NULL;
+		args = a;
+	}
+	retval = PyObject_Call(callable, args, NULL);
+
+	Py_DECREF(args);
+
+	return retval;
+}
+
+/* Operations on sequences */
+
+int
+PySequence_Check(PyObject *s)
+{
+	return s != NULL && s->ob_type->tp_as_sequence &&
+		s->ob_type->tp_as_sequence->sq_item != NULL;
+}
+
+int
+PySequence_Size(PyObject *s)
+{
+	PySequenceMethods *m;
+
+	if (s == NULL) {
+		null_error();
+		return -1;
+	}
+
+	m = s->ob_type->tp_as_sequence;
+	if (m && m->sq_length)
+		return m->sq_length(s);
+
+	type_error("len() of unsized object");
+	return -1;
+}
+
+PyObject *
+PySequence_Tuple(PyObject *v)
+{
+	PyObject *it;  /* iter(v) */
+	int n;         /* guess for result tuple size */
+	PyObject *result;
+	int j;
+
+	if (v == NULL)
+		return null_error();
+
+	/* Special-case the common tuple and list cases, for efficiency. */
+	if (PyTuple_CheckExact(v)) {
+		/* Note that we can't know whether it's safe to return
+		   a tuple *subclass* instance as-is, hence the restriction
+		   to exact tuples here.  In contrast, lists always make
+		   a copy, so there's no need for exactness below. */
+		Py_INCREF(v);
+		return v;
+	}
+	if (PyList_Check(v))
+		return PyList_AsTuple(v);
+
+	/* Get iterator. */
+	it = PyObject_GetIter(v);
+	if (it == NULL)
+		return NULL;
+
+	/* Guess result size and allocate space. */
+	n = PySequence_Size(v);
+	if (n < 0) {
+		PyErr_Clear();
+		n = 10;  /* arbitrary */
+	}
+	result = PyTuple_New(n);
+	if (result == NULL)
+		goto Fail;
+
+	/* Fill the tuple. */
+	for (j = 0; ; ++j) {
+		PyObject *item = PyIter_Next(it);
+		if (item == NULL) {
+			if (PyErr_Occurred())
+				goto Fail;
+			break;
+		}
+		if (j >= n) {
+			if (n < 500)
+				n += 10;
+			else
+				n += 100;
+			if (_PyTuple_Resize(&result, n) != 0) {
+				Py_DECREF(item);
+				goto Fail;
+			}
+		}
+		PyTuple_SET_ITEM(result, j, item);
+	}
+
+	/* Cut tuple back if guess was too large. */
+	if (j < n &&
+	    _PyTuple_Resize(&result, j) != 0)
+		goto Fail;
+
+	Py_DECREF(it);
+	return result;
+
+Fail:
+	Py_XDECREF(result);
+	Py_DECREF(it);
+	return NULL;
+}
+
+
 int
 PySequence_SetItem(PyObject *s, int i, PyObject *o)
 {
@@ -174,6 +389,30 @@ PySequence_SetItem(PyObject *s, int i, PyObject *o)
 
 //        type_error("object doesn't support item assignment");
         return -1;
+}
+
+PyObject *
+PySequence_GetItem(PyObject *s, int i)
+{
+	PySequenceMethods *m;
+
+	if (s == NULL)
+		return null_error();
+
+	m = s->ob_type->tp_as_sequence;
+	if (m && m->sq_item) {
+		if (i < 0) {
+			if (m->sq_length) {
+				int l = (*m->sq_length)(s);
+				if (l < 0)
+					return NULL;
+				i += l;
+			}
+		}
+		return m->sq_item(s, i);
+	}
+
+	return type_error("unindexable object");
 }
 
 PyObject *
@@ -252,6 +491,42 @@ PySequence_SetSlice(PyObject *s, int i1, int i2, PyObject *o)
 }
 
 PyObject *
+PySequence_Fast(PyObject *v, const char *m)
+{
+	if (v == NULL)
+		return null_error();
+
+	if (PyList_CheckExact(v) || PyTuple_CheckExact(v)) {
+		Py_INCREF(v);
+		return v;
+	}
+
+	v = PySequence_Tuple(v);
+	if (v == NULL && PyErr_ExceptionMatches(PyExc_TypeError))
+		return type_error(m);
+
+	return v;
+}
+
+int
+PyMapping_Size(PyObject *o)
+{
+	PyMappingMethods *m;
+
+	if (o == NULL) {
+		null_error();
+		return -1;
+	}
+
+	m = o->ob_type->tp_as_mapping;
+	if (m && m->mp_length)
+		return m->mp_length(o);
+
+	type_error("len() of unsized object");
+	return -1;
+}
+
+PyObject *
 PyObject_GetItem(PyObject *o, PyObject *key)
 {
 	PyMappingMethods *m;
@@ -274,3 +549,50 @@ PyObject_GetItem(PyObject *o, PyObject *key)
 	Py_FatalError("unsubscriptable object");
 }
 
+PyObject *
+PyObject_GetIter(PyObject *o)
+{
+	PyTypeObject *t = o->ob_type;
+	getiterfunc f = NULL;
+	if (PyType_HasFeature(t, Py_TPFLAGS_HAVE_ITER))
+		f = t->tp_iter;
+	if (f == NULL) {
+		if (PySequence_Check(o))
+			return PySeqIter_New(o);
+		PyErr_SetString(PyExc_TypeError,
+				"iteration over non-sequence");
+		return NULL;
+	}
+	else {
+		PyObject *res = (*f)(o);
+		if (res != NULL && !PyIter_Check(res)) {
+			PyErr_Format(PyExc_TypeError,
+				     "iter() returned non-iterator "
+				     "of type '%.100s'",
+				     res->ob_type->tp_name);
+			Py_DECREF(res);
+			res = NULL;
+		}
+		return res;
+	}
+}
+
+/* Return next item.
+ * If an error occurs, return NULL.  PyErr_Occurred() will be true.
+ * If the iteration terminates normally, return NULL and clear the
+ * PyExc_StopIteration exception (if it was set).  PyErr_Occurred()
+ * will be false.
+ * Else return the next object.  PyErr_Occurred() will be false.
+ */
+PyObject *
+PyIter_Next(PyObject *iter)
+{
+	PyObject *result;
+	assert(PyIter_Check(iter));
+	result = (*iter->ob_type->tp_iternext)(iter);
+	if (result == NULL &&
+	    PyErr_Occurred() &&
+	    PyErr_ExceptionMatches(PyExc_StopIteration))
+		PyErr_Clear();
+	return result;
+}

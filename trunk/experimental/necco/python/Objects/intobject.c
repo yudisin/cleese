@@ -61,6 +61,50 @@ PyInt_AsLong(register PyObject *op)
 	Py_FatalError("PyInt_AsLong not fully supported");
 }
 
+unsigned long
+PyInt_AsUnsignedLongMask(register PyObject *op)
+{
+	PyNumberMethods *nb;
+	PyIntObject *io;
+	unsigned long val;
+
+	if (op && PyInt_Check(op))
+		return PyInt_AS_LONG((PyIntObject*) op);
+	if (op && PyLong_Check(op))
+		return PyLong_AsUnsignedLongMask(op);
+
+	if (op == NULL || (nb = op->ob_type->tp_as_number) == NULL ||
+	    nb->nb_int == NULL) {
+		PyErr_SetString(PyExc_TypeError, "an integer is required");
+		return -1;
+	}
+
+	io = (PyIntObject*) (*nb->nb_int) (op);
+	if (io == NULL)
+		return -1;
+	if (!PyInt_Check(io)) {
+		if (PyLong_Check(io)) {
+			val = PyLong_AsUnsignedLongMask((PyObject *)io);
+			Py_DECREF(io);
+			if (PyErr_Occurred())
+				return -1;
+			return val;
+		}
+		else
+		{
+			Py_DECREF(io);
+			PyErr_SetString(PyExc_TypeError,
+					"nb_int should return int object");
+			return -1;
+		}
+	}
+
+	val = PyInt_AS_LONG(io);
+	Py_DECREF(io);
+
+	return val;
+}
+
 int
 _PyInt_Init(void)
 {
