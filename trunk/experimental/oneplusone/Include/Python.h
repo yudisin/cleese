@@ -3,6 +3,8 @@
 
 /* from stdio.h */
 #define NULL 0
+#define EOF (-1)
+int printf(const char *, ...);
 
 /* from stddef.h */
 typedef long unsigned int size_t;
@@ -19,14 +21,10 @@ void *memcpy(void *, const void *, size_t);
 void *memset(void *, int, size_t);
 int *memcmp(const void *, const void *, size_t);
 
-/* from stdio.h */
-#define EOF (-1)
-
 /* from pyport.h */
 #define PyAPI_FUNC(RTYPE) RTYPE
 #define PyAPI_DATA(RTYPE) extern RTYPE
 typedef unsigned int Py_uintptr_t;
-
 
 /* from pydebug.h */
 PyAPI_FUNC(void) Py_FatalError(const char *message);
@@ -37,19 +35,16 @@ PyAPI_FUNC(void) Py_FatalError(const char *message);
 #include "pymem.h"
 
 #include "object.h"
-
 #include "objimpl.h"
 
-#include "abstract.h"
-
-#include "classobject.h"
+#include "intobject.h"
+#include "boolobject.h"
+#include "longobject.h"
+#include "stringobject.h"
+#include "tupleobject.h"
 #include "dictobject.h"
 #include "moduleobject.h"
-#include "stringobject.h"
-#include "intobject.h"
-#include "longobject.h"
-#include "boolobject.h"
-#include "tupleobject.h"
+#include "classobject.h"
 #include "cellobject.h"
 
 #include "pystate.h"
@@ -57,5 +52,8 @@ PyAPI_FUNC(void) Py_FatalError(const char *message);
 #include "pythonrun.h"
 
 #include "import.h"
+
+#include "abstract.h"
+
 
 #endif /* !Py_PYTHON_H */
