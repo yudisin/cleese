@@ -1,0 +1,4 @@
+$Id$
+
+HalfPy - scaled-down version of Python with no interactive prompt, parser or compiler.
+
