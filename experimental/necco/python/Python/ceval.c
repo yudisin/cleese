@@ -332,6 +332,12 @@ eval_frame(PyFrameObject *f)
 			/* ERROR? */
 			break;
 
+		case LOAD_CONST:
+			x = GETITEM(consts, oparg);
+			Py_INCREF(x);
+			PUSH(x);
+			goto fast_next_opcode;
+
 		PREDICTED_WITH_ARG(STORE_FAST);
                 case STORE_FAST:
                         v = POP();
@@ -345,16 +351,44 @@ eval_frame(PyFrameObject *f)
                         Py_DECREF(v);
                         break;
 
-		case LOAD_CONST:
-			x = GETITEM(consts, oparg);
-			Py_INCREF(x);
-			PUSH(x);
-			goto fast_next_opcode;
 
 		PREDICTED(POP_TOP);
 		case POP_TOP:
 			v = POP();
 			Py_DECREF(v);
+			goto fast_next_opcode;
+
+		case ROT_TWO:
+			v = TOP();
+			w = SECOND();
+			SET_TOP(w);
+			SET_SECOND(v);
+			goto fast_next_opcode;
+
+		case ROT_THREE:
+			v = TOP();
+			w = SECOND();
+			x = THIRD();
+			SET_TOP(w);
+			SET_SECOND(x);
+			SET_THIRD(v);
+			goto fast_next_opcode;
+
+		case ROT_FOUR:
+			u = TOP();
+			v = SECOND();
+			w = THIRD();
+			x = FOURTH();
+			SET_TOP(v);
+			SET_SECOND(w);
+			SET_THIRD(x);
+			SET_FOURTH(u);
+			goto fast_next_opcode;
+
+		case DUP_TOP:
+			v = TOP();
+			Py_INCREF(v);
+			PUSH(v);
 			goto fast_next_opcode;
 
                 case UNARY_NEGATIVE:
@@ -744,6 +778,24 @@ eval_frame(PyFrameObject *f)
                                 continue;
                         }
                         break;
+
+		case BUILD_LIST:
+			x =  PyList_New(oparg);
+			if (x != NULL) {
+				for (; --oparg >= 0;) {
+					w = POP();
+					PyList_SET_ITEM(x, oparg, w);
+				}
+				PUSH(x);
+				continue;
+			}
+			break;
+
+		case BUILD_MAP:
+			x = PyDict_New();
+			PUSH(x);
+			if (x != NULL) continue;
+			break;
 
 		case LOAD_ATTR:
 			w = GETITEM(names, oparg);
