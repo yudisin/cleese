@@ -3,13 +3,11 @@
 
 #include "pymem.h"
 
-PyAPI_FUNC(void *) PyObject_Malloc(size_t);
-PyAPI_FUNC(void *) PyObject_Realloc(void *, size_t);
-PyAPI_FUNC(void)   PyObject_Free(void *);
-
 #define PyObject_MALLOC  PyMem_MALLOC
 #define PyObject_REALLOC PyMem_REALLOC
 #define PyObject_FREE    free
+
+PyAPI_FUNC(PyObject *) PyObject_Init(PyObject *, PyTypeObject *);
 
 #define PyObject_INIT(op, typeobj) \
 	( (op)->ob_type = (typeobj), _Py_NewReference((PyObject *)(op)), (op) )
@@ -31,8 +29,6 @@ PyAPI_FUNC(void)   PyObject_Free(void *);
 ( (type *) PyObject_Init( \
 	(PyObject *) PyObject_MALLOC( _PyObject_SIZE(typeobj) ), (typeobj)) )
 
-
-PyAPI_FUNC(PyObject *) PyObject_Init(PyObject *, PyTypeObject *);
 
 PyAPI_FUNC(PyVarObject *) _PyObject_GC_Resize(PyVarObject *, int);
 #define PyObject_GC_Resize(type, op, n) \
