@@ -4,6 +4,7 @@ import pyvga
 def splashup():
 	pyvga.set320x200x256()
 	pyvga.savevga()
+	pyvga.savefonts()
 	pyvga.framebuffer[:0xFA00] = pyvga.splashscreen[:0xFA00]
 
 splashup()
@@ -20,12 +21,13 @@ def decorate(off):
 
 def splashdown():
 	pyvga.restorevga()
+	pyvga.restorefonts()
 	pyvga.set80x25()
 
 ########################################
 
 #import pyfont
-#pyfont.write('hello, world! \00\01\02#$%')
+#pyfont.write(12,12, 'hello, world!')
 
 ########################################
 
