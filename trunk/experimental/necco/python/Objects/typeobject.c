@@ -39,6 +39,40 @@ type_call(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	return obj;
 }
 
+/* Internal API to look for a name through the MRO.
+   This returns a borrowed reference, and doesn't set an exception! */
+PyObject *
+_PyType_Lookup(PyTypeObject *type, PyObject *name)
+{
+	int i, n;
+	PyObject *mro, *res, *base, *dict;
+
+	/* Look in tp_dict of types in MRO */
+	mro = type->tp_mro;
+
+	/* If mro is NULL, the type is either not yet initialized
+	   by PyType_Ready(), or already cleared by type_clear().
+	   Either way the safest thing to do is to return NULL. */
+	if (mro == NULL)
+		return NULL;
+
+	assert(PyTuple_Check(mro));
+	n = PyTuple_GET_SIZE(mro);
+	for (i = 0; i < n; i++) {
+		base = PyTuple_GET_ITEM(mro, i);
+		if (PyClass_Check(base))
+			dict = ((PyClassObject *)base)->cl_dict;
+		else {
+			assert(PyType_Check(base));
+			dict = ((PyTypeObject *)base)->tp_dict;
+		}
+		assert(dict && PyDict_Check(dict));
+		res = PyDict_GetItem(dict, name);
+		if (res != NULL)
+			return res;
+	}
+	return NULL;
+}
 PyObject *
 PyType_GenericAlloc(PyTypeObject *type, int nitems)
 {
