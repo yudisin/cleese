@@ -34,12 +34,6 @@ PyObject_GC_Track(void *op)
 	_PyObject_GC_TRACK(op);
 }
 
-void
-_PyObject_GC_Track(PyObject *op)
-{
-    PyObject_GC_Track(op);
-}
-
 PyObject *
 _PyObject_GC_Malloc(size_t basicsize)
 {
