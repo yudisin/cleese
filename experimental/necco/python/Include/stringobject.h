@@ -22,6 +22,8 @@ PyAPI_FUNC(PyObject *) PyString_FromStringAndSize(const char *, int);
 PyAPI_FUNC(PyObject *) PyString_FromString(const char *);
 
 PyAPI_FUNC(char *) PyString_AsString(PyObject *);
+
+PyAPI_FUNC(void) PyString_ConcatAndDel(PyObject **, PyObject *);
 PyAPI_FUNC(int) _PyString_Resize(PyObject **, int);
 
 PyAPI_FUNC(int) _PyString_Eq(PyObject *, PyObject *);
@@ -34,5 +36,9 @@ PyAPI_FUNC(PyObject *) PyString_InternFromString(const char *);
 
 #define PyString_AS_STRING(op) (((PyStringObject *)(op))->ob_sval)
 #define PyString_GET_SIZE(op)  (((PyStringObject *)(op))->ob_size)
+
+/* _PyString_Join(sep, x) is like sep.join(x).  sep must be PyStringObject*,
+   x must be an iterable object. */
+PyAPI_FUNC(PyObject *) _PyString_Join(PyObject *sep, PyObject *x);
 
 #endif /* !Py_STRINGOBJECT_H */
