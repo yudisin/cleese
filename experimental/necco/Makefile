@@ -20,22 +20,21 @@ ECHOISR_PY = \
 		kernel/bochs/pyfont.py \
 		kernel/bochs/py8042.py
 
-
 KERNEL_PY = $(ECHOISR_PY)
 #KERNEL_PY = $(LED_PY)
 
 KERNEL_OBJS =	\
 		kernel/main.o \
 		kernel/kernel_bytecode.o \
-		kernel/blitmodule.o
+		kernel/blitmodule.o \
+		kernel/bufmodule.o
 
 KERNEL_OBJS +=	\
 		kernel/bochs/init.o \
 		kernel/bochs/israbc.o \
 		kernel/bochs/isrmodule.o \
 		kernel/bochs/portsmodule.o \
-		kernel/bochs/vgadata.o \
-		kernel/bochs/vgamodule.o
+		kernel/bochs/vgadata.o
 
 PYTHON_OBJS =	\
 		python/Python/pythonrun.o \

@@ -4,9 +4,9 @@ void
 Cleese_Initialize()
 {
 	_Ports_Init();
-	_VGA_Init();
 	_ISR_Init();
 	_Blit_Init();
+	_Buf_Init();
 }
 
 void

@@ -1,21 +1,31 @@
 import ports
-import vga
+import buf
+import blit
 
-framebuffer =vga.framebuffer
-textbuffer  =vga.textbuffer
-savebuffer  =vga.savebuffer
-splashscreen=vga.splashscreen
-font0	    =vga.font0
+splashscreen=buf.sym('splashscreen')
+framebuffer =buf.abs(0xa0000, 0x10000)
+textbuffer  =buf.abs(0xb8000, 4000)
+savebuffer  =buf.bss(4000)
+font0	    =buf.bss(8192)
+
+textmode = 1
 
 def exittext():
 	savebuffer[:] = textbuffer
 	set320x200x256()
 	savefonts()
+	global textmode; textmode = 0
 
 def entertext():
+	global textmode; textmode = 1
 	restorefonts()
 	set80x25()
 	textbuffer[:] = savebuffer
+
+def cleartext():
+	if textmode:	tb = textbuffer
+	else:		tb = savebuffer
+	blit.fill(tb, 4000, 0,0, 4000,1, ' \015 \015 \015 \015')
 
 def set640x480x16():
 	ports.inb(0x3DA)
@@ -156,7 +166,7 @@ def vgarechain():
 
 def savefonts():
 	vgaunchain()
-	font0[:] = framebuffer[:8192]
+	font0[:8192] = framebuffer[:8192]
 	vgarechain()
 
 def restorefonts():

@@ -3,6 +3,7 @@ import pyvga
 def splashup():
 	pyvga.exittext()
 	pyvga.framebuffer[:0xFA00] = pyvga.splashscreen[:0xFA00]
+	pyvga.cleartext()
 
 def splashdown():
 	pyvga.entertext()
@@ -10,8 +11,9 @@ def splashdown():
 splashup()
 
 ########################################
-#import pyfont
-#pyfont.write(12,12, 'hello, world!')
+import pyfont
+pyfont.setctx(pyvga.framebuffer, pyvga.font0)
+pyfont.write(12,12, 'hello, world!')
 ########################################
 
 import isr

@@ -14,9 +14,7 @@ blit_fill(PyObject *self, PyObject *args)
 	PyObject *ob, *obw, *ox, *oy, *odx, *ody, *ov;
 	PyBufferObject *b;
 	int bw, x, y, dx, dy;
-	char v;
 	void *off;
-	int i;
 
 	if(!PyArg_UnpackTuple(args, "fill", 7, 7,
 			&ob, &obw, &ox, &oy, &odx, &ody, &ov))
@@ -27,8 +25,7 @@ blit_fill(PyObject *self, PyObject *args)
 	   !PyInt_CheckExact(ox) ||
 	   !PyInt_CheckExact(oy) ||
 	   !PyInt_CheckExact(odx) ||
-	   !PyInt_CheckExact(ody) ||
-	   !PyInt_CheckExact(ov))
+	   !PyInt_CheckExact(ody))
 		return NULL;
 
 	b = (PyBufferObject *)ob;
@@ -40,12 +37,29 @@ blit_fill(PyObject *self, PyObject *args)
 	y  = PyInt_AS_LONG(oy);
 	dx = PyInt_AS_LONG(odx);
 	dy = PyInt_AS_LONG(ody);
-	v  = PyInt_AS_LONG(ov);
 
 	off = b->b_ptr + (bw * y) + x;
-	for(i = y; i < y + dy; ++i)	{
-		memset(off,v,dx);
-		off += bw;
+
+	if(PyInt_CheckExact(ov))	{
+		char v = PyInt_AS_LONG(ov);
+		int i;
+
+		for(i = y; i < y + dy; ++i)	{
+			memset(off,v,dx);
+			off += bw;
+		}
+	} else if(PyString_Check(ov))	{
+		PyStringObject *pso = (PyStringObject *)ov;
+		void *s = pso->ob_sval;
+		int l = pso->ob_size;
+		int i,j;
+		for(i = y; i < y + dy; ++i)	{
+			for(j = off; j < off + dx; j = j + l)	{
+				int n = ((j+l < off+dx) ? l : (off+dx-j));
+				memcpy(j, s, n);
+			}
+			off += bw;
+		}
 	}
 
 	Py_INCREF(Py_True);

@@ -1,52 +1,42 @@
-import vga
-import blit
+#somehow this initializes pyvga twice?# import pyvga
 
 """ pure python text rendering:
-    uses a subroutine call and a branch per pixel
-    too slow for my bochs, but runs fine on hardware """
+    still slow on my bochs, but runs fine on hardware """
 
-fb          = vga.framebuffer
+pal 	= '\037\067\067.\067...\067'
+fb	= ''
+font	= ''
 
-def pixel(val, off):
-	if val:	fb[off] = '\067'
-	else:	fb[off] = '\037'
+def setctx(_fb, _font):
+	global fb, font
+	fb = _fb
+	font = _font
 
-def render2(x, y, scan):
-	off = 0
-	i = 0
-	while i < y:
-		off = off + 320
-		i = i + 1
-	off = off + x
-	if scan:
-		pixel(scan & 0x80, off + 0)
-		pixel(scan & 0x40, off + 1)
-		pixel(scan & 0x20, off + 2)
-		pixel(scan & 0x10, off + 3)
-		pixel(scan & 0x08, off + 4)
-		pixel(scan & 0x04, off + 5)
-		pixel(scan & 0x02, off + 6)
-		pixel(scan & 0x01, off + 7)
-	else:
-		fb[off:off+8] = '\037\037\037\037\037\037\037\037'
-
-def render(x, y, glyph):
-	font0	= vga.font0
-	off = 0
-	i = 0
-	while i < glyph:
-		off = off + 32
-		i = i + 1
-
-	i = 0
-	while i < 16:
-		render2(x, y + i, ord(font0[off]))
+def render(fbo, glyph):
+	off = glyph << 5
+	loff = off + 16
+	while off < loff:
+		scan = ord(font[off])
+		if scan:
+			hisc = scan >> 4
+			fb[fbo + 0] = pal[hisc & 0x8]
+			fb[fbo + 1] = pal[hisc & 0x4]
+			fb[fbo + 2] = pal[hisc & 0x2]
+			fb[fbo + 3] = pal[hisc & 0x1]
+			fb[fbo + 4] = pal[scan & 0x8]
+			fb[fbo + 5] = pal[scan & 0x4]
+			fb[fbo + 6] = pal[scan & 0x2]
+			fb[fbo + 7] = pal[scan & 0x1]
+		else:   fb[fbo:fbo+8] = '\037\037\037\037\037\037\037\037'
+		fbo = fbo + 320
 		off = off + 1
-		i = i + 1
 
 def write(x, y, str):
+	fbo = (y << 8) + (y << 6) + x	# y * 320 + x
+
 	i = 0
-	while i < len(str):
-		render(x,y, ord(str[i]))
-		x = x + 8
+	last = len(str)
+	while i < last:
+		render(fbo, ord(str[i]))
+		fbo = fbo + 8
 		i = i + 1

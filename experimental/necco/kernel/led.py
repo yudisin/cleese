@@ -1,5 +1,4 @@
 import pyvga
-import vga
 import rtc
 import blit
 
@@ -11,38 +10,38 @@ vert = "\020\020\020\020\020\020\032\033\032\067\067\032\033\032\020\020\020\020
 def seven_segment(n):
 	if ord("\01\00\01\01\00\01\01\01\01\01\01\00\01\00\01\01"[n]):	v = 55
 	else:								v = 0
-	if v: blit.paste(vga.framebuffer,320, 140, 30, horz, 40)
-	else: blit.fill(vga.framebuffer,320, 140, 30, 40, 20, v)
+	if v: blit.paste(pyvga.framebuffer,320, 140, 30, horz, 40)
+	else: blit.fill(pyvga.framebuffer,320, 140, 30, 40, 20, v)
 
 	if ord("\01\00\00\00\01\01\01\00\01\01\00\01\01\00\01\01"[n]):	v = 55
 	else:								v = 0
-	if v: blit.paste(vga.framebuffer,320, 130, 50, vert, 20)
-	else: blit.fill(vga.framebuffer,320, 130, 50, 20, 40, v)
+	if v: blit.paste(pyvga.framebuffer,320, 130, 50, vert, 20)
+	else: blit.fill(pyvga.framebuffer,320, 130, 50, 20, 40, v)
 
 	if ord("\01\01\01\01\01\00\00\01\01\01\01\00\00\01\00\00"[n]):	v = 55
 	else:								v = 0
-	if v: blit.paste(vga.framebuffer,320, 170, 50, vert, 20)
-	else: blit.fill(vga.framebuffer,320, 170, 50, 20, 40, v)
+	if v: blit.paste(pyvga.framebuffer,320, 170, 50, vert, 20)
+	else: blit.fill(pyvga.framebuffer,320, 170, 50, 20, 40, v)
 
 	if ord("\00\00\01\01\01\01\01\00\01\01\01\01\00\01\01\01"[n]):	v = 55
 	else:								v = 0
-	if v: blit.paste(vga.framebuffer,320, 140, 90, horz, 40)
-	else: blit.fill(vga.framebuffer,320, 140, 90, 40, 20, v)
+	if v: blit.paste(pyvga.framebuffer,320, 140, 90, horz, 40)
+	else: blit.fill(pyvga.framebuffer,320, 140, 90, 40, 20, v)
 
 	if ord("\01\00\01\00\00\00\01\00\01\00\01\01\01\01\01\01"[n]):	v = 55
 	else:								v = 0
-	if v: blit.paste(vga.framebuffer,320, 130, 110, vert, 20)
-	else: blit.fill(vga.framebuffer,320, 130,110, 20, 40, v)
+	if v: blit.paste(pyvga.framebuffer,320, 130, 110, vert, 20)
+	else: blit.fill(pyvga.framebuffer,320, 130,110, 20, 40, v)
 
 	if ord("\01\01\00\01\01\01\01\01\01\01\01\01\00\01\00\00"[n]):	v = 55
 	else:								v = 0
-	if v: blit.paste(vga.framebuffer,320, 170, 110, vert, 20)
-	else: blit.fill(vga.framebuffer,320, 170,110, 20, 40, v)
+	if v: blit.paste(pyvga.framebuffer,320, 170, 110, vert, 20)
+	else: blit.fill(pyvga.framebuffer,320, 170,110, 20, 40, v)
 
 	if ord("\01\00\01\01\00\01\01\00\01\00\01\01\01\01\01\00"[n]):	v = 55
 	else:								v = 0
-	if v: blit.paste(vga.framebuffer,320, 140, 150, horz, 40)
-	else: blit.fill(vga.framebuffer,320, 140,150, 40, 20, v)
+	if v: blit.paste(pyvga.framebuffer,320, 140, 150, horz, 40)
+	else: blit.fill(pyvga.framebuffer,320, 140,150, 40, 20, v)
 
 ########################################
 
@@ -59,12 +58,12 @@ def clk_isr():
 ########################################
 
 pyvga.set320x200x256()
-vga.framebuffer[:0xFA00] = vga.splashscreen[:0xFA00]
+pyvga.framebuffer[:0xFA00] = pyvga.splashscreen[:0xFA00]
 
 isr.setvec(clk_isr, key_isr)
 
 while isr.ticker < 40:
 	pass
-blit.fill(vga.framebuffer,320,0,0,320,200,0)
+blit.fill(pyvga.framebuffer,320,0,0,320,200,0)
 while 1:
 	pass
