@@ -74,16 +74,3 @@ _PyObject_GC_NewVar(PyTypeObject *tp, int nitems)
 		op = PyObject_INIT_VAR(op, tp, nitems);
 	return op;
 }
-
-PyVarObject *
-_PyObject_GC_Resize(PyVarObject *op, int nitems)
-{
-	const size_t basicsize = _PyObject_VAR_SIZE(op->ob_type, nitems);
-	PyGC_Head *g = AS_GC(op);
-	g = PyObject_REALLOC(g,  sizeof(PyGC_Head) + basicsize);
-	if (g == NULL)
-	  return NULL; /* NO MEM */
-	op = (PyVarObject *) FROM_GC(g);
-	op->ob_size = nitems;
-	return op;
-}
