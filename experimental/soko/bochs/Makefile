@@ -3,17 +3,24 @@ CC       = gcc -Wall -O2 -nostdinc -fno-builtin
 #CC      += -fno-leading-underscore
 #CC	 += -DVERBOSE_MALLOC -DVERBOSE_MEMCPY -DVERBOSE_MARSHAL
 LD       = ld -nostdlib
+SYMTAB	 = -defsym symtab=defsyms
 PYTHON	 = python
 
 SRC	 = ..
 include ../Make.ind
 
+#KERNEL_PY	= stacktest.py
+#KERNEL_PY	= led.py          pyvga.py py8042.py rtc.py
+
 KERNEL_PY	= soko.py keyb.py pyvga.py py8042.py
+SYMTAB		= -defsym symtab=sokosyms
+RES_OBJS 	= sokores.o
 
 KERNEL_OBJS +=	\
 		init.o \
 		isrmodule.o \
 		portsmodule.o \
+		stackabc.o \
 		vgadata.o
 
 LIB_OBJS +=	\
@@ -40,5 +47,6 @@ libc.a:		$(LIB_OBJS)
 libhw.a:	$(HW_OBJS)
 	ar r $@ $?
 
-cleese: $(LDSCRIPT) $(CRT0) $(KERNEL_OBJS) libpython.a libc.a libhw.a
-	$(LD) -Map cleese.map -o $@ -T $^
+LIBS	= libpython.a libc.a libhw.a 
+cleese: $(LDSCRIPT) $(CRT0) $(KERNEL_OBJS) $(RES_OBJS) $(LIBS)
+	$(LD) -Map cleese.map $(SYMTAB) -o $@ -T $^
