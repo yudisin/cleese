@@ -256,6 +256,7 @@ def mrewrite(tup, c):
 		(u,c) = toks.pop()
 		if a == '*':		y = ('',   '',   c,    b   )
 		elif t == 'memref':	y = (b[0], c,    b[2], b[3])
+		elif t == 'reg':	y = ('',   b,     c,   '1' )
 		elif u == 'memref':	y = (b,    c[1], c[2], c[3])
 		else:			y = (b,    c,    '',   '1' )
 		toks.append(('memref', y))

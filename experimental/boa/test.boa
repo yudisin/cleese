@@ -26,7 +26,7 @@ def opcodes():
            ipsum"""
 
 
-conv = 273
+conv = 270
 units = "degrees C/K"
 
 def control():
@@ -45,7 +45,7 @@ def memref():
 	eax = [ecx*2]
 	eax = [disp]
 
-	eax = [esi + ecx*2]
+	eax = [esi + ecx]
 	eax = [esi + disp]
 	eax = [ecx*2 + disp]
 
