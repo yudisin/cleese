@@ -217,6 +217,12 @@ PyNumber_Remainder(PyObject *v, PyObject *w)
 }
 
 PyObject *
+PyObject_CallObject(PyObject *o, PyObject *a)
+{
+	return PyEval_CallObjectWithKeywords(o, a, NULL);
+}
+
+PyObject *
 PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw)
 {
         ternaryfunc call;
@@ -261,6 +267,54 @@ PyObject_CallFunction(PyObject *callable, char *format, ...)
 	retval = PyObject_Call(callable, args, NULL);
 
 	Py_DECREF(args);
+
+	return retval;
+}
+
+PyObject *
+PyObject_CallMethod(PyObject *o, char *name, char *format, ...)
+{
+	va_list va;
+	PyObject *args, *func = 0, *retval;
+
+	if (o == NULL || name == NULL)
+		return null_error();
+
+	func = PyObject_GetAttrString(o, name);
+	if (func == NULL) {
+		PyErr_SetString(PyExc_AttributeError, name);
+		return 0;
+	}
+
+	if (!PyCallable_Check(func))
+		return type_error("call of non-callable attribute");
+
+	if (format && *format) {
+		va_start(va, format);
+		args = Py_VaBuildValue(format, va);
+		va_end(va);
+	}
+	else
+		args = PyTuple_New(0);
+
+	if (!args)
+		return NULL;
+
+	if (!PyTuple_Check(args)) {
+		PyObject *a;
+
+		a = PyTuple_New(1);
+		if (a == NULL)
+			return NULL;
+		if (PyTuple_SetItem(a, 0, args) < 0)
+			return NULL;
+		args = a;
+	}
+
+	retval = PyObject_Call(func, args, NULL);
+
+	Py_DECREF(args);
+	Py_DECREF(func);
 
 	return retval;
 }
