@@ -225,6 +225,15 @@ eval_frame(PyFrameObject *f)
 			Py_DECREF(v);
 			break;
 
+		case PRINT_NEWLINE:
+			printf("\n");
+			break;
+
+		case RETURN_VALUE:
+			retval = POP();
+			why = WHY_RETURN;
+			break;
+
 		default:
 		  Py_FatalError("unknown opcode");
 		} /* switch */
