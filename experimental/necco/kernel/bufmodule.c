@@ -34,13 +34,17 @@ buf_abs(PyObject *self, PyObject *args)
 	return PyBuffer_FromReadWriteMemory((void *)addr, len);
 }
 
-extern void *bootscreen;
 
-static struct {
+struct _st_struct {
 	char *name;
 	void *ptr;
 	int len;
-} symtab[] = {
+};
+
+extern struct _st_struct symtab[];
+
+extern void *bootscreen;
+struct _st_struct defsyms[] = {
 	{"splashscreen", &bootscreen, 0xFA00 },
 	{NULL, NULL, 0},
 };
