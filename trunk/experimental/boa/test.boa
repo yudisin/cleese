@@ -52,4 +52,8 @@ def memref():
 	eax = [esi + ecx*2 + disp]
 	eax = [edi + ebx*2 + 0x10]
 
+def sizing():
+	eax = 33
+	[eax] = 33
+
 asm('# escape sequence')
