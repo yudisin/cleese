@@ -27,6 +27,9 @@ strlen(const char *p)
 	return(x);
 }
 
+/* see mem.s */
+extern void bcopy(const void *, void *, size_t);
+
 void *
 memcpy(void *dest, const void *src, size_t cnt)
 {
