@@ -112,12 +112,39 @@ ports_repinsb(PyObject *self, PyObject *args)
 	return (PyObject *)list;
 }
 
+static PyObject *
+ports_repinsw(PyObject *self, PyObject *args)
+{
+	PyObject *ad, *c, *list;
+	int i, count;
+	unsigned short port;
+
+	ad = PyTuple_GET_ITEM(args, 0);
+	c = PyTuple_GET_ITEM(args, 1);
+
+	if (!PyInt_CheckExact(ad) || !PyInt_CheckExact(c))
+		return NULL;
+    
+	port = PyInt_AS_LONG(ad);
+	count = PyInt_AS_LONG(c);
+
+	list = PyList_New(count);
+
+	for (i = 0; i < count; i++) {
+		unsigned short data = inw(port);
+		PyList_SetItem(list, i, PyInt_FromLong(data));
+	}
+
+	return (PyObject *)list;
+}
+
 static PyMethodDef ports_methods[] = {
  	{"inb",	        ports_inb,		METH_VARARGS, NULL/*doc*/},
 	{"outb",	ports_outb,		METH_VARARGS, NULL/*doc*/},
 	{"querypair",	ports_querypair,	METH_VARARGS, NULL/*doc*/},
 	{"writevec",	ports_writevec,		METH_VARARGS, NULL/*doc*/},
 	{"repinsb",	ports_repinsb,		METH_VARARGS, NULL/*doc*/},
+	{"repinsw",	ports_repinsw,		METH_VARARGS, NULL/*doc*/},
 	{NULL,		NULL},
 };
 
