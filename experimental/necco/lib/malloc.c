@@ -25,5 +25,7 @@ void *
 realloc(void *mem, size_t newsize)
 {
   /* @@@ need to know the previous size */
-  return mem;
+  void *new = malloc(newsize);
+  memcpy(new, mem, newsize); /* too much, but this is a kludge */
+  return new;
 }

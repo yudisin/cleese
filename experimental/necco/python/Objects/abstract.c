@@ -540,10 +540,19 @@ PyObject_GetItem(PyObject *o, PyObject *key)
 		return m->mp_subscript(o, key);
 	}
 
-	s = o->ob_type->tp_as_sequence;
-	if (s && s->sq_item) {
-		return s->sq_item(o, key);
-	}
+        if (o->ob_type->tp_as_sequence) {
+		return PySequence_GetItem(o, PyInt_AS_LONG(key));
+//                if (PyInt_Check(key))
+//                        return PySequence_GetItem(o, PyInt_AsLong(key));
+//                else if (PyLong_Check(key)) {
+//                       long key_value = PyLong_AsLong(key);
+//                        if (key_value == -1 && PyErr_Occurred())
+//                                return NULL;
+//                        return PySequence_GetItem(o, key_value);
+//                }
+//                return type_error("sequence index must be integer");
+//		return NULL;
+        }
 
 	/* @@@ */
 	Py_FatalError("unsubscriptable object");
