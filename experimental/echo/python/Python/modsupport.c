@@ -104,10 +104,10 @@ do_mkvalue(char **p_format, va_list *p_va)
 {
 	for (;;) {
 		switch (*(*p_format)++) {
-//		case '(':
-//			return do_mktuple(p_format, p_va, ')',
-//					  countformat(*p_format, ')'));
-//
+		case '(':
+			return do_mktuple(p_format, p_va, ')',
+					  countformat(*p_format, ')'));
+
 //		case '[':
 //			return do_mklist(p_format, p_va, ']',
 //					 countformat(*p_format, ']'));
@@ -216,16 +216,7 @@ Py_VaBuildValue(char *format, va_list va)
 	int n = countformat(f, '\0');
 	va_list lva;
 
-#ifdef VA_LIST_IS_ARRAY
-	xxx
-	memcpy(lva, va, sizeof(va_list));
-#else
-#ifdef __va_copy
-	__va_copy(lva, va);
-#else
 	lva = va;
-#endif
-#endif
 
 	if (n < 0)
 		return NULL;

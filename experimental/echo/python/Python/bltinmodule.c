@@ -4,6 +4,16 @@
 #include "Python.h"
 
 static PyObject *
+builtin___import__(PyObject *self, PyObject *args)
+{
+	char *name;
+	/* @@@ hack until I get ParseTuple working */
+	name = ((PyStringObject *)(((PyTupleObject *)args)->ob_item[0]))->ob_sval;
+	
+	return PyImport_ImportModuleEx(name);
+}
+
+static PyObject *
 builtin_inb(PyObject *self, PyObject *args)
 {
 	PyObject *v = NULL;
@@ -37,6 +47,7 @@ builtin_textbuffer(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef builtin_methods[] = {
+ 	{"__import__",	builtin___import__, METH_VARARGS, NULL/*doc*/},
  	{"inb",	        builtin_inb,        METH_VARARGS, NULL/*doc*/},
 	{"textbuffer",	builtin_textbuffer, METH_VARARGS, NULL/*doc*/},
 	{NULL,		NULL},
