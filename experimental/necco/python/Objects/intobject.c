@@ -194,6 +194,194 @@ PyInt_Fini(void)
 		return Py_NotImplemented;	\
 	}
 
+static PyObject *
+int_add(PyIntObject *v, PyIntObject *w)
+{
+	register long a, b, x;
+	CONVERT_TO_LONG(v, a);
+	CONVERT_TO_LONG(w, b);
+	x = a + b;
+	if ((x^a) >= 0 || (x^b) >= 0)
+		return PyInt_FromLong(x);
+	if (err_ovf("integer addition"))
+		return NULL;
+	return PyLong_Type.tp_as_number->nb_add((PyObject *)v, (PyObject *)w);
+}
+
+static PyObject *
+int_sub(PyIntObject *v, PyIntObject *w)
+{
+	register long a, b, x;
+	CONVERT_TO_LONG(v, a);
+	CONVERT_TO_LONG(w, b);
+	x = a - b;
+	if ((x^a) >= 0 || (x^~b) >= 0)
+		return PyInt_FromLong(x);
+	if (err_ovf("integer subtraction"))
+		return NULL;
+	return PyLong_Type.tp_as_number->nb_subtract((PyObject *)v,
+						     (PyObject *)w);
+}
+
+/*
+Integer overflow checking for * is painful:  Python tried a couple ways, but
+they didn't work on all platforms, or failed in endcases (a product of
+-sys.maxint-1 has been a particular pain).
+
+Here's another way:
+
+The native long product x*y is either exactly right or *way* off, being
+just the last n bits of the true product, where n is the number of bits
+in a long (the delivered product is the true product plus i*2**n for
+some integer i).
+
+The native double product (double)x * (double)y is subject to three
+rounding errors:  on a sizeof(long)==8 box, each cast to double can lose
+info, and even on a sizeof(long)==4 box, the multiplication can lose info.
+But, unlike the native long product, it's not in *range* trouble:  even
+if sizeof(long)==32 (256-bit longs), the product easily fits in the
+dynamic range of a double.  So the leading 50 (or so) bits of the double
+product are correct.
+
+We check these two ways against each other, and declare victory if they're
+approximately the same.  Else, because the native long product is the only
+one that can lose catastrophic amounts of information, it's the native long
+product that must have overflowed.
+*/
+
+static PyObject *
+int_mul(PyObject *v, PyObject *w)
+{
+	long a, b;
+	long longprod;			/* a*b in native long arithmetic */
+	double doubled_longprod;	/* (double)longprod */
+	double doubleprod;		/* (double)a * (double)b */
+
+	CONVERT_TO_LONG(v, a);
+	CONVERT_TO_LONG(w, b);
+	longprod = a * b;
+	doubleprod = (double)a * (double)b;
+	doubled_longprod = (double)longprod;
+
+	/* Fast path for normal case:  small multiplicands, and no info
+	   is lost in either method. */
+	if (doubled_longprod == doubleprod)
+		return PyInt_FromLong(longprod);
+
+	/* Somebody somewhere lost info.  Close enough, or way off?  Note
+	   that a != 0 and b != 0 (else doubled_longprod == doubleprod == 0).
+	   The difference either is or isn't significant compared to the
+	   true value (of which doubleprod is a good approximation).
+	*/
+	{
+		const double diff = doubled_longprod - doubleprod;
+		const double absdiff = diff >= 0.0 ? diff : -diff;
+		const double absprod = doubleprod >= 0.0 ? doubleprod :
+							  -doubleprod;
+		/* absdiff/absprod <= 1/32 iff
+		   32 * absdiff <= absprod -- 5 good bits is "close enough" */
+		if (32.0 * absdiff <= absprod)
+			return PyInt_FromLong(longprod);
+		else if (err_ovf("integer multiplication"))
+			return NULL;
+		else
+			return PyLong_Type.tp_as_number->nb_multiply(v, w);
+	}
+}
+
+/* Return type of i_divmod */
+enum divmod_result {
+	DIVMOD_OK,		/* Correct result */
+	DIVMOD_OVERFLOW,	/* Overflow, try again using longs */
+	DIVMOD_ERROR		/* Exception raised */
+};
+
+static enum divmod_result
+i_divmod(register long x, register long y,
+         long *p_xdivy, long *p_xmody)
+{
+	long xdivy, xmody;
+
+	if (y == 0) {
+		PyErr_SetString(PyExc_ZeroDivisionError,
+				"integer division or modulo by zero");
+		return DIVMOD_ERROR;
+	}
+	/* (-sys.maxint-1)/-1 is the only overflow case. */
+	if (y == -1 && x < 0 && x == -x) {
+		if (err_ovf("integer division"))
+			return DIVMOD_ERROR;
+		return DIVMOD_OVERFLOW;
+	}
+	xdivy = x / y;
+	xmody = x - xdivy * y;
+	/* If the signs of x and y differ, and the remainder is non-0,
+	 * C89 doesn't define whether xdivy is now the floor or the
+	 * ceiling of the infinitely precise quotient.  We want the floor,
+	 * and we have it iff the remainder's sign matches y's.
+	 */
+	if (xmody && ((y ^ xmody) < 0) /* i.e. and signs differ */) {
+		xmody += y;
+		--xdivy;
+		assert(xmody && ((y ^ xmody) >= 0));
+	}
+	*p_xdivy = xdivy;
+	*p_xmody = xmody;
+	return DIVMOD_OK;
+}
+
+static PyObject *
+int_div(PyIntObject *x, PyIntObject *y)
+{
+	long xi, yi;
+	long d, m;
+	CONVERT_TO_LONG(x, xi);
+	CONVERT_TO_LONG(y, yi);
+	switch (i_divmod(xi, yi, &d, &m)) {
+	case DIVMOD_OK:
+		return PyInt_FromLong(d);
+	case DIVMOD_OVERFLOW:
+		return PyLong_Type.tp_as_number->nb_divide((PyObject *)x,
+							   (PyObject *)y);
+	default:
+		return NULL;
+	}
+}
+
+static PyObject *
+int_classic_div(PyIntObject *x, PyIntObject *y)
+{
+	long xi, yi;
+	long d, m;
+	CONVERT_TO_LONG(x, xi);
+	CONVERT_TO_LONG(y, yi);
+	//	if (Py_DivisionWarningFlag &&
+	//	    PyErr_Warn(PyExc_DeprecationWarning, "classic int division") < 0)
+	//		return NULL;
+	switch (i_divmod(xi, yi, &d, &m)) {
+	case DIVMOD_OK:
+		return PyInt_FromLong(d);
+	case DIVMOD_OVERFLOW:
+		return PyLong_Type.tp_as_number->nb_divide((PyObject *)x,
+							   (PyObject *)y);
+	default:
+		return NULL;
+	}
+}
+
+static PyObject *
+int_true_divide(PyObject *v, PyObject *w)
+{
+	/* If they aren't both ints, give someone else a chance.  In
+	   particular, this lets int/long get handled by longs, which
+	   underflows to 0 gracefully if the long is too big to convert
+	   to float. */
+	if (PyInt_Check(v) && PyInt_Check(w))
+		return PyFloat_Type.tp_as_number->nb_true_divide(v, w);
+	Py_INCREF(Py_NotImplemented);
+	return Py_NotImplemented;
+}
+
 static int
 int_nonzero(PyIntObject *v)
 {
@@ -274,10 +462,10 @@ int_print(PyIntObject *v)
 }
 
 static PyNumberMethods int_as_number = {
-	0, //(binaryfunc)int_add,	/*nb_add*/
-	0, //(binaryfunc)int_sub,	/*nb_subtract*/
-	0, //(binaryfunc)int_mul,	/*nb_multiply*/
-	0, //(binaryfunc)int_classic_div, /*nb_divide*/
+	(binaryfunc)int_add,	/*nb_add*/
+	(binaryfunc)int_sub,	/*nb_subtract*/
+	(binaryfunc)int_mul,	/*nb_multiply*/
+	(binaryfunc)int_classic_div, /*nb_divide*/
 	0, //(binaryfunc)int_mod,	/*nb_remainder*/
 	0, //(binaryfunc)int_divmod,	/*nb_divmod*/
 	0, //(ternaryfunc)int_pow,	/*nb_power*/
