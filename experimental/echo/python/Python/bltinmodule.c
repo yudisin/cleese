@@ -4,6 +4,26 @@
 #include "Python.h"
 
 static PyObject *
+builtin_inb(PyObject *self, PyObject *args)
+{
+	PyObject *v = NULL;
+
+	if (!PyArg_UnpackTuple(args, "inb", 1, 1, &v))
+		return NULL;
+	
+	if (!PyInt_CheckExact(v)) {
+		/* ERROR */
+		return NULL;
+	}
+
+	unsigned short port = PyInt_AS_LONG(v);
+	unsigned char data = in(port);
+	PyObject *result = PyInt_FromLong(data);
+
+	return result;
+}
+
+static PyObject *
 builtin_raw_input(PyObject *self, PyObject *args)
 {
 	PyObject *v = NULL;
@@ -49,7 +69,8 @@ builtin_raw_input(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef builtin_methods[] = {
- 	{"raw_input",	builtin_raw_input,  METH_VARARGS, NULL/*doc*/},
+ 	{"inb",	        builtin_inb,        METH_VARARGS, NULL/*doc*/},
+ 	{"raw_input",   builtin_raw_input,  METH_VARARGS, NULL/*doc*/},
 	{NULL,		NULL},
 };
 
