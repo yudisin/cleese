@@ -4,8 +4,6 @@
 #include "pymem.h"
 
 #define PyObject_MALLOC  PyMem_MALLOC
-#define PyObject_REALLOC PyMem_REALLOC
-#define PyObject_FREE    free
 
 PyAPI_FUNC(PyObject *) PyObject_Init(PyObject *, PyTypeObject *);
 

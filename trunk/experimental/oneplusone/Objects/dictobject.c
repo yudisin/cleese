@@ -165,8 +165,6 @@ dictresize(dictobject *mp, int minused)
 		}
 	}
 
-	if (is_oldtable_malloced)
-		PyMem_DEL(oldtable);
 	return 0;
 }
 
