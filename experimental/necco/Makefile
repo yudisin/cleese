@@ -1,6 +1,6 @@
 .SUFFIXES:	.boa
 
-CC       = gcc -Wall -O2 -nostdinc -fno-builtin
+CC       = gcc -Wall -O2 -nostdinc -fno-builtin -fno-strict-aliasing
 #CC      += -fno-leading-underscore
 #CC	+= -DVERBOSE_MALLOC -DVERBOSE_MEMCPY -DVERBOSE_MARSHAL
 LD       = ld -nostdlib
