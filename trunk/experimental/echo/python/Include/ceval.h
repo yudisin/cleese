@@ -3,4 +3,10 @@
 
 PyAPI_FUNC(PyObject *) PyEval_GetBuiltins(void);
 
+PyAPI_FUNC(int) Py_AddPendingCall(int (*func)(void *), void *arg);
+PyAPI_FUNC(int) Py_MakePendingCalls(void);
+
+PyAPI_DATA(volatile int) _Py_Ticker;
+PyAPI_DATA(int) _Py_CheckInterval;
+
 #endif /* !Py_CEVAL_H */
