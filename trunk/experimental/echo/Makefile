@@ -27,7 +27,10 @@ OBJECT_OBJS =	\
 		python/Objects/object.o \
 		python/Objects/tupleobject.o \
 		python/Objects/moduleobject.o \
-		python/Objects/methodobject.o
+		python/Objects/methodobject.o \
+		python/Objects/abstract.o \
+		python/Objects/classobject.o \
+		python/Objects/funcobject.o
 
 PYTHON_OBJS =	\
 		python/Python/pythonrun.o \
