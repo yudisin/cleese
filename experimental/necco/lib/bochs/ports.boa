@@ -1,0 +1,11 @@
+def outp():
+	eax = [esp + 8]
+	edx = [esp + 4]
+	outb(dx, al)
+
+def inp():
+	edx = [esp + 4]
+	inb(al, dx)
+
+asm(".global out; out = outp")
+asm(".global in; in = inp")
