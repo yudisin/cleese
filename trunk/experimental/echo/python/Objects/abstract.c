@@ -92,6 +92,14 @@ binary_op(PyObject *v, PyObject *w, const int op_slot, const char *op_name)
 	return result;
 }
 
+#define BINARY_FUNC(func, op, op_name) \
+    PyObject * \
+    func(PyObject *v, PyObject *w) { \
+	    return binary_op(v, w, NB_SLOT(op), op_name); \
+    }
+
+BINARY_FUNC(PyNumber_And, nb_and, "&")
+
 PyObject *
 PyNumber_Remainder(PyObject *v, PyObject *w)
 {
