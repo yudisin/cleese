@@ -3,3 +3,4 @@ bochsout.txt
 c.img
 grub.img
 kernel.lst
+kernel.map
