@@ -1,13 +1,11 @@
 #include "Python.h"
 
-extern void print(const char *);
-
 static int initialized = 0;
 
 void
 Py_Initialize(void)
 {
-	print(" Initializing ");
+	printf("Initializing\n");
 	
 	LOG("> Py_Initialize\n"); {
 
@@ -78,8 +76,6 @@ Py_Finalize(void)
 void
 Py_FatalError(const char *msg)
 {
-	char x[] = {'F', 'A', 'T', 'A', 'L', ' ', 'E', 'R', 'R', 'O', 'R', ':', ' ', '\0'};
-	print(x);
-	print(msg);
+	printf("FATAL ERROR: %s\n", msg);
 	while (1) {}
 }

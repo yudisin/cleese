@@ -36,7 +36,7 @@ PyModule_GetDict(PyObject *m)
 {
 	PyObject *d;
 	if (!PyModule_Check(m)) {
-		print(" *** NOT A MODULE *** ");
+		printf("*** NOT A MODULE ***\n");
 		return NULL;
 	}
 	d = ((PyModuleObject *)m) -> md_dict;

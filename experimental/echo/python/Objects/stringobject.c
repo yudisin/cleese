@@ -201,7 +201,7 @@ PyString_Format(PyObject *format, PyObject *args)
 			case 'G':
 			case 'c':
 
-				print(" FORMAT NOT SUPPORTED YET ");
+				printf("FORMAT NOT SUPPORTED YET\n");
 				goto error;
 			default:
 				/* ERROR */
@@ -454,7 +454,7 @@ static PyBufferProcs string_as_buffer = {
 static int
 string_print(PyStringObject *op)
 {
-	print(op->ob_sval);
+	printf(op->ob_sval);
 	return 0;
 }
 

@@ -34,13 +34,7 @@ void *
 memcpy(void *dest, const void *src, size_t cnt)
 {
 #ifdef VERBOSE_MEMCPY
-	print("memcpy ");
-	print_hex(cnt);
-	print(" from ");
-	print_hex(src);
-	print(" to ");
-	print_hex(dest);
-	print("   ");
+	printf("memcpy %x from %x to %x\n", cnt, src, dest);
 #endif
 
 	bcopy(src, dest, cnt);
