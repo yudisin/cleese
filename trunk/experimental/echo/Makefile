@@ -26,7 +26,8 @@ OBJECT_OBJS =	\
 		python/Objects/typeobject.o \
 		python/Objects/object.o \
 		python/Objects/tupleobject.o \
-		python/Objects/moduleobject.o
+		python/Objects/moduleobject.o \
+		python/Objects/methodobject.o
 
 PYTHON_OBJS =	\
 		python/Python/pythonrun.o \
@@ -34,7 +35,10 @@ PYTHON_OBJS =	\
 		python/Python/import.o \
 		python/Python/marshal.o \
 		python/Python/ceval.o \
-		python/Python/compile.o
+		python/Python/compile.o \
+		python/Python/bltinmodule.o \
+		python/Python/getargs.o \
+		python/Python/modsupport.o
 
 MODULE_OBJS =	\
 		python/Modules/gcmodule.o
