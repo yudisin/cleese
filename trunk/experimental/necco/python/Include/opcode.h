@@ -2,6 +2,10 @@
 #define Py_OPCODE_H
 
 #define POP_TOP		1
+#define ROT_TWO		2
+#define ROT_THREE	3
+#define DUP_TOP		4
+#define ROT_FOUR	5
 
 #define UNARY_NEGATIVE	11
 #define UNARY_NOT	12
@@ -49,7 +53,8 @@
 #define LOAD_NAME	101	/* Index in name list */
 
 #define BUILD_TUPLE	102	/* Number of tuple items */
-
+#define BUILD_LIST	103	/* Number of list items */
+#define BUILD_MAP	104	/* Always zero for now */
 #define LOAD_ATTR	105	/* Index in name list */
 #define COMPARE_OP	106	/* Comparison operator */
 
