@@ -218,6 +218,8 @@ PyAPI_FUNC(int) PyType_IsSubtype(PyTypeObject *, PyTypeObject *);
 PyAPI_DATA(PyTypeObject) PyType_Type;
 PyAPI_DATA(PyTypeObject) PyBaseObject_Type;
 
+PyAPI_FUNC(int) PyType_Ready(PyTypeObject *);
+
 PyAPI_FUNC(int) PyObject_Print(PyObject *);
 
 PyAPI_FUNC(PyObject *) PyObject_RichCompare(PyObject *, PyObject *, int);
