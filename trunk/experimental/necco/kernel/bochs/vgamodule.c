@@ -1,6 +1,6 @@
 #include "Python.h"
 
-static unsigned char savebuffer[4000];
+static unsigned char savebuffer[8000];
 extern unsigned char bootscreen[];
 
 PyObject *
@@ -21,8 +21,10 @@ _VGA_Init(void)
 		PyBuffer_FromReadWriteMemory((void *)0xa0000, 0x10000));
 	SETBUILTIN("textbuffer",
 		PyBuffer_FromReadWriteMemory((void *)0xb8000, 80*25*2));
+	SETBUILTIN("textfonts",
+		PyBuffer_FromReadWriteMemory((void *)0xc0000, 80*25*2));
 	SETBUILTIN("savebuffer",
-		PyBuffer_FromReadWriteMemory((void *)savebuffer, 80*25*2));
+		PyBuffer_FromReadWriteMemory((void *)savebuffer, 2*80*25*2));
 	SETBUILTIN("splashscreen",
 		PyBuffer_FromMemory(bootscreen, 0x10000));
 

@@ -47,7 +47,11 @@ def seven_segment(n):
 ########################################
 
 import isr
+import ports
 
+def key_isr():
+	ports.outb(0xfe,0x64)	# reboot!
+	
 def clk_isr():
 	if isr.ticker > 50:
 		seven_segment(rtc.seconds() & 0xF)
@@ -57,7 +61,7 @@ def clk_isr():
 pyvga.set320x200x256()
 vga.framebuffer[:0xFA00] = vga.splashscreen[:0xFA00]
 
-isr.setvec(clk_isr)
+isr.setvec(clk_isr, key_isr)
 
 while isr.ticker < 40:
 	pass
