@@ -3,4 +3,4 @@
 
 PyAPI_FUNC(PyObject *) PyMarshal_ReadObjectFromString(char *, int);
 
-#endif /* !Py_MARHSAL_H */
+#endif /* !Py_MARSHAL_H */

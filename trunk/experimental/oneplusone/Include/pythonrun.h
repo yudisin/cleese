@@ -2,9 +2,6 @@
 
 #ifndef Py_PYTHONRUN_H
 #define Py_PYTHONRUN_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 PyAPI_FUNC(void) Py_Initialize(void);
 PyAPI_FUNC(void) Py_Finalize(void);
@@ -20,7 +17,4 @@ PyAPI_FUNC(int) _PyInt_Init(void);
 PyAPI_FUNC(void) PyFrame_Fini(void);
 PyAPI_FUNC(void) PyInt_Fini(void);
 
-#ifdef __cplusplus
-}
-#endif
 #endif /* !Py_PYTHONRUN_H */

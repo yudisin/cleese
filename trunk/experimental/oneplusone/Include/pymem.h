@@ -1,8 +1,8 @@
 #ifndef Py_PYMEM_H
 #define Py_PYMEM_H
 
-#define PyMem_MALLOC(n) malloc((n) ? (n) : 1)
-#define PyMem_REALLOC(p, n)     realloc((p), (n) ? (n) : 1)
+#define PyMem_MALLOC(n)     malloc((n) ? (n) : 1)
+#define PyMem_REALLOC(p, n) realloc((p), (n) ? (n) : 1)
 
 #define PyMem_FREE           	PyObject_FREE
 
