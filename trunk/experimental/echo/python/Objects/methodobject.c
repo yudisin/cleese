@@ -28,6 +28,59 @@ PyCFunction_NewEx(PyMethodDef *ml, PyObject *self, PyObject *module)
 	return (PyObject *)op;
 }
 
+PyObject *
+PyCFunction_Call(PyObject *func, PyObject *arg, PyObject *kw)
+{
+	PyCFunctionObject* f = (PyCFunctionObject*)func;
+	PyCFunction meth = PyCFunction_GET_FUNCTION(func);
+	PyObject *self = PyCFunction_GET_SELF(func);
+	int size;
+
+	switch (PyCFunction_GET_FLAGS(func) & ~(METH_CLASS | METH_STATIC)) {
+	case METH_VARARGS:
+		if (kw == NULL || PyDict_Size(kw) == 0)
+			return (*meth)(self, arg);
+		break;
+	case METH_VARARGS | METH_KEYWORDS:
+	case METH_OLDARGS | METH_KEYWORDS:
+		return (*(PyCFunctionWithKeywords)meth)(self, arg, kw);
+	case METH_NOARGS:
+		if (kw == NULL || PyDict_Size(kw) == 0) {
+			size = PyTuple_GET_SIZE(arg);
+			if (size == 0)
+				return (*meth)(self, NULL);
+			/* ERROR */
+			return NULL;
+		}
+		break;
+	case METH_O:
+		if (kw == NULL || PyDict_Size(kw) == 0) {
+			size = PyTuple_GET_SIZE(arg);
+			if (size == 1)
+				return (*meth)(self, PyTuple_GET_ITEM(arg, 0));
+			/* ERROR */
+			return NULL;
+		}
+		break;
+	case METH_OLDARGS:
+		/* the really old style */
+		if (kw == NULL || PyDict_Size(kw) == 0) {
+			size = PyTuple_GET_SIZE(arg);
+			if (size == 1)
+				arg = PyTuple_GET_ITEM(arg, 0);
+			else if (size == 0)
+				arg = NULL;
+			return (*meth)(self, arg);
+		}
+		break;
+	default:
+		/* ERROR */
+		return NULL;
+	}
+	/* ERROR */
+	return NULL;
+}
+
 PyTypeObject PyCFunction_Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
