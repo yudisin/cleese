@@ -5,6 +5,7 @@ CC       = gcc -Wall -O2 -nostdinc -fno-builtin #-DVERBOSE_MALLOC -DVERBOSE_MEMC
 LD       = ld -T $(LDSCRIPT) -nostdlib
 
 KERNEL_OBJS =	\
+		kernel/res.o \
 		kernel/main.o \
 		kernel/kernel_bytecode.o
 

@@ -23,8 +23,12 @@ def kbd_isr():
 
 def clk_isr():
 	tb[158] = '01234567'[ticks & 7]
+	framebuffer[0x800] = '\000\020\360\377'[ticks & 3]
 
 setvec()
 
 while 1:
 	ticks = ticks + 1
+	if not (ticks & 0xfff):
+		if (ticks & 0x1000): videomode(1)
+		else:		     videomode(0)

@@ -78,11 +78,32 @@ builtin_setvec(PyObject *self, PyObject *args)
 	return Py_True;
 }
 
+static PyObject *
+builtin_videomode(PyObject *self, PyObject *args)
+{
+	PyObject *v = NULL;
+
+	if (!PyArg_UnpackTuple(args, "inb", 1, 1, &v))
+		return NULL;
+	
+	if (!PyInt_CheckExact(v))
+		return NULL;
+
+	switch(PyInt_AS_LONG(v))	{
+	case 0:	set80x25();		break;
+	case 1: set640x480x16();	break;
+	case 2: set320x200x256();	break;
+	}
+	Py_INCREF(Py_True);
+	return Py_True;
+}
+
 static PyMethodDef builtin_methods[] = {
  	{"__import__",	builtin___import__, METH_VARARGS, NULL/*doc*/},
  	{"inb",	        builtin_inb,        METH_VARARGS, NULL/*doc*/},
 	{"textbuffer",	builtin_textbuffer, METH_VARARGS, NULL/*doc*/},
 	{"setvec",	builtin_setvec,     METH_VARARGS, NULL/*doc*/},
+	{"videomode",	builtin_videomode,  METH_VARARGS, NULL/*doc*/},
 	{NULL,		NULL},
 };
 
