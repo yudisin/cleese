@@ -16,6 +16,103 @@ static PyObject *load_args(PyObject ***, int);
 extern int print(const char *);
 extern int print_hex(long number);
 
+/* Mechanism whereby asynchronously executing callbacks (e.g. UNIX
+   signal handlers or Mac I/O completion routines) can schedule calls
+   to a function to be called synchronously.
+   The synchronous function is called with one void* argument.
+   It should return 0 for success or -1 for failure -- failure should
+   be accompanied by an exception.
+
+   If registry succeeds, the registry function returns 0; if it fails
+   (e.g. due to too many pending calls) it returns -1 (without setting
+   an exception condition).
+
+   Note that because registry may occur from within signal handlers,
+   or other asynchronous events, calling malloc() is unsafe!
+
+#ifdef WITH_THREAD
+   Any thread can schedule pending calls, but only the main thread
+   will execute them.
+#endif
+
+   XXX WARNING!  ASYNCHRONOUSLY EXECUTING CODE!
+   There are two possible race conditions:
+   (1) nested asynchronous registry calls;
+   (2) registry calls made while pending calls are being processed.
+   While (1) is very unlikely, (2) is a real possibility.
+   The current code is safe against (2), but not against (1).
+   The safety against (2) is derived from the fact that only one
+   thread (the main thread) ever takes things out of the queue.
+
+   XXX Darn!  With the advent of thread state, we should have an array
+   of pending calls per thread in the thread state!  Later...
+*/
+
+#define NPENDINGCALLS 32
+static struct {
+	int (*func)(void *);
+	void *arg;
+} pendingcalls[NPENDINGCALLS];
+static volatile int pendingfirst = 0;
+static volatile int pendinglast = 0;
+static volatile int things_to_do = 0;
+
+int
+Py_AddPendingCall(int (*func)(void *), void *arg)
+{
+	static int busy = 0;
+	int i, j;
+	/* XXX Begin critical section */
+	/* XXX If you want this to be safe against nested
+	   XXX asynchronous calls, you'll have to work harder! */
+	if (busy)
+		return -1;
+	busy = 1;
+	i = pendinglast;
+	j = (i + 1) % NPENDINGCALLS;
+	if (j == pendingfirst) {
+		busy = 0;
+		return -1; /* Queue full */
+	}
+	pendingcalls[i].func = func;
+	pendingcalls[i].arg = arg;
+	pendinglast = j;
+
+	_Py_Ticker = 0;
+	things_to_do = 1; /* Signal main loop */
+	busy = 0;
+	/* XXX End critical section */
+	return 0;
+}
+
+int
+Py_MakePendingCalls(void)
+{
+	static int busy = 0;
+	if (busy)
+		return 0;
+	busy = 1;
+	things_to_do = 0;
+	for (;;) {
+		int i;
+		int (*func)(void *);
+		void *arg;
+		i = pendingfirst;
+		if (i == pendinglast)
+			break; /* Queue empty */
+		func = pendingcalls[i].func;
+		arg = pendingcalls[i].arg;
+		pendingfirst = (i + 1) % NPENDINGCALLS;
+		if (func(arg) < 0) {
+			busy = 0;
+			things_to_do = 1; /* We're not done yet */
+			return -1;
+		}
+	}
+	busy = 0;
+	return 0;
+}
+
 /* The interpreter's recursion limit */
 
 static int recursion_limit = 1000;
@@ -31,6 +128,11 @@ enum why_code {
 		WHY_CONTINUE,	/* 'continue' statement */
 		WHY_YIELD	/* 'yield' operator */
 };
+
+/* for manipulating the thread switch and periodic "stuff" - used to be
+   per thread, now just a pair o' globals */
+int _Py_CheckInterval = 100;
+volatile int _Py_Ticker = 100;
 
 PyObject *
 PyEval_EvalCode(PyCodeObject *co, PyObject *globals, PyObject *locals)
@@ -178,7 +280,26 @@ eval_frame(PyFrameObject *f)
 
 	for (;;) {
 
-	  /* @@@ pending calls elided */
+		/* Do periodic things.  Doing this every time through
+		   the loop would add too much overhead, so we do it
+		   only every Nth instruction.  We also do it if
+		   ``things_to_do'' is set, i.e. when an asynchronous
+		   event needs attention (e.g. a signal handler or
+		   async I/O handler); see Py_AddPendingCall() and
+		   Py_MakePendingCalls() above. */
+
+		if (--_Py_Ticker < 0) {
+			/* @@@ check for SETUP_FINALLY elided */
+
+			_Py_Ticker = _Py_CheckInterval;
+			tstate->tick_counter++;
+			if (things_to_do) {
+				if (Py_MakePendingCalls() < 0) {
+					why = WHY_EXCEPTION;
+					goto on_error;
+				}
+			}
+		}
 
 	fast_next_opcode:
 		f->f_lasti = INSTR_OFFSET();
@@ -391,6 +512,8 @@ eval_frame(PyFrameObject *f)
 			Py_FatalError("unknown opcode");
 		} /* switch */
 
+	  on_error:
+		
 		if (why == WHY_NOT) {
 			if (err == 0 && x != NULL) {
 					continue; /* Normal, fast path */
