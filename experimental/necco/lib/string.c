@@ -1,5 +1,16 @@
+/* most of this code comes from VSTa */
+
 #include "sys/types.h"
 
+char *
+strcpy(char *dest, const char *src)
+{
+	char *p = dest;
+
+	while (*p++ = *src++)
+		;
+	return(dest);
+}
 int
 strcmp(const char *s1, const char *s2)
 {
@@ -10,6 +21,18 @@ strcmp(const char *s1, const char *s2)
 	}
 	return((int)s1[-1] - (int)s2[0]);
 	return(1);
+}
+
+char *
+strcat(char *dest, const char *src)
+{
+	char *p;
+
+	for (p = dest; *p; ++p)
+		;
+	while (*p++ = *src++)
+		;
+	return(dest);
 }
 
 size_t
@@ -26,6 +49,20 @@ strlen(const char *p)
 	return(x);
 }
 
+char *
+strrchr(const char *p, int c)
+{
+	char *q = 0, c2;
+
+	do {
+		c2 = *p++;
+		if (c == c2) {
+			q = (char *)p;
+		}
+	} while (c2);
+	return(q ? (q-1) : 0);
+}
+
 /* see mem.s */
 extern void bcopy(const void *, void *, size_t);
 
@@ -37,6 +74,13 @@ memcpy(void *dest, const void *src, size_t cnt)
 #endif
 
 	bcopy(src, dest, cnt);
+	return(dest);
+}
+
+void *
+memmove(void *dest, const void *src, size_t length)
+{
+	bcopy(src, dest, length);
 	return(dest);
 }
 
