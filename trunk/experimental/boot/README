@@ -1,0 +1,20 @@
+This is a very simple example of a bootloader on a floppy booting to a
+protected mode kernel on a hard drive.
+
+TO RUN
+
+- uncompress c.img
+- You'll need Bochs 2.0.2 installed
+- run Bochs from bootp.bxrc
+- this will boot the floppy image bootp.img which will, in turn, boot the
+  simple kernel on the hard drive image c.img
+
+TO RECOMPILE
+
+- Recompilation of KERNEL.BIN requires djgpp
+  (I've had problems with cygwin's gcc)
+- type:
+    make -f Makefile.djgpp
+- if you recompile KERNEL.BIN, copy it to c.img with:
+    mtools -c mcopy KERNEL.BIN C:
+
