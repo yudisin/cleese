@@ -21,13 +21,13 @@ PyObject_Init(PyObject *op, PyTypeObject *tp)
 static int
 internal_print(PyObject *op)
 {
-  return (*op->ob_type->tp_print)(op);
+	return (*op->ob_type->tp_print)(op);
 }
 
 int
 PyObject_Print(PyObject *op)
 {
-  return internal_print(op);
+	return internal_print(op);
 }
 
 long
@@ -66,6 +66,41 @@ PyObject_Str(PyObject *v)
 	return res;
 }
 
+
+/* Coerce two numeric types to the "larger" one.
+   Increment the reference count on each argument.
+   Return value:
+   -1 if an error occurred;
+   0 if the coercion succeeded (and then the reference counts are increased);
+   1 if no coercion is possible (and no error is raised).
+*/
+int
+PyNumber_CoerceEx(PyObject **pv, PyObject **pw)
+{
+	register PyObject *v = *pv;
+	register PyObject *w = *pw;
+	int res;
+
+	/* Shortcut only for old-style types */
+	if (v->ob_type == w->ob_type &&
+	    !PyType_HasFeature(v->ob_type, Py_TPFLAGS_CHECKTYPES))
+	{
+		Py_INCREF(v);
+		Py_INCREF(w);
+		return 0;
+	}
+	if (v->ob_type->tp_as_number && v->ob_type->tp_as_number->nb_coerce) {
+		res = (*v->ob_type->tp_as_number->nb_coerce)(pv, pw);
+		if (res <= 0)
+			return res;
+	}
+	if (w->ob_type->tp_as_number && w->ob_type->tp_as_number->nb_coerce) {
+		res = (*w->ob_type->tp_as_number->nb_coerce)(pw, pv);
+		if (res <= 0)
+			return res;
+	}
+	return 1;
+}
 
 
 /* ... */
