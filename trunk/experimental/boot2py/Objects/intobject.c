@@ -65,12 +65,12 @@ PyInt_Fini(void)
 	/* clean up if small integers pre-created */
 }
 
-extern int print_digit(long);
+extern int print_hex(long);
 
 static int
 int_print(PyIntObject *v)
 {
-	print_digit(v->ob_ival);
+	print_hex(v->ob_ival);
 	return 0;
 }
 
