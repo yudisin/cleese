@@ -863,6 +863,16 @@ PyEval_GetBuiltins(void)
 }
 
 PyObject *
+PyEval_GetLocals(void)
+{
+	PyFrameObject *current_frame = PyEval_GetFrame();
+	if (current_frame == NULL)
+		return NULL;
+	PyFrame_FastToLocals(current_frame);
+	return current_frame->f_locals;
+}
+
+PyObject *
 PyEval_GetGlobals(void)
 {
 	PyFrameObject *current_frame = PyEval_GetFrame();

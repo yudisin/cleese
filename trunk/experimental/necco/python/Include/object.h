@@ -238,6 +238,9 @@ PyAPI_FUNC(int) PyType_IsSubtype(PyTypeObject *, PyTypeObject *);
 PyAPI_DATA(PyTypeObject) PyType_Type;
 PyAPI_DATA(PyTypeObject) PyBaseObject_Type;
 
+#define PyType_Check(op) PyObject_TypeCheck(op, &PyType_Type)
+#define PyType_CheckExact(op) ((op)->ob_type == &PyType_Type)
+
 PyAPI_FUNC(int) PyType_Ready(PyTypeObject *);
 PyAPI_FUNC(PyObject *) PyType_GenericAlloc(PyTypeObject *, int);
 PyAPI_FUNC(PyObject *) PyType_GenericNew(PyTypeObject *,

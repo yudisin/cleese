@@ -23,6 +23,8 @@ PyAPI_FUNC(void) PyErr_NormalizeException(PyObject**, PyObject**, PyObject**);
 PyAPI_DATA(PyObject *) PyExc_Exception;
 PyAPI_DATA(PyObject *) PyExc_StopIteration;
 
+PyAPI_DATA(PyObject *) PyExc_AttributeError;
+
 PyAPI_DATA(PyObject *) PyExc_IndexError;
 PyAPI_DATA(PyObject *) PyExc_KeyError;
 
@@ -36,13 +38,16 @@ PyAPI_DATA(PyObject *) PyExc_SystemError;
 PyAPI_DATA(PyObject *) PyExc_TypeError;
 
 PyAPI_DATA(PyObject *) PyExc_ValueError;
+PyAPI_DATA(PyObject *) PyExc_ZeroDivisionError;
 
 PyAPI_DATA(PyObject *) PyExc_MemoryErrorInst;
 
 /* Predefined warning categories */
 PyAPI_DATA(PyObject *) PyExc_Warning;
 PyAPI_DATA(PyObject *) PyExc_DeprecationWarning;
+PyAPI_DATA(PyObject *) PyExc_OverflowWarning;
 PyAPI_DATA(PyObject *) PyExc_RuntimeWarning;
+PyAPI_DATA(PyObject *) PyExc_FutureWarning;
 
 
 /* Convenience functions */
