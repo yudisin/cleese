@@ -243,10 +243,13 @@ PyAPI_FUNC(PyObject *) PyType_GenericAlloc(PyTypeObject *, int);
 PyAPI_FUNC(PyObject *) PyType_GenericNew(PyTypeObject *,
 					 PyObject *, PyObject *);
 
+/* Generic operations on objects */
 PyAPI_FUNC(int) PyObject_Print(PyObject *);
+
 PyAPI_FUNC(PyObject *) PyObject_Repr(PyObject *);
 PyAPI_FUNC(PyObject *) PyObject_Str(PyObject *);
 
+PyAPI_FUNC(int) PyObject_Compare(PyObject *, PyObject *);
 PyAPI_FUNC(PyObject *) PyObject_RichCompare(PyObject *, PyObject *, int);
 PyAPI_FUNC(int) PyObject_RichCompareBool(PyObject *, PyObject *, int);
 PyAPI_FUNC(PyObject *) PyObject_GetAttrString(PyObject *, char *);

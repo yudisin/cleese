@@ -4,13 +4,17 @@
 
 /* Module support interface */
 
+#include "stdarg.h"
+
 PyAPI_FUNC(int) PyArg_Parse(PyObject *, char *, ...);
 PyAPI_FUNC(int) PyArg_ParseTuple(PyObject *, char *, ...);
 PyAPI_FUNC(int) PyArg_ParseTupleAndKeywords(PyObject *, PyObject *,
                                                   char *, char **, ...);
-
 PyAPI_FUNC(int) PyArg_UnpackTuple(PyObject *, char *, int, int, ...);
 PyAPI_FUNC(PyObject *) Py_BuildValue(char *, ...);
+
+PyAPI_FUNC(int) PyArg_VaParse(PyObject *, char *, va_list);
+PyAPI_FUNC(PyObject *) Py_VaBuildValue(char *, va_list);
 
 #define PYTHON_API_VERSION 1012
 
