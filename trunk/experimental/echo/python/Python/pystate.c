@@ -1,6 +1,7 @@
 #include "Python.h"
 
 PyThreadState *_PyThreadState_Current = NULL;
+PyThreadFrameGetter _PyThreadState_GetFrame = NULL;
 
 PyInterpreterState *
 PyInterpreterState_New(void)
@@ -28,10 +29,19 @@ PyInterpreterState_Delete(PyInterpreterState *interp)
 	/* TO DO */
 }
 
+/* Default implementation for _PyThreadState_GetFrame */
+static struct _frame *
+threadstate_getframe(PyThreadState *self)
+{
+	return self->frame;
+}
+
 PyThreadState *
 PyThreadState_New(PyInterpreterState *interp)
 {
 	PyThreadState *tstate = PyMem_NEW(PyThreadState, 1);
+	if (_PyThreadState_GetFrame == NULL)
+		_PyThreadState_GetFrame = threadstate_getframe;
 
 	if (tstate != NULL) {
 		tstate ->interp = interp;
