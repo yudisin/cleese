@@ -29,12 +29,15 @@
 
 #define JUMP_ABSOLUTE	113	/* Target byte offset from beginning of code */
 
+#define LOAD_GLOBAL	116	/* Index in name list */
+
 #define SETUP_LOOP	120	/* Target address (absolute) */
 
 #define LOAD_FAST	124	/* Local variable number */
 
 /* CALL_FUNCTION_XXX opcodes defined below depend on this definition */
 #define CALL_FUNCTION	131	/* #args + (#kwargs<<8) */
+#define MAKE_FUNCTION	132	/* #defaults */
 
 #define HAS_ARG(op) ((op) >= HAVE_ARGUMENT)
 
