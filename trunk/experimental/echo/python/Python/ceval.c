@@ -154,7 +154,7 @@ eval_frame(PyFrameObject *f)
 	register enum why_code why; /* Reason for block stack unwind */
 	register int err;	/* Error status -- nonzero if error */
 	register PyObject *x;	/* Result object -- NULL if error */
-	register PyObject *v;	/* Temporary objects popped off stack */
+	register PyObject *t, *u, *v;	/* Temporary objects popped off stack */
 	register PyObject *w;
 	register PyObject **fastlocals, **freevars;
 	PyObject *retval = NULL;	/* Return value */
@@ -391,32 +391,66 @@ eval_frame(PyFrameObject *f)
 			if (x != NULL) continue;
 			break;
 
-		case BINARY_SUBSCR:
-			w = POP();
-			v = TOP();
-			if (PyList_CheckExact(v) && PyInt_CheckExact(w)) {
-				/* INLINE: list[int] */
-				long i = PyInt_AsLong(w);
-				if (i < 0)
-					i += PyList_GET_SIZE(v);
-				if (i < 0 ||
-				    i >= PyList_GET_SIZE(v)) {
-					/* ERROR */
-					printf("list index out of range\n");
-					x = NULL;
-				}
-				else {
-					x = PyList_GET_ITEM(v, i);
-					Py_INCREF(x);
-				}
-			}
-			else
-				x = PyObject_GetItem(v, w);
-			Py_DECREF(v);
-			Py_DECREF(w);
-			SET_TOP(x);
-			if (x != NULL) continue;
-			break;
+                case STORE_SLICE+0:
+                case STORE_SLICE+1:
+                case STORE_SLICE+2:
+                case STORE_SLICE+3:
+                        if ((opcode-STORE_SLICE) & 2)
+                                w = POP();
+                        else
+                                w = NULL;
+                        if ((opcode-STORE_SLICE) & 1)
+                                v = POP();
+                        else
+                                v = NULL;
+                        u = POP();
+                        t = POP();
+                        err = assign_slice(u, v, w, t); /* u[v:w] = t */
+                        Py_DECREF(t);
+                        Py_DECREF(u);
+                        Py_XDECREF(v);
+                        Py_XDECREF(w);
+                        if (err == 0) continue;
+                        break;
+
+                case STORE_SUBSCR:
+                        w = POP();
+                        v = POP();
+                        u = POP();
+                        /* v[w] = u */
+                        err = PyObject_SetItem(v, w, u);
+                        Py_DECREF(u);
+                        Py_DECREF(v);
+                        Py_DECREF(w);
+                        if (err == 0) continue;
+                        break;
+
+                case BINARY_SUBSCR:
+                        w = POP();
+                        v = TOP();
+                        if (PyList_CheckExact(v) && PyInt_CheckExact(w)) {
+                                /* INLINE: list[int] */
+                                long i = PyInt_AsLong(w);
+                                if (i < 0)
+                                        i += PyList_GET_SIZE(v);
+                                if (i < 0 ||
+                                    i >= PyList_GET_SIZE(v)) {
+                                        /* ERROR */
+                                        printf("list index out of range\n");
+                                        x = NULL;
+                                }
+                                else {
+                                        x = PyList_GET_ITEM(v, i);
+                                        Py_INCREF(x);
+                                }
+                        }
+                        else
+                                x = PyObject_GetItem(v, w);
+                        Py_DECREF(v);
+                        Py_DECREF(w);
+                        SET_TOP(x);
+                        if (x != NULL) continue;
+                        break;
 
 		case BINARY_AND:
 			w = POP();
@@ -488,7 +522,7 @@ eval_frame(PyFrameObject *f)
 			Py_INCREF(x);
 			PUSH(x);
 			break;
-
+			
 		case LOAD_GLOBAL:
 			w = GETITEM(names, oparg);
 			if (PyString_CheckExact(w)) {
@@ -567,7 +601,7 @@ eval_frame(PyFrameObject *f)
 			if (x != NULL)
 				continue;
 			break;
-
+			
 		case MAKE_FUNCTION:
 			v = POP(); /* code object */
 			x = PyFunction_New(v, f->f_globals);
@@ -578,7 +612,7 @@ eval_frame(PyFrameObject *f)
 				if (v == NULL) {
 					Py_DECREF(x);
 					x = NULL;
-					break;
+			break;
 				}
 				while (--oparg >= 0) {
 					w = POP();
@@ -590,6 +624,9 @@ eval_frame(PyFrameObject *f)
 			PUSH(x);
 			break;
 			
+		case SET_LINENO:
+			break;
+
 		default:
 			printf("%x", opcode);
 			Py_FatalError("unknown opcode");
@@ -877,4 +914,31 @@ call_function(PyObject ***pp_stack, int oparg)
 		Py_DECREF(w);
 	}
 	return x;
+}
+
+int
+_PyEval_SliceIndex(PyObject *v, int *pi)
+{
+        if (v != NULL) {
+                long x;
+		x = PyInt_AS_LONG(v);
+                *pi = x;
+        }
+        return 1;
+}
+
+
+static int
+assign_slice(PyObject *u, PyObject *v, PyObject *w, PyObject *x)
+        /* u[v:w] = x */
+{
+        int ilow = 0, ihigh = 1<<31;
+        if (!_PyEval_SliceIndex(v, &ilow))
+                return -1;
+        if (!_PyEval_SliceIndex(w, &ihigh))
+                return -1;
+//        if (x == NULL)
+//               return PySequence_DelSlice(u, ilow, ihigh);
+//        else
+                return PySequence_SetSlice(u, ilow, ihigh, x);
 }

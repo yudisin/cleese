@@ -5,6 +5,37 @@
 
 
 
+int
+PyObject_SetItem(PyObject *o, PyObject *key, PyObject *value)
+{
+        PyMappingMethods *m;
+
+        if (o == NULL || key == NULL || value == NULL) {
+//               null_error();
+                return -1;
+        }
+        m = o->ob_type->tp_as_mapping;
+        if (m && m->mp_ass_subscript)
+                return m->mp_ass_subscript(o, key, value);
+
+        if (o->ob_type->tp_as_sequence) {
+//                if (PyInt_Check(key))
+//                        return PySequence_SetItem(o, PyInt_AsLong(key), value);
+                        return PySequence_SetItem(o, PyInt_AS_LONG(key), value);
+//                else if (PyLong_Check(key)) {
+//                        long key_value = PyLong_AsLong(key);
+//                        if (key_value == -1 && PyErr_Occurred())
+//                                return -1;
+//                        return PySequence_SetItem(o, key_value, value);
+//                }
+//                type_error("sequence index must be integer");
+                return -1;
+        }
+
+//        type_error("object does not support item assignment");
+        return -1;
+}
+
 
 #define NB_SLOT(x) offsetof(PyNumberMethods, x)
 #define NB_BINOP(nb_methods, slot) \
@@ -116,6 +147,72 @@ PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw)
 		return result;
 	}
 	return NULL;
+}
+
+int
+PySequence_SetItem(PyObject *s, int i, PyObject *o)
+{
+        PySequenceMethods *m;
+
+        if (s == NULL) {
+//                null_error();
+                return -1;
+        }
+
+        m = s->ob_type->tp_as_sequence;
+        if (m && m->sq_ass_item) {
+                if (i < 0) {
+                        if (m->sq_length) {
+                                int l = (*m->sq_length)(s);
+                                if (l < 0)
+                                        return -1;
+                                i += l;
+                        }
+                }
+                return m->sq_ass_item(s, i, o);
+        }
+
+//        type_error("object doesn't support item assignment");
+        return -1;
+}
+
+int
+PySequence_SetSlice(PyObject *s, int i1, int i2, PyObject *o)
+{
+        PySequenceMethods *m;
+        PyMappingMethods *mp;
+
+        if (s == NULL) {
+//                null_error();
+                return -1;
+        }
+
+        m = s->ob_type->tp_as_sequence;
+        if (m && m->sq_ass_slice) {
+                if (i1 < 0 || i2 < 0) {
+                        if (m->sq_length) {
+                                int l = (*m->sq_length)(s);
+                                if (l < 0)
+                                        return -1;
+                                if (i1 < 0)
+                                        i1 += l;
+                                if (i2 < 0)
+                                        i2 += l;
+                        }
+                }
+                return m->sq_ass_slice(s, i1, i2, o);
+//        } else if ((mp = s->ob_type->tp_as_mapping) && mp->mp_ass_subscript) {
+//               int res;
+//                PyObject *slice = sliceobj_from_intint(i1, i2);
+//              if (!slice)
+//                      return -1;
+//              res = mp->mp_ass_subscript(s, slice, o);
+//              Py_DECREF(slice);
+//              return res;
+        }
+
+//        type_error("object doesn't support slice assignment");
+        return -1;
 }
 
 PyObject *

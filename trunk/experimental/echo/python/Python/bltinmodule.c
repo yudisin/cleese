@@ -23,8 +23,22 @@ builtin_inb(PyObject *self, PyObject *args)
 	}
 }
 
+static PyObject *
+builtin_textbuffer(PyObject *self, PyObject *args)
+{
+	static PyObject *tb = NULL;
+
+	if(!tb)	{
+		tb = PyBuffer_FromReadWriteMemory((void *)0xb8000, 80*25*2);
+	}
+	Py_INCREF(tb);
+
+	return tb;
+}
+
 static PyMethodDef builtin_methods[] = {
  	{"inb",	        builtin_inb,        METH_VARARGS, NULL/*doc*/},
+	{"textbuffer",	builtin_textbuffer, METH_VARARGS, NULL/*doc*/},
 	{NULL,		NULL},
 };
 

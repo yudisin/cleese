@@ -7,8 +7,11 @@
 
 #define BINARY_MODULO	22
 #define BINARY_ADD 23
+#define BINARY_SUBSCR   25
 
-#define BINARY_SUBSCR	25
+#define STORE_SLICE	40
+
+#define STORE_SUBSCR	60
 
 #define BINARY_AND	64
 
@@ -36,6 +39,8 @@
 #define SETUP_LOOP	120	/* Target address (absolute) */
 
 #define LOAD_FAST	124	/* Local variable number */
+
+#define SET_LINENO	127
 
 /* CALL_FUNCTION_XXX opcodes defined below depend on this definition */
 #define CALL_FUNCTION	131	/* #args + (#kwargs<<8) */
