@@ -10,7 +10,7 @@ ports.o: ports.c
 	gcc -c ports.c -o ports.o
 
 kernel.o: main.o video.o ports.o
-	ld -Ttext 0xFF80000 -o kernel.o main.o video.o ports.o
+	ld -Ttext 0xFF800000 -o kernel.o main.o video.o ports.o
 
 KERNEL.BIN: kernel.o
 	objcopy -R .note -R .comment -S -O binary kernel.o KERNEL.BIN
