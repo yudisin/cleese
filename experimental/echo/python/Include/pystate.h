@@ -77,4 +77,9 @@ PyAPI_DATA(PyThreadState *) _PyThreadState_Current;
 
 #define PyThreadState_GET() (_PyThreadState_Current)
 
+typedef struct _frame *(*PyThreadFrameGetter)(PyThreadState *self_);
+
+/* hook for PyEval_GetFrame(), requested for Psyco */
+PyAPI_DATA(PyThreadFrameGetter) _PyThreadState_GetFrame;
+
 #endif /* !Py_PYSTATE_H */
