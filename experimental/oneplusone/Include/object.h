@@ -236,6 +236,9 @@ extern int _PyObject_SlotCompare(PyObject *, PyObject *);
 #define Py_TPFLAGS_HAVE_RICHCOMPARE (1L<<5)
 #define Py_TPFLAGS_HAVE_CLASS (1L<<8)
 
+#define Py_TPFLAGS_READY (1L<<12)
+#define Py_TPFLAGS_READYING (1L<<13)
+
 #define PyType_HasFeature(t,f) (((t)->tp_flags & (f)) != 0)
 
 #define _Py_NewReference(op) (			\
