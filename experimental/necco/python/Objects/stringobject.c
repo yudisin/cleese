@@ -544,7 +544,12 @@ string_subscript(PyStringObject* self, PyObject* item)
 			i += PyString_GET_SIZE(self);
 		return string_item(self,i);
 	}
-	Py_FatalError("only integer indices supported");
+	/* ... */
+	else {
+		PyErr_SetString(PyExc_TypeError, 
+				"string indices must be integers");
+		return NULL;
+	}
 }
 
 static PyObject *
