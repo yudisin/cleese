@@ -14,3 +14,16 @@ malloc(size_t size)
 	curr += size;
 	return (void *) prev;
 }
+
+void
+free(void *mem)
+{
+  /* @@@ do nothing for now */
+}
+
+void *
+realloc(void *mem, size_t newsize)
+{
+  /* @@@ need to new the previous size */
+  return mem;
+}
