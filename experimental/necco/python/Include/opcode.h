@@ -6,6 +6,8 @@
 #define UNARY_NEGATIVE	11
 #define UNARY_NOT	12
 
+#define BINARY_MULTIPLY	20
+#define BINARY_DIVIDE	21
 #define BINARY_MODULO	22
 #define BINARY_ADD      23
 #define BINARY_SUBTRACT 24
@@ -26,6 +28,8 @@
 
 #define PRINT_ITEM      71
 #define PRINT_NEWLINE   72
+
+#define BREAK_LOOP      80
 
 #define RETURN_VALUE    83
 
@@ -53,7 +57,10 @@
 
 #define LOAD_GLOBAL	116	/* Index in name list */
 
+#define CONTINUE_LOOP	119	/* Start of loop (absolute) */
 #define SETUP_LOOP	120	/* Target address (absolute) */
+#define SETUP_EXCEPT	121	/* "" */
+#define SETUP_FINALLY	122	/* "" */
 
 #define LOAD_FAST	124	/* Local variable number */
 #define STORE_FAST	125	/* Local variable number */

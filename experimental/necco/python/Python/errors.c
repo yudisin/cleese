@@ -93,8 +93,93 @@ PyErr_ExceptionMatches(PyObject *exc)
 	return PyErr_GivenExceptionMatches(PyErr_Occurred(), exc);
 }
 
+/* Used in many places to normalize a raised exception, including in
+   eval_code2(), do_raise(), and PyErr_Print()
+*/
+void
+PyErr_NormalizeException(PyObject **exc, PyObject **val, PyObject **tb)
+{
+	PyObject *type = *exc;
+	PyObject *value = *val;
+	PyObject *inclass = NULL;
+	PyObject *initial_tb = NULL;
 
-/* ... */
+	if (type == NULL) {
+		/* There was no exception, so nothing to do. */
+		return;
+	}
+
+	/* If PyErr_SetNone() was used, the value will have been actually
+	   set to NULL.
+	*/
+	if (!value) {
+		value = Py_None;
+		Py_INCREF(value);
+	}
+
+	if (PyInstance_Check(value))
+		inclass = (PyObject*)((PyInstanceObject*)value)->in_class;
+
+	/* Normalize the exception so that if the type is a class, the
+	   value will be an instance.
+	*/
+	if (PyClass_Check(type)) {
+		/* if the value was not an instance, or is not an instance
+		   whose class is (or is derived from) type, then use the
+		   value as an argument to instantiation of the type
+		   class.
+		*/
+		if (!inclass || !PyClass_IsSubclass(inclass, type)) {
+			PyObject *args, *res;
+
+			if (value == Py_None)
+				args = Py_BuildValue("()");
+			else if (PyTuple_Check(value)) {
+				Py_INCREF(value);
+				args = value;
+			}
+			else
+				args = Py_BuildValue("(O)", value);
+
+			if (args == NULL)
+				goto finally;
+			res = PyEval_CallObject(type, args);
+			Py_DECREF(args);
+			if (res == NULL)
+				goto finally;
+			Py_DECREF(value);
+			value = res;
+		}
+		/* if the class of the instance doesn't exactly match the
+		   class of the type, believe the instance
+		*/
+		else if (inclass != type) {
+ 			Py_DECREF(type);
+			type = inclass;
+			Py_INCREF(type);
+		}
+	}
+	*exc = type;
+	*val = value;
+	return;
+finally:
+	Py_DECREF(type);
+	Py_DECREF(value);
+	/* If the new exception doesn't set a traceback and the old
+	   exception had a traceback, use the old traceback for the
+	   new exception.  It's better than nothing.
+	*/
+	initial_tb = *tb;
+	PyErr_Fetch(exc, val, tb);
+	if (initial_tb != NULL) {
+		if (*tb == NULL)
+			*tb = initial_tb;
+		else
+			Py_DECREF(initial_tb);
+	}
+	/* normalize recursively */
+	PyErr_NormalizeException(exc, val, tb);
+}
 
 void
 PyErr_Fetch(PyObject **p_type, PyObject **p_value, PyObject **p_traceback)
