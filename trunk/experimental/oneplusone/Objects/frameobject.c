@@ -60,7 +60,6 @@ PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,
 	PyFrameObject *f;
 	PyObject *builtins;
 	int extras, ncells, nfrees;
-
 	ncells = PyTuple_GET_SIZE(code->co_cellvars);
 	nfrees = PyTuple_GET_SIZE(code->co_freevars);
 	extras = code->co_stacksize + code->co_nlocals + ncells + nfrees;
@@ -157,6 +156,8 @@ PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,
 	f->f_stacktop = f->f_valuestack;
 
 	_PyObject_GC_TRACK(f);
+
+  printf("< PyFrame_New\n");
 	return f;
 }
 

@@ -36,6 +36,7 @@ PyEval_EvalCode(PyCodeObject *co, PyObject *globals, PyObject *locals)
 static PyObject *
 eval_frame(PyFrameObject *f)
 {
+  printf("> eval_frame\n");
 	PyObject **stack_pointer; /* Next free slot in value stack */
 	register unsigned char *next_instr;
 	register int opcode=0;	/* Current opcode */
@@ -143,7 +144,9 @@ eval_frame(PyFrameObject *f)
 	consts = co->co_consts;
 	fastlocals = f->f_localsplus;
 	freevars = f->f_localsplus + f->f_nlocals;
+
 	_PyCode_GETCODEPTR(co, &first_instr);
+
 	/* An explanation is in order for the next line.
 
 	   f->f_lasti now refers to the index of the last instruction
@@ -458,5 +461,6 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
 	++tstate->recursion_depth;
         Py_DECREF(f);
 	--tstate->recursion_depth;
+	printf("< PyEval_EvalCodeEx\n");
 	return retval;
 }
