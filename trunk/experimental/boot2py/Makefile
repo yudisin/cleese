@@ -45,11 +45,8 @@ OBJS =	\
 .c.o:
 	gcc -fno-builtin -Wall -c -I./Include -o $@ $<
 
-kernel.test: Modules/python.o $(OBJS)
-	ld -e _main -Ttext 0x1000 -o kernel.test Modules/python.o $(OBJS)
-
-kernel.o: kernel.test
-	ld -i -e _main -Ttext 0x1000 -o kernel.o Modules/python.o $(OBJS)
+kernel.o: Modules/python.o $(OBJS)
+	ld -Ttext 0xFF800000 -o kernel.o Modules/python.o $(OBJS)
 
 KERNEL.BIN: kernel.o
 	objcopy -R .note -R .comment -S -O binary kernel.o KERNEL.BIN
@@ -61,5 +58,4 @@ clean:
 	-rm -f Modules/*.o
 	-rm -f lib/*.o
 	-rm -f mach/*.o
-	-rm -f kernel.test
 	-rm -f KERNEL.BIN
