@@ -563,6 +563,32 @@ eval_frame(PyFrameObject *f)
 			PUSH(x);
 			break;
 			
+		case IMPORT_NAME:
+			w = GETITEM(names, oparg);
+			x = PyDict_GetItemString(f->f_builtins, "__import__");
+			if (x == NULL) {
+				printf("__import__ not found");
+				break;
+			}
+			u = TOP();
+			w = Py_BuildValue("(OOOO)",
+				    w,
+				    f->f_globals,
+				    f->f_locals == NULL ?
+					  Py_None : f->f_locals,
+				    u);
+			Py_DECREF(u);
+			if (w == NULL) {
+				u = POP();
+				x = NULL;
+				break;
+			}
+			x = PyEval_CallObject(x, w);
+			Py_DECREF(w);
+			SET_TOP(x);
+			if (x != NULL) continue;
+			break;
+
 		case JUMP_FORWARD:
 			JUMPBY(oparg);
 			goto fast_next_opcode;
@@ -713,6 +739,37 @@ PyEval_GetBuiltins(void)
 	else {
 		return current_frame->f_builtins;
 	}
+}
+
+PyObject *
+PyEval_CallObject(PyObject *func, PyObject *arg)
+{
+	return PyEval_CallObjectWithKeywords(func, arg, (PyObject *)NULL);
+}
+
+PyObject *
+PyEval_CallObjectWithKeywords(PyObject *func, PyObject *arg, PyObject *kw)
+{
+	PyObject *result;
+
+	if (arg == NULL)
+		arg = PyTuple_New(0);
+	else if (!PyTuple_Check(arg)) {
+		printf("argument list must be a tuple");
+		return NULL;
+	}
+	else
+		Py_INCREF(arg);
+
+	if (kw != NULL && !PyDict_Check(kw)) {
+		printf("keyword list must be a dictionary");
+		Py_DECREF(arg);
+		return NULL;
+	}
+
+	result = PyObject_Call(func, arg, kw);
+	Py_DECREF(arg);
+	return result;
 }
 
 #define EXT_POP(STACK_POINTER) (*--(STACK_POINTER))
