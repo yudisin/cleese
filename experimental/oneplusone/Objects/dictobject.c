@@ -4,16 +4,13 @@
 typedef PyDictEntry dictentry;
 typedef PyDictObject dictobject;
 
-PyTypeObject PyDict_Type = {
-	/* TO DO */
-};
+#define PERTURB_SHIFT 5
 
 static PyObject *dummy;
 
+/* forward declarations */
 static dictentry *
 lookdict_string(dictobject *mp, PyObject *key, long hash);
-
-#define PERTURB_SHIFT 5
 
 #define INIT_NONZERO_DICT_SLOTS(mp) do {			\
 		(mp)->ma_table = (mp)->ma_smalltable;		\
@@ -137,7 +134,6 @@ Done:
 		; /* ERROR RESTORE */
         return ep;
 }
-
 
 static dictentry *
 lookdict_string(dictobject *mp, PyObject *key, register long hash)
@@ -280,8 +276,6 @@ PyDict_GetItem(PyObject *op, PyObject *key)
   printf("< PyDict_GetItem [1]\n");
 		return NULL;
 	}
-	PyString_CheckExact(key);
-	hash = ((PyStringObject *) key)->ob_shash;
 	if (!PyString_CheckExact(key) ||
 	    (hash = ((PyStringObject *) key)->ob_shash) == -1)
 	{
@@ -326,34 +320,6 @@ PyDict_SetItem(register PyObject *op, PyObject *key, PyObject *value)
 	return dictresize(mp, mp->ma_used*(mp->ma_used>50000 ? 2 : 4));
 }
 
-PyObject *
-PyDict_GetItemString(PyObject *v, const char *key)
-{
-  printf("> PyDict_GetItemString\n");
-	PyObject *kv, *rv;
-	kv = PyString_FromString(key);
-	if (kv == NULL)
-		return NULL;
-	rv = PyDict_GetItem(v, kv);
-	Py_DECREF(kv);
-	printf("< PyDict_GetItemString\n");
-	return rv;
-}
-
-int
-PyDict_SetItemString(PyObject *v, const char *key, PyObject *item)
-{
-	PyObject *kv;
-	int err;
-	kv = PyString_FromString(key);
-	if (kv == NULL)
-		return -1;
-	PyString_InternInPlace(&kv);
-	err = PyDict_SetItem(v, kv, item);
-	Py_DECREF(kv);
-	return err;
-}
-
 int
 PyDict_DelItem(PyObject *op, PyObject *key)
 {
@@ -388,3 +354,75 @@ PyDict_DelItem(PyObject *op, PyObject *key)
 	Py_DECREF(old_key);
 	return 0;
 }
+
+PyTypeObject PyDict_Type = {
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,
+	"dict",
+	sizeof(dictobject),
+	0,
+	0, //(destructor)dict_dealloc,		/* tp_dealloc */
+	0, //(printfunc)dict_print,			/* tp_print */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
+	0, //(cmpfunc)dict_compare,			/* tp_compare */
+	0, //(reprfunc)dict_repr,			/* tp_repr */
+	0,					/* tp_as_number */
+	0, //&dict_as_sequence,			/* tp_as_sequence */
+	0, //&dict_as_mapping,			/* tp_as_mapping */
+	0, //dict_nohash,				/* tp_hash */
+	0,					/* tp_call */
+	0,					/* tp_str */
+	0, //PyObject_GenericGetAttr,		/* tp_getattro */
+	0,					/* tp_setattro */
+	0,					/* tp_as_buffer */
+	0, //Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,		/* tp_flags */
+	0, //dictionary_doc,				/* tp_doc */
+	0, //(traverseproc)dict_traverse,		/* tp_traverse */
+	0, //(inquiry)dict_tp_clear,			/* tp_clear */
+	0, //dict_richcompare,			/* tp_richcompare */
+	0,					/* tp_weaklistoffset */
+	0, //(getiterfunc)dict_iter,			/* tp_iter */
+	0,					/* tp_iternext */
+	0, //mapp_methods,				/* tp_methods */
+	0,					/* tp_members */
+	0,					/* tp_getset */
+	0,					/* tp_base */
+	0,					/* tp_dict */
+	0,					/* tp_descr_get */
+	0,					/* tp_descr_set */
+	0,					/* tp_dictoffset */
+	0, //(initproc)dict_init,			/* tp_init */
+	0, //PyType_GenericAlloc,			/* tp_alloc */
+	0, //dict_new,				/* tp_new */
+	0, //PyObject_GC_Del,        		/* tp_free */
+};
+
+PyObject *
+PyDict_GetItemString(PyObject *v, const char *key)
+{
+  printf("> PyDict_GetItemString\n");
+	PyObject *kv, *rv;
+	kv = PyString_FromString(key);
+	if (kv == NULL)
+		return NULL;
+	rv = PyDict_GetItem(v, kv);
+	Py_DECREF(kv);
+	printf("< PyDict_GetItemString\n");
+	return rv;
+}
+
+int
+PyDict_SetItemString(PyObject *v, const char *key, PyObject *item)
+{
+	PyObject *kv;
+	int err;
+	kv = PyString_FromString(key);
+	if (kv == NULL)
+		return -1;
+	PyString_InternInPlace(&kv);
+	err = PyDict_SetItem(v, kv, item);
+	Py_DECREF(kv);
+	return err;
+}
+
