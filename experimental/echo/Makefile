@@ -15,6 +15,7 @@ MACH_OBJS =	\
 
 LIB_OBJS =	\
 		lib/string.o \
+		lib/ctype.o \
 		lib/mem.o
 
 OBJECT_OBJS =	\
