@@ -7,7 +7,8 @@
 #define UNARY_NOT	12
 
 #define BINARY_MODULO	22
-#define BINARY_ADD 23
+#define BINARY_ADD      23
+#define BINARY_SUBTRACT 24
 #define BINARY_SUBSCR   25
 
 #define SLICE           30
