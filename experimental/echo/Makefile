@@ -31,7 +31,8 @@ OBJECT_OBJS =	\
 		python/Objects/classobject.o \
 		python/Objects/funcobject.o \
 		python/Objects/boolobject.o \
-		python/Objects/listobject.o
+		python/Objects/listobject.o \
+		python/Objects/bufferobject.o
 
 PYTHON_OBJS =	\
 		python/Python/pythonrun.o \

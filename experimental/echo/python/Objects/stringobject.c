@@ -442,11 +442,40 @@ string_buffer_getreadbuf(PyStringObject *self, int index, const void **ptr)
 	return self->ob_size;
 }
 
+static int
+string_buffer_getwritebuf(PyStringObject *self, int index, const void **ptr)
+{
+//        PyErr_SetString(PyExc_TypeError,
+//                        "Cannot use string as modifiable buffer");
+        return -1;
+}
+
+static int
+string_buffer_getsegcount(PyStringObject *self, int *lenp)
+{
+        if ( lenp )
+                *lenp = self->ob_size;
+        return 1;
+}
+
+static int
+string_buffer_getcharbuf(PyStringObject *self, int index, const char **ptr)
+{
+        if ( index != 0 ) {
+//                PyErr_SetString(PyExc_SystemError,
+//                                "accessing non-existent string segment");
+                return -1;
+        }
+        *ptr = self->ob_sval;
+        return self->ob_size;
+}
+
+
 static PyBufferProcs string_as_buffer = {
 	(getreadbufferproc)string_buffer_getreadbuf,
-	0, /* TO DO */
-	0, /* TO DO */
-	0, /* TO DO */
+        (getwritebufferproc)string_buffer_getwritebuf,
+        (getsegcountproc)string_buffer_getsegcount,
+        (getcharbufferproc)string_buffer_getcharbuf,
 };
 
 /* Methods */
