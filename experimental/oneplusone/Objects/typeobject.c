@@ -51,3 +51,10 @@ _PyObject_SlotCompare(PyObject *self, PyObject *other)
 	return (void *)self < (void *)other ? -1 :
 		(void *)self > (void *)other ? 1 : 0;
 }
+
+int
+PyType_Ready(PyTypeObject *type)
+{
+    /* TO DO */
+	return 1;
+}    
