@@ -4,6 +4,7 @@
 #include "frameobject.h"
 #include "eval.h"
 #include "opcode.h"
+#include "structmember.h"
 
 /* Forward declarations */
 static PyObject *eval_frame(PyFrameObject *);
@@ -778,7 +779,7 @@ x = NULL;
 		
 		if (why == WHY_NOT) {
 			if (err == 0 && x != NULL) {
-					continue; /* Normal, fast path */
+			    continue; /* Normal, fast path */
 			}
 			why = WHY_EXCEPTION;
 			x = Py_None;
@@ -791,6 +792,10 @@ x = NULL;
 			break;
 
 	} /* main loop */
+
+	if (why == WHY_EXCEPTION) {
+	  printf("GOT EXCEPTION\n");
+	}
 
 	if (why != WHY_YIELD) {
 		/* Pop remaining stack entries -- but when yielding */
@@ -1049,7 +1054,9 @@ call_function(PyObject ***pp_stack, int oparg)
 	   presumed to be the most frequent callable object.
 	*/
 	if (PyCFunction_Check(func) && nk == 0) {
+
 		int flags = PyCFunction_GET_FLAGS(func);
+
 		if (flags & (METH_NOARGS | METH_O)) {
 			PyCFunction meth = PyCFunction_GET_FUNCTION(func);
 			PyObject *self = PyCFunction_GET_SELF(func);
@@ -1084,18 +1091,21 @@ call_function(PyObject ***pp_stack, int oparg)
 			n++;
 		} else
 			Py_INCREF(func);
+
 		if (PyFunction_Check(func))
 			x = fast_function(func, pp_stack, n, na, nk);
-		else 
+		else
 			x = do_call(func, pp_stack, na, nk);
+
 		Py_DECREF(func);
 	}
-	
+
 	/* What does this do? */
 	while ((*pp_stack) > pfunc) {
 		w = EXT_POP(*pp_stack);
 		Py_DECREF(w);
 	}
+
 	return x;
 }
 
