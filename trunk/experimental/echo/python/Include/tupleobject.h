@@ -2,8 +2,8 @@
 #define Py_TUPLEOBJECT_H
 
 typedef struct {
-  PyObject_VAR_HEAD
-  PyObject *ob_item[1];
+	PyObject_VAR_HEAD
+	PyObject *ob_item[1];
 } PyTupleObject;
 
 PyAPI_DATA(PyTypeObject) PyTuple_Type;
