@@ -5,6 +5,7 @@ CC	 += -fno-strict-aliasing
 #CC      += -fno-leading-underscore
 #CC	 += -DVERBOSE_MALLOC -DVERBOSE_MEMCPY -DVERBOSE_MARSHAL
 LD       = ld -nostdlib
+SYMTAB	 = -defsym symtab=defsyms
 PYTHON	 = python
 
 # gcc on cygwin doesn't seem to obey '-fno-leading-underscore'
@@ -33,9 +34,13 @@ SOKO_PY	= \
 
 KERNEL_PY = $(ECHOISR_PY)
 #KERNEL_PY = $(LED_PY)
-#KERNEL_PY = $(SOKO_PY)
 #KERNEL_PY = kernel/listtest.py
 #KERNEL_PY = kernel/stacktest.py
+
+#KERNEL_PY = $(SOKO_PY)
+#SYMTAB    = -defsym symtab=sokosyms
+#RES_OBJS  = kernel/sokores.o
+
 
 KERNEL_OBJS =	\
 		kernel/kernel_bytecode.o \
@@ -114,7 +119,8 @@ LIB_OBJS +=	\
 OBJS =		\
 		$(KERNEL_OBJS) \
 		$(PYTHON_OBJS) \
-		$(LIB_OBJS) 
+		$(LIB_OBJS) \
+		$(RES_OBJS)
 
 all: grub
 
@@ -134,17 +140,17 @@ clobber: clean
 	$(CYGWIN_KLUDGE)
 
 .boa.o:
-	$(PYTHON) util/boa < $< | as -o $@
+	$(PYTHON) util/boa $< | as -o $@
 
 kernel/kernel_bytecode.c: $(KERNEL_PY)
 	$(PYTHON) util/freeze.py $^
 	mv kernel_bytecode.c $@
 
 cleese: $(LDSCRIPT) $(CRT0) $(OBJS) # order is important!
-	$(LD) -Map cleese.map -o $@ -T $^
+	$(LD) -Map cleese.map $(SYMTAB) -o $@ -T $^
 
 grub: cleese FORCE
-	objcopy -R .note -R .comment -S $< KERNEL.BIN
+	objcopy -R .note -R .comment -S -O elf32-i386 $< KERNEL.BIN
 	util/push KERNEL.BIN $@
 
 bootp: cleese FORCE
