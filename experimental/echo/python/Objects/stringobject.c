@@ -7,6 +7,299 @@ static PyStringObject *nullstring;
 
 static PyObject *interned;
 
+int
+_PyString_Resize(PyObject **pv, int newsize)
+{
+	/* TO DO */
+	return 0;
+}
+
+
+/* Helpers for formatstring */
+
+static PyObject *
+getnextarg(PyObject *args, int arglen, int *p_argidx)
+{
+	int argidx = *p_argidx;
+	if (argidx < arglen) {
+		(*p_argidx)++;
+		if (arglen < 0)
+			return args;
+		else
+			return PyTuple_GetItem(args, argidx);
+	}
+	/* ERROR */
+	return NULL;
+}
+
+/* Format codes
+ * F_LJUST	'-'
+ * F_SIGN	'+'
+ * F_BLANK	' '
+ * F_ALT	'#'
+ * F_ZERO	'0'
+ */
+#define F_LJUST (1<<0)
+#define F_SIGN	(1<<1)
+#define F_BLANK (1<<2)
+#define F_ALT	(1<<3)
+#define F_ZERO	(1<<4)
+
+/* fmt%(v1,v2,...) is roughly equivalent to sprintf(fmt, v1, v2, ...)
+
+   FORMATBUFLEN is the length of the buffer in which the floats, ints, &
+   chars are formatted. XXX This is a magic number. Each formatting
+   routine does bounds checking to ensure no overflow, but a better
+   solution may be to malloc a buffer of appropriate size for each
+   format. For now, the current solution is sufficient.
+*/
+#define FORMATBUFLEN (size_t)120
+
+PyObject *
+PyString_Format(PyObject *format, PyObject *args)
+{
+	char *fmt, *res;
+	int fmtcnt, rescnt, reslen, arglen, argidx;
+	int args_owned = 0;
+	PyObject *result, *orig_args;
+	PyObject *dict = NULL;
+	if (format == NULL || !PyString_Check(format) || args == NULL) {
+		/* ERROR */
+		return NULL;
+	}
+	orig_args = args;
+	fmt = PyString_AS_STRING(format);
+	fmtcnt = PyString_GET_SIZE(format);
+	reslen = rescnt = fmtcnt + 100;
+	result = PyString_FromStringAndSize((char *)NULL, reslen);
+	if (result == NULL)
+		return NULL;
+	res = PyString_AsString(result);
+	if (PyTuple_Check(args)) {
+		arglen = PyTuple_GET_SIZE(args);
+		argidx = 0;
+	}
+	else {
+		arglen = -1;
+		argidx = -2;
+	}
+	if (args->ob_type->tp_as_mapping && !PyTuple_Check(args) &&
+	    !PyObject_TypeCheck(args, &PyBaseString_Type))
+		dict = args;
+	while (--fmtcnt >= 0) {
+		if (*fmt != '%') {
+			if (--rescnt < 0) {
+				rescnt = fmtcnt + 100;
+				reslen += rescnt;
+				if (_PyString_Resize(&result, reslen) < 0)
+					return NULL;
+				res = PyString_AS_STRING(result)
+					+ reslen - rescnt;
+				--rescnt;
+			}
+			*res++ = *fmt++;
+		}
+		else {
+			/* Got a format specifier */
+			int flags = 0;
+			int width = -1;
+			int prec = -1;
+			int c = '\0';
+			int fill;
+			PyObject *v = NULL;
+			PyObject *temp = NULL;
+			char *pbuf;
+			int sign;
+			int len;
+			char formatbuf[FORMATBUFLEN];
+			     /* For format{float,int,char}() */
+
+			fmt++;
+			if (*fmt == '(') {
+				/* TO DO */
+			}
+			while (--fmtcnt >= 0) {
+				switch (c = *fmt++) {
+				case '-': flags |= F_LJUST; continue;
+				case '+': flags |= F_SIGN; continue;
+				case ' ': flags |= F_BLANK; continue;
+				case '#': flags |= F_ALT; continue;
+				case '0': flags |= F_ZERO; continue;
+				}
+				break;
+			}
+			/* ... */
+			if (fmtcnt >= 0) {
+				if (c == 'h' || c == 'l' || c == 'L') {
+					if (--fmtcnt >= 0)
+						c = *fmt++;
+				}
+			}
+			if (fmtcnt < 0) {
+				/* ERROR */
+				goto error;
+			}
+			if (c != '%') {
+				v = getnextarg(args, arglen, &argidx);
+				if (v == NULL)
+					goto error;
+			}
+			sign = 0;
+			fill = ' ';
+			switch (c) {
+			case '%':
+				pbuf = "%";
+				len = 1;
+				break;
+			case 's':
+				/* Fall through */
+			case 'r':
+				if (c == 's')
+					temp = PyObject_Str(v);
+				else {
+					/* TO DO */
+					goto error;
+				}
+				if (temp == NULL)
+					goto error;
+				if (!PyString_Check(temp)) {
+					/* XXX Note: this should never happen,
+					   since PyObject_Repr() and
+					   PyObject_Str() assure this */
+					/* ERROR */
+					Py_DECREF(temp);
+					goto error;
+				}
+				pbuf = PyString_AS_STRING(temp);
+				len = PyString_GET_SIZE(temp);
+				if (prec >= 0 && len > prec)
+					len = prec;
+				break;
+			case 'i':
+			case 'd':
+			case 'u':
+			case 'o':
+			case 'x':
+			case 'X':
+				pbuf = formatbuf;
+
+				/* TO DO */
+//				len = formatint(pbuf,
+//						sizeof(formatbuf),
+//						flags, prec, c, v);
+				if (len < 0)
+					goto error;
+				/* only d conversion is signed */
+				sign = c == 'd';
+				if (flags & F_ZERO)
+					fill = '0';
+				break;
+			case 'e':
+			case 'E':
+			case 'f':
+			case 'g':
+			case 'G':
+			case 'c':
+
+				print(" FORMAT NOT SUPPORTED YET ");
+				goto error;
+			default:
+				/* ERROR */
+				goto error;
+			}
+			if (sign) {
+				if (*pbuf == '-' || *pbuf == '+') {
+					sign = *pbuf++;
+					len--;
+				}
+				else if (flags & F_SIGN)
+					sign = '+';
+				else if (flags & F_BLANK)
+					sign = ' ';
+				else
+					sign = 0;
+			}
+			if (width < len)
+				width = len;
+			if (rescnt - (sign != 0) < width) {
+				reslen -= rescnt;
+				rescnt = width + fmtcnt + 100;
+				reslen += rescnt;
+				if (reslen < 0) {
+					Py_DECREF(result);
+					/* ERROR No mem*/
+					return NULL;
+				}
+				if (_PyString_Resize(&result, reslen) < 0)
+					return NULL;
+				res = PyString_AS_STRING(result)
+					+ reslen - rescnt;
+			}
+			if (sign) {
+				if (fill != ' ')
+					*res++ = sign;
+				rescnt--;
+				if (width > len)
+					width--;
+			}
+			if ((flags & F_ALT) && (c == 'x' || c == 'X')) {
+				if (fill != ' ') {
+					*res++ = *pbuf++;
+					*res++ = *pbuf++;
+				}
+				rescnt -= 2;
+				width -= 2;
+				if (width < 0)
+					width = 0;
+				len -= 2;
+			}
+			if (width > len && !(flags & F_LJUST)) {
+				do {
+					--rescnt;
+					*res++ = fill;
+				} while (--width > len);
+			}
+			if (fill == ' ') {
+				if (sign)
+					*res++ = sign;
+				if ((flags & F_ALT) &&
+				    (c == 'x' || c == 'X')) {
+					*res++ = *pbuf++;
+					*res++ = *pbuf++;
+				}
+			}
+			memcpy(res, pbuf, len);
+			res += len;
+			rescnt -= len;
+			while (--width >= len) {
+				--rescnt;
+				*res++ = ' ';
+			}
+                        if (dict && (argidx < arglen) && c != '%') {
+				/* ERROR */
+                                goto error;
+                        }
+			Py_XDECREF(temp);
+		} /* '%' */
+	} /* until end */
+	if (argidx < arglen && !dict) {
+		/* ERROR */
+		goto error;
+	}
+	if (args_owned) {
+		Py_DECREF(args);
+	}
+	_PyString_Resize(&result, reslen - rescnt);
+	return result;
+
+ error:
+	Py_DECREF(result);
+	if (args_owned) {
+		Py_DECREF(args);
+	}
+	return NULL;
+}
+
 void
 PyString_InternInPlace(PyObject **p)
 {
@@ -156,6 +449,15 @@ static PyBufferProcs string_as_buffer = {
 	0, /* TO DO */
 };
 
+/* Methods */
+
+static int
+string_print(PyStringObject *op)
+{
+	print(op->ob_sval);
+	return 0;
+}
+
 static long
 string_hash(PyStringObject *a)
 {
@@ -177,6 +479,67 @@ string_hash(PyStringObject *a)
 	return x;
 }
 
+static PyObject *
+string_mod(PyObject *v, PyObject *w)
+{
+	if (!PyString_Check(v)) {
+		Py_INCREF(Py_NotImplemented);
+		return Py_NotImplemented;
+	}
+	return PyString_Format(v, w);
+}
+
+static PyNumberMethods string_as_number = {
+	0,			/*nb_add*/
+	0,			/*nb_subtract*/
+	0,			/*nb_multiply*/
+	0, 			/*nb_divide*/
+	string_mod,		/*nb_remainder*/
+};
+
+PyTypeObject PyBaseString_Type = {
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,
+	"basestring",
+	0,
+	0,
+ 	0,			 		/* tp_dealloc */
+	0,			 		/* tp_print */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
+	0,					/* tp_compare */
+	0,		 			/* tp_repr */
+	0,					/* tp_as_number */
+	0,					/* tp_as_sequence */
+	0,					/* tp_as_mapping */
+	0,		 			/* tp_hash */
+	0,					/* tp_call */
+	0,					/* tp_str */
+	0,					/* tp_getattro */
+	0,					/* tp_setattro */
+	0,					/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+	0, //basestring_doc,				/* tp_doc */
+	0,					/* tp_traverse */
+	0,					/* tp_clear */
+	0,					/* tp_richcompare */
+	0,					/* tp_weaklistoffset */
+	0,					/* tp_iter */
+	0,					/* tp_iternext */
+	0,					/* tp_methods */
+	0,					/* tp_members */
+	0,					/* tp_getset */
+	0, //&PyBaseObject_Type,			/* tp_base */
+	0,					/* tp_dict */
+	0,					/* tp_descr_get */
+	0,					/* tp_descr_set */
+	0,					/* tp_dictoffset */
+	0,					/* tp_init */
+	0,					/* tp_alloc */
+	0, //basestring_new,				/* tp_new */
+	0,		                	/* tp_free */
+};
+
 PyTypeObject PyString_Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
@@ -184,12 +547,12 @@ PyTypeObject PyString_Type = {
 	sizeof(PyStringObject),
 	sizeof(char),
  	0, //(destructor)string_dealloc, 		/* tp_dealloc */
-	0, //(printfunc)string_print, 		/* tp_print */
+	(printfunc)string_print, 		/* tp_print */
 	0,					/* tp_getattr */
 	0,					/* tp_setattr */
 	0,					/* tp_compare */
 	0, //(reprfunc)string_repr, 			/* tp_repr */
-	0, //&string_as_number,			/* tp_as_number */
+	&string_as_number,			/* tp_as_number */
 	0, //&string_as_sequence,			/* tp_as_sequence */
 	0, //&string_as_mapping,			/* tp_as_mapping */
 	(hashfunc)string_hash, 			/* tp_hash */
@@ -198,7 +561,7 @@ PyTypeObject PyString_Type = {
 	0, //PyObject_GenericGetAttr,		/* tp_getattro */
 	0,					/* tp_setattro */
 	&string_as_buffer,			/* tp_as_buffer */
-	0, //Py_TPFLAGS_DEFAULT | Py_TPFLAGS_CHECKTYPES | Py_TPFLAGS_BASETYPE,		/* tp_flags */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_CHECKTYPES | Py_TPFLAGS_BASETYPE,		/* tp_flags */
 	0, //string_doc,				/* tp_doc */
 	0,					/* tp_traverse */
 	0,					/* tp_clear */
@@ -249,3 +612,4 @@ _PyString_Eq(PyObject *o1, PyObject *o2)
 	  && *a->ob_sval == *b->ob_sval
           && memcmp(a->ob_sval, b->ob_sval, a->ob_size) == 0;
 }
+
