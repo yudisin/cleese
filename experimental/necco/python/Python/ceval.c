@@ -311,7 +311,7 @@ eval_frame(PyFrameObject *f)
 
 		/* Main switch on opcode */
 
-//		printf("opcode %d\n", opcode);
+		//		printf("opcode %d\n", opcode);
 
 		switch (opcode) {
 
@@ -806,39 +806,40 @@ eval_frame(PyFrameObject *f)
 			if (x != NULL) continue;
 			break;
 
-                case COMPARE_OP:
-                        w = POP();
-                        v = POP();
-                        if (PyInt_Check(v) && PyInt_Check(w)) {
-                                /* INLINE: cmp(int, int) */
-                                register long a, b;
-                                register int res;
-                                a = PyInt_AS_LONG(v);
-                                b = PyInt_AS_LONG(w);
-                                switch (oparg) {
-                                case LT: res = a <  b; break;
-                                case LE: res = a <= b; break;
-                                case EQ: res = a == b; break;
-                                case NE: res = a != b; break;
-                                case GT: res = a >  b; break;
-                                case GE: res = a >= b; break;
-                                case IS: res = v == w; break;
-                                case IS_NOT: res = v != w; break;
-                                default: goto slow_compare;
-                                }
-                                x = res ? Py_True : Py_False;
-                                Py_INCREF(x);
-                        }
-                        else {
-                          slow_compare:
-x = NULL;
-//                                x = cmp_outcome(oparg, v, w);
-                        }
-                        Py_DECREF(v);
-                        Py_DECREF(w);
-                        PUSH(x);
-                        if (x != NULL) continue;
-                        break;
+		case COMPARE_OP:
+			w = POP();
+			v = TOP();
+			if (PyInt_CheckExact(w) && PyInt_CheckExact(v)) {
+				/* INLINE: cmp(int, int) */
+				register long a, b;
+				register int res;
+				a = PyInt_AS_LONG(v);
+				b = PyInt_AS_LONG(w);
+				switch (oparg) {
+				case PyCmp_LT: res = a <  b; break;
+				case PyCmp_LE: res = a <= b; break;
+				case PyCmp_EQ: res = a == b; break;
+				case PyCmp_NE: res = a != b; break;
+				case PyCmp_GT: res = a >  b; break;
+				case PyCmp_GE: res = a >= b; break;
+				case PyCmp_IS: res = v == w; break;
+				case PyCmp_IS_NOT: res = v != w; break;
+				default: goto slow_compare;
+				}
+				x = res ? Py_True : Py_False;
+				Py_INCREF(x);
+			}
+			else {
+			  slow_compare:
+				x = cmp_outcome(oparg, v, w);
+			}
+			Py_DECREF(v);
+			Py_DECREF(w);
+			SET_TOP(x);
+			if (x == NULL) break;
+			//			PREDICT(JUMP_IF_FALSE);
+			//			PREDICT(JUMP_IF_TRUE);
+			continue;
 
 		case IMPORT_NAME:
 			w = GETITEM(names, oparg);
@@ -1469,6 +1470,39 @@ assign_slice(PyObject *u, PyObject *v, PyObject *w, PyObject *x)
 //               return PySequence_DelSlice(u, ilow, ihigh);
 //        else
                 return PySequence_SetSlice(u, ilow, ihigh, x);
+}
+
+static PyObject *
+cmp_outcome(int op, register PyObject *v, register PyObject *w)
+{
+	int res = 0;
+	switch (op) {
+	case PyCmp_IS:
+		res = (v == w);
+		break;
+	case PyCmp_IS_NOT:
+		res = (v != w);
+		break;
+	case PyCmp_IN:
+		res = PySequence_Contains(w, v);
+		if (res < 0)
+			return NULL;
+		break;
+	case PyCmp_NOT_IN:
+		res = PySequence_Contains(w, v);
+		if (res < 0)
+			return NULL;
+		res = !res;
+		break;
+	case PyCmp_EXC_MATCH:
+		res = PyErr_GivenExceptionMatches(v, w);
+		break;
+	default:
+		return PyObject_RichCompare(v, w, op);
+	}
+	v = res ? Py_True : Py_False;
+	Py_INCREF(v);
+	return v;
 }
 
 /* Iterate v argcnt times and store the results on the stack (via decreasing
