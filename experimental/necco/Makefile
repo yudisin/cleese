@@ -20,6 +20,7 @@ KERNEL_OBJS +=	\
 		kernel/bochs/isrmodule.o \
 		kernel/bochs/portsmodule.o \
 		kernel/bochs/vgaabc.o \
+		kernel/bochs/vgadata.o \
 		kernel/bochs/vgamodule.o
 
 PYTHON_OBJS =	\

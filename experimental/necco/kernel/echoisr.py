@@ -3,6 +3,20 @@ import vga
 import keyb
 import rtc
 
+########################################
+
+def splashscreen():
+	vga.videomode(2)
+	# why doesn't framebuffer[:] also work?
+	vga.framebuffer[:0x10000] = vga.splashscreen
+	while not (rtc.seconds() & 0x4):
+		pass
+	vga.videomode(0)
+
+splashscreen()
+print 'Press a key'
+
+########################################
 tb = vga.textbuffer
 
 def kbd_isr():
