@@ -65,7 +65,52 @@ PyInt_Fini(void)
 	/* clean up if small integers pre-created */
 }
 
+static int
+int_print(PyIntObject *v)
+{
+	printf("%ld", v->ob_ival);
+	return 0;
+}
+
 PyTypeObject PyInt_Type = {
   PyObject_HEAD_INIT(&PyType_Type)
-  /* TO DO */
+	0,
+	"int",
+	sizeof(PyIntObject),
+	0,
+	0, //(destructor)int_dealloc,		/* tp_dealloc */
+	(printfunc)int_print,			/* tp_print */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
+	0, //(cmpfunc)int_compare,			/* tp_compare */
+	0, //(reprfunc)int_repr,			/* tp_repr */
+	0, //&int_as_number,				/* tp_as_number */
+	0,					/* tp_as_sequence */
+	0,					/* tp_as_mapping */
+	0, //(hashfunc)int_hash,			/* tp_hash */
+	0,					/* tp_call */
+    0, //    (reprfunc)int_repr,			/* tp_str */
+	0, //PyObject_GenericGetAttr,		/* tp_getattro */
+	0,					/* tp_setattro */
+	0,					/* tp_as_buffer */
+	0, //Py_TPFLAGS_DEFAULT | Py_TPFLAGS_CHECKTYPES | Py_TPFLAGS_BASETYPE,		/* tp_flags */
+	0, //int_doc,				/* tp_doc */
+	0,					/* tp_traverse */
+	0,					/* tp_clear */
+	0,					/* tp_richcompare */
+	0,					/* tp_weaklistoffset */
+	0,					/* tp_iter */
+	0,					/* tp_iternext */
+	0, //int_methods,				/* tp_methods */
+	0,					/* tp_members */
+	0,					/* tp_getset */
+	0,					/* tp_base */
+	0,					/* tp_dict */
+	0,					/* tp_descr_get */
+	0,					/* tp_descr_set */
+	0,					/* tp_dictoffset */
+	0,					/* tp_init */
+	0,					/* tp_alloc */
+	0, //int_new,				/* tp_new */
+	0, //(freefunc)int_free,           		/* tp_free */
 };
