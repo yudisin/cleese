@@ -142,6 +142,24 @@ PyString_FromString(const char *str)
 	return (PyObject *) op;
 }
 
+static int
+string_buffer_getreadbuf(PyStringObject *self, int index, const void **ptr)
+{
+	if ( index != 0 ) {
+		printf("ERROR: acessing non-existent string segment");
+		return -1;
+	}
+	*ptr = (void *)self->ob_sval;
+	return self->ob_size;
+}
+
+static PyBufferProcs string_as_buffer = {
+	(getreadbufferproc)string_buffer_getreadbuf,
+	0, /* TO DO */
+	0, /* TO DO */
+	0, /* TO DO */
+};
+
 PyTypeObject PyString_Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
@@ -162,7 +180,7 @@ PyTypeObject PyString_Type = {
 	0, //(reprfunc)string_str,			/* tp_str */
 	0, //PyObject_GenericGetAttr,		/* tp_getattro */
 	0,					/* tp_setattro */
-	0, //&string_as_buffer,			/* tp_as_buffer */
+	&string_as_buffer,			/* tp_as_buffer */
 	0, //Py_TPFLAGS_DEFAULT | Py_TPFLAGS_CHECKTYPES | Py_TPFLAGS_BASETYPE,		/* tp_flags */
 	0, //string_doc,				/* tp_doc */
 	0,					/* tp_traverse */
