@@ -36,7 +36,7 @@ def startC():
         esp = resb(0x1000)      # set up a stack
         esp +=     0x0ffc
 
-        Py_FrozenMain(ebx)               # and call C code
+        Py_FrozenMain(ebx)      # and call C code
         dw(0xfeeb)              # infinite loop (jmp $-2)
 
 #-------------------------------------------------------------------------------
@@ -48,6 +48,7 @@ def startC():
 	dd(0x1BADB002,          # magic
            0x00010003,          # AOUT_KLUDGE(16)|MEMORY_INFO(1)|PAGE_ALIGN(0)
            0xe4514ffb,          # checksum: -(magic + flags)
+	   offset(0xfffffff4),	# address of bootblock start
            entry, bss, end,
            entry)
 
