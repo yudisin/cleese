@@ -50,6 +50,98 @@ int _PyFrame_Init()
   	return (builtin_object != NULL);
 }
 
+/* Convert between "fast" version of locals and dictionary version */
+
+static void
+map_to_dict(PyObject *map, int nmap, PyObject *dict, PyObject **values,
+	    int deref)
+{
+	int j;
+	for (j = nmap; --j >= 0; ) {
+		PyObject *key = PyTuple_GET_ITEM(map, j);
+		PyObject *value = values[j];
+		if (deref)
+			value = PyCell_GET(value);
+		if (value == NULL) {
+			if (PyDict_DelItem(dict, key) != 0)
+				PyErr_Clear();
+		}
+		else {
+			if (PyDict_SetItem(dict, key, value) != 0)
+				PyErr_Clear();
+		}
+	}
+}
+
+static void
+dict_to_map(PyObject *map, int nmap, PyObject *dict, PyObject **values,
+	    int deref, int clear)
+{
+	int j;
+	for (j = nmap; --j >= 0; ) {
+		PyObject *key = PyTuple_GET_ITEM(map, j);
+		PyObject *value = PyDict_GetItem(dict, key);
+		if (deref) {
+			if (value || clear) {
+				if (PyCell_GET(values[j]) != value) {
+					if (PyCell_Set(values[j], value) < 0)
+						PyErr_Clear();
+				}
+			}
+		} else if (value != NULL || clear) {
+			if (values[j] != value) {
+				Py_XINCREF(value);
+				Py_XDECREF(values[j]);
+				values[j] = value;
+			}
+		}
+	}
+}
+
+void
+PyFrame_FastToLocals(PyFrameObject *f)
+{
+	/* Merge fast locals into f->f_locals */
+	PyObject *locals, *map;
+	PyObject **fast;
+	PyObject *error_type, *error_value, *error_traceback;
+	int j;
+	if (f == NULL)
+		return;
+	locals = f->f_locals;
+	if (locals == NULL) {
+		locals = f->f_locals = PyDict_New();
+		if (locals == NULL) {
+			PyErr_Clear(); /* Can't report it :-( */
+			return;
+		}
+	}
+	map = f->f_code->co_varnames;
+	if (!PyDict_Check(locals) || !PyTuple_Check(map))
+		return;
+	PyErr_Fetch(&error_type, &error_value, &error_traceback);
+	fast = f->f_localsplus;
+	j = PyTuple_Size(map);
+	if (j > f->f_nlocals)
+		j = f->f_nlocals;
+	if (f->f_nlocals)
+	    map_to_dict(map, j, locals, fast, 0);
+	if (f->f_ncells || f->f_nfreevars) {
+		if (!(PyTuple_Check(f->f_code->co_cellvars)
+		      && PyTuple_Check(f->f_code->co_freevars))) {
+			Py_DECREF(locals);
+			return;
+		}
+		map_to_dict(f->f_code->co_cellvars, 
+			    PyTuple_GET_SIZE(f->f_code->co_cellvars),
+			    locals, fast + f->f_nlocals, 1);
+		map_to_dict(f->f_code->co_freevars, 
+			    PyTuple_GET_SIZE(f->f_code->co_freevars),
+			    locals, fast + f->f_nlocals + f->f_ncells, 1);
+	}
+	PyErr_Restore(error_type, error_value, error_traceback);
+}
+
 PyFrameObject *
 PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals, 
 	    PyObject *locals)
