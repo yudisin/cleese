@@ -18,5 +18,6 @@ size_t strlen(const char *);
 void *memcpy(void *, const void *, size_t);
 void *memset(void *, int, size_t);
 int  *memcmp(const void *, const void *, size_t);
+void *memmove(void *dest, const void *src, size_t length);
 
 #endif   /* #ifndef ___STRING_H___ */

@@ -1,3 +1,3 @@
-/* from stdlib.h */
-void *malloc(size_t __size);
-
+void *malloc(size_t);
+void *realloc(void *, size_t);
+void  free(void *);
