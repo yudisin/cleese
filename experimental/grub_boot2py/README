@@ -1,3 +1,12 @@
 $Id$
 
 experimental/grub_boot2py is an attempt to merge experimental/grub_boot and experimental/oneplusone
+
+To build:
+	unzip grub.zip
+	unzip c.zip
+	make
+
+To run:
+	bochs -f grub.bxrc
+
