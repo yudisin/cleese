@@ -173,11 +173,9 @@ dictresize(dictobject *mp, int minused)
 PyObject *
 PyDict_GetItem(PyObject *op, PyObject *key)
 {
-	LOG("> PyDict_GetItem\n");
 	long hash;
 	dictobject *mp = (dictobject *)op;
 	if (!PyDict_Check(op)) {
-	LOG("< PyDict_GetItem [1]\n");
 		return NULL;
 	}
 	if (!PyString_CheckExact(key) ||
@@ -185,7 +183,6 @@ PyDict_GetItem(PyObject *op, PyObject *key)
 	{
 		hash = PyObject_Hash(key);
 		if (hash == -1) {
-	LOG("< PyDict_GetItem [2]\n");
 			return NULL;
 		}
 	}
@@ -330,3 +327,44 @@ PyDict_SetItemString(PyObject *v, const char *key, PyObject *item)
 	return err;
 }
 
+PyObject *
+PyDict_Copy(PyObject *o)
+{
+	register dictobject *mp;
+	register int i;
+	dictobject *copy;
+	dictentry *entry;
+
+	if (o == NULL || !PyDict_Check(o)) {
+		/* ERROR */
+		return NULL;
+	}
+	mp = (dictobject *)o;
+	copy = (dictobject *)PyDict_New();
+	if (copy == NULL)
+		return NULL;
+	if (mp->ma_used > 0) {
+		if (dictresize(copy, mp->ma_used*2) != 0)
+			return NULL;
+		for (i = 0; i <= mp->ma_mask; i++) {
+			entry = &mp->ma_table[i];
+			if (entry->me_value != NULL) {
+				Py_INCREF(entry->me_key);
+				Py_INCREF(entry->me_value);
+				insertdict(copy, entry->me_key, entry->me_hash,
+					   entry->me_value);
+			}
+		}
+	}
+	return (PyObject *)copy;
+}
+
+int
+PyDict_Size(PyObject *mp)
+{
+	if (mp == NULL || !PyDict_Check(mp)) {
+		/* ERROR */
+		return 0;
+	}
+	return ((dictobject *)mp)->ma_used;
+}
