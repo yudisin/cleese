@@ -5,6 +5,7 @@
 /* Module support interface */
 
 PyAPI_FUNC(int) PyArg_UnpackTuple(PyObject *, char *, int, int, ...);
+PyAPI_FUNC(PyObject *) Py_BuildValue(char *, ...);
 
 #define PYTHON_API_VERSION 1012
 

@@ -14,6 +14,7 @@ PyAPI_DATA(PyTypeObject) PyTuple_Type;
 PyAPI_FUNC(PyObject *) PyTuple_New(int size);
 PyAPI_FUNC(int) PyTuple_Size(PyObject *);
 PyAPI_FUNC(PyObject *) PyTuple_GetItem(PyObject *, int);
+PyAPI_FUNC(int) PyTuple_SetItem(PyObject *, int, PyObject *);
 
 #define PyTuple_GET_ITEM(op, i) (((PyTupleObject *)(op))->ob_item[i])
 #define PyTuple_GET_SIZE(op)    (((PyTupleObject *)(op))->ob_size)

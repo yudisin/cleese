@@ -29,6 +29,8 @@
 #define LOAD_CONST	100	/* Index in const list */
 #define LOAD_NAME	101	/* Index in name list */
 
+#define IMPORT_NAME	107	/* Index in name list */
+
 #define JUMP_FORWARD	110	/* Number of bytes to skip */
 #define JUMP_IF_FALSE	111	/* "" */
 

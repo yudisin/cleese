@@ -1,6 +1,8 @@
 #ifndef Py_CEVAL_H
 #define Py_CEVAL_H
 
+PyAPI_FUNC(PyObject *) PyEval_CallObject(PyObject *, PyObject *);
+
 PyAPI_FUNC(PyObject *) PyEval_GetBuiltins(void);
 
 PyAPI_FUNC(int) Py_AddPendingCall(int (*func)(void *), void *arg);

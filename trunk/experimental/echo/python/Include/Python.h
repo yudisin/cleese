@@ -11,6 +11,9 @@
 #define PyAPI_FUNC(RTYPE) RTYPE
 #define PyAPI_DATA(RTYPE) extern RTYPE
 typedef unsigned int Py_uintptr_t;
+#ifndef INT_MAX
+#define INT_MAX 2147483647
+#endif
 
 /* from pydebug.h */
 PyAPI_FUNC(void) Py_FatalError(const char *message);
