@@ -29,7 +29,8 @@ MODULE_OBJS = 	\
 		Modules/gcmodule.o
 
 LIB_OBJS = 		\
-		LibC/string.o
+		LibC/string.o \
+		LibC/mem.o
 
 OBJS = 		\
 		$(OBJECT_OBJS) \
