@@ -82,7 +82,8 @@ OBJS =		\
 all: grub
 
 clean:
-	-rm -f cleese cleese.map kernel_bytecode.c
+	-rm -f KERNEL.BIN cleese cleese.map kernel_bytecode.c
+	-rm -f kernel/kernel_bytecode.c
 	find . -name '*.o' -exec rm -f {} ';'
 	find . -name '*.s' -exec rm -f {} ';'
 
