@@ -1,25 +1,11 @@
 #ifndef Py_PYTHON_H
 #define Py_PYTHON_H
 
-/* from stdio.h */
-#define NULL 0
-#define EOF (-1)
-int printf(const char *, ...);
-
-/* from stddef.h */
-typedef long unsigned int size_t;
-
-/* from stdlib.h */
-void *malloc(size_t __size);
-
-/* from string.h */
-int strcmp(const char *, const char *);
-size_t strlen(const char *);
-void *memcpy(void *, const void *, size_t);
-void *memset(void *, int, size_t);
-int *memcmp(const void *, const void *, size_t);
-
 #include "stdarg.h"
+#include "sys/types.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
 
 /* from pyport.h */
 #define PyAPI_FUNC(RTYPE) RTYPE

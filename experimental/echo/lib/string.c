@@ -1,5 +1,4 @@
-/* from stddef.h */
-typedef long unsigned int size_t;
+#include "sys/types.h"
 
 int
 strcmp(const char *s1, const char *s2)
