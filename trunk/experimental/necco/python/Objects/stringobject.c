@@ -671,6 +671,12 @@ string_join(PyStringObject *self, PyObject *orig)
 	return res;
 }
 
+static int
+string_length(PyStringObject *a)
+{
+        return a->ob_size;
+}
+
 static PyObject *
 string_mod(PyObject *v, PyObject *w)
 {
@@ -690,7 +696,7 @@ static PyNumberMethods string_as_number = {
 };
 
 static PySequenceMethods string_as_sequence = {
-	0, //(inquiry)string_length, /*sq_length*/
+	(inquiry)string_length, /*sq_length*/
 	(binaryfunc)string_concat, /*sq_concat*/
 	0, //(intargfunc)string_repeat, /*sq_repeat*/
 	0, //(intargfunc)string_item, /*sq_item*/
@@ -701,7 +707,7 @@ static PySequenceMethods string_as_sequence = {
 };
 
 static PyMappingMethods string_as_mapping = {
-	0, //(inquiry)string_length,
+	(inquiry)string_length,
 	(binaryfunc)string_subscript,
 	0,
 };

@@ -55,9 +55,29 @@ static char ord_doc[] =
 \n\
 Return the integer ordinal of a one-character string.";
 
+static PyObject *
+builtin_len(PyObject *self, PyObject *args)
+{
+        PyObject *v;
+        long res;
+
+//        if (!PyArg_ParseTuple(args, "O:len", &v))
+/**/	if(!PyArg_UnpackTuple(args, "len", 1,1, &v))
+                return NULL;
+        res = PyObject_Size(v);
+        if (res < 0 && PyErr_Occurred())
+                return NULL;
+        return PyInt_FromLong(res);
+}
+
+static char len_doc[] =
+"len(object) -> integer\n\
+\n\
+Return the number of items of a sequence or mapping.";
 
 static PyMethodDef builtin_methods[] = {
  	{"__import__",	builtin___import__, METH_VARARGS, NULL/*doc*/},
+        {"len",         builtin_len, 1, len_doc},
         {"ord",         builtin_ord, 1, ord_doc},
 	{NULL,		NULL},
 };
