@@ -5,7 +5,7 @@ static int initialized = 0;
 void
 Py_Initialize(void)
 {
-	printf("> Py_Initialize\n");
+	LOG("> Py_Initialize\n");
 
 	PyInterpreterState *interp;
 	PyThreadState *tstate;
@@ -38,13 +38,13 @@ Py_Initialize(void)
 	if (interp->modules == NULL)
 	  Py_FatalError("Py_Initialize: can't make modules dictionary");
 
-	printf("< Py_Initialize\n");
+	LOG("< Py_Initialize\n");
 }
 
 void
 Py_Finalize(void)
 {
-	printf("> Py_Finalize\n");
+	LOG("> Py_Finalize\n");
 	PyInterpreterState *interp;
 	PyThreadState *tstate;
 
@@ -60,7 +60,7 @@ Py_Finalize(void)
 
 	PyFrame_Fini();
 	PyInt_Fini();
-	printf("< Py_Finalize\n");
+	LOG("< Py_Finalize\n");
 }
 
 void

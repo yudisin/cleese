@@ -9,12 +9,12 @@ static struct _frozen frozenModules[] = {
 
 void Py_Main()
 {
-	printf("> Py_Main\n");
+	LOG("> Py_Main\n");
 	PyImport_FrozenModules = frozenModules;
 
 	Py_Initialize();
 	PyImport_ImportFrozenModule("__main__");
 	Py_Finalize();
 
-	printf("< Py_Main\n");
+	LOG("< Py_Main\n");
 }

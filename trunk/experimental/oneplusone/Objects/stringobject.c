@@ -10,7 +10,7 @@ static PyObject *interned;
 void
 PyString_InternInPlace(PyObject **p)
 {
-  printf("> PyString_InternInPlace\n");
+	LOG("> PyString_InternInPlace\n");
 	register PyStringObject *s = (PyStringObject *)(*p);
 	PyObject *t;
 	if (s == NULL || !PyString_Check(s))
@@ -18,7 +18,7 @@ PyString_InternInPlace(PyObject **p)
 	if (interned == NULL) {
 		interned = PyDict_New();
 		if (interned == NULL) {
-  printf("< PyString_InternInPlace\n");
+	LOG("< PyString_InternInPlace\n");
 			return;
 		}
 	}
@@ -26,7 +26,7 @@ PyString_InternInPlace(PyObject **p)
 		Py_INCREF(t);
 		Py_DECREF(*p);
 		*p = t;
-  printf("< PyString_InternInPlace\n");
+	LOG("< PyString_InternInPlace\n");
 		return;
 	}
 	/* Ensure that only true string objects appear in the intern dict */
@@ -46,28 +46,28 @@ PyString_InternInPlace(PyObject **p)
 		PyString_CHECK_INTERNED(t) = SSTATE_INTERNED_MORTAL;
 		Py_DECREF(*p);
 		*p = t;
-  printf("< PyString_InternInPlace\n");
+		LOG("< PyString_InternInPlace\n");
 		return;
 	}
 	Py_DECREF(t);
-  printf("< PyString_InternInPlace\n");
+	LOG("< PyString_InternInPlace\n");
 }
 
 PyObject *
 PyString_FromStringAndSize(const char *str, int size)
 {
-  printf("> PyString_FromStringAndSize\n");
+	LOG("> PyString_FromStringAndSize\n");
 	register PyStringObject *op;
 	if (size == 0 && (op = nullstring) != NULL) {
 		Py_INCREF(op);
-  printf("< PyString_FromStringAndSize\n");
+	LOG("< PyString_FromStringAndSize\n");
 		return (PyObject *)op;
 	}
 	if (size == 1 && str != NULL &&
 	    (op = characters[*str & UCHAR_MAX]) != NULL)
 	{
 		Py_INCREF(op);
-  printf("< PyString_FromStringAndSize\n");
+	LOG("< PyString_FromStringAndSize\n");
 		return (PyObject *)op;
 	}
 
@@ -97,7 +97,7 @@ PyString_FromStringAndSize(const char *str, int size)
 		characters[*str & UCHAR_MAX] = op;
 		Py_INCREF(op);
 	}
-  printf("< PyString_FromStringAndSize\n");
+	LOG("< PyString_FromStringAndSize\n");
 	return (PyObject *) op;
 }
 

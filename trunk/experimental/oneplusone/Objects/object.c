@@ -3,13 +3,13 @@
 PyObject *
 PyObject_Init(PyObject *op, PyTypeObject *tp)
 {
-  printf("> PyObject_Init\n");
+	LOG("> PyObject_Init\n");
 	if (op == NULL)
 	  Py_FatalError("out of memory");
 	/* Any changes should be reflected in PyObject_INIT (objimpl.h) */
 	op->ob_type = tp;
 	_Py_NewReference(op);
-	printf("< PyObject_Init\n");
+	LOG("< PyObject_Init\n");
 	return op;
 }
 

@@ -26,7 +26,7 @@ lookdict_string(dictobject *mp, PyObject *key, long hash);
 PyObject *
 PyDict_New(void)
 {
-  printf("> PyDict_New\n");
+	LOG("> PyDict_New\n");
 	register dictobject *mp;
 	if (dummy == NULL) {
 		dummy = PyString_FromString("<dummy key>");
@@ -39,7 +39,7 @@ PyDict_New(void)
 	EMPTY_TO_MINSIZE(mp);
 	mp->ma_lookup = lookdict_string;
 	_PyObject_GC_TRACK(mp);
-  printf("< PyDict_New\n");
+	LOG("< PyDict_New\n");
 	return (PyObject *)mp;
 }
 
@@ -173,11 +173,11 @@ dictresize(dictobject *mp, int minused)
 PyObject *
 PyDict_GetItem(PyObject *op, PyObject *key)
 {
-  printf("> PyDict_GetItem\n");
+	LOG("> PyDict_GetItem\n");
 	long hash;
 	dictobject *mp = (dictobject *)op;
 	if (!PyDict_Check(op)) {
-  printf("< PyDict_GetItem [1]\n");
+	LOG("< PyDict_GetItem [1]\n");
 		return NULL;
 	}
 	if (!PyString_CheckExact(key) ||
@@ -185,7 +185,7 @@ PyDict_GetItem(PyObject *op, PyObject *key)
 	{
 		hash = PyObject_Hash(key);
 		if (hash == -1) {
-  printf("< PyDict_GetItem [2]\n");
+	LOG("< PyDict_GetItem [2]\n");
 			return NULL;
 		}
 	}
@@ -305,14 +305,14 @@ PyTypeObject PyDict_Type = {
 PyObject *
 PyDict_GetItemString(PyObject *v, const char *key)
 {
-  printf("> PyDict_GetItemString\n");
+	LOG("> PyDict_GetItemString\n");
 	PyObject *kv, *rv;
 	kv = PyString_FromString(key);
 	if (kv == NULL)
 		return NULL;
 	rv = PyDict_GetItem(v, kv);
 	Py_DECREF(kv);
-	printf("< PyDict_GetItemString\n");
+	LOG("< PyDict_GetItemString\n");
 	return rv;
 }
 
