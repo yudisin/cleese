@@ -1,15 +1,24 @@
 .SUFFIXES:	.boa
 
-PYTHON	 = python
 CC       = gcc -Wall -O2 -nostdinc -fno-builtin 
 #CC	+= -DVERBOSE_MALLOC -DVERBOSE_MEMCPY -DVERBOSE_MARSHAL
 LD       = ld -nostdlib
+PYTHON	 = python
 
-KERNEL_PY = \
+LED_PY = \
 		kernel/led.py \
-		kernel/rtc.py
-KERNEL_PY += \
+		kernel/rtc.py \
 		kernel/bochs/pyvga.py
+
+ECHOISR_PY = \
+		kernel/echoisr.py \
+		kernel/keyb.py \
+		kernel/rtc.py \
+		kernel/bochs/pyvga.py \
+		kernel/bochs/com1.py
+
+KERNEL_PY = $(ECHOISR_PY)
+#KERNEL_PY = $(LED_PY)
 
 KERNEL_OBJS =	\
 		kernel/main.o \
@@ -73,7 +82,7 @@ OBJS =		\
 all: grub
 
 clean:
-	-rm -f cleese cleese.map
+	-rm -f cleese cleese.map kernel_bytecode.c
 	find . -name '*.o' -exec rm -f {} ';'
 	find . -name '*.s' -exec rm -f {} ';'
 
@@ -94,18 +103,13 @@ kernel/kernel_bytecode.c: $(KERNEL_PY)
 
 cleese: $(LDSCRIPT) $(CRT0) $(OBJS) # order is important!
 	$(LD) -Map cleese.map -o $@ -T $^
-	strip $@
 
 grub: cleese FORCE
-	cp $< KERNEL.BIN
-	MTOOLSRC=disk/mtools.conf mtools -c mcopy -o KERNEL.BIN C:
-	(cd disk; ln -fs $@.img a.img)
-	rm -f KERNEL.BIN
+	objcopy -R .note -R .comment -S $< KERNEL.BIN
+	util/push KERNEL.BIN $@
 
 bootp: cleese FORCE
 	objcopy -R .note -R .comment -S -O binary $< KERNEL.BIN
-	MTOOLSRC=disk/mtools.conf mtools -c mcopy -o KERNEL.BIN C:
-	(cd disk; ln -fs $@.img a.img)
-	rm -f KERNEL.BIN
+	util/push KERNEL.BIN $@
 
 FORCE:
