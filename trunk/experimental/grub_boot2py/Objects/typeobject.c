@@ -16,12 +16,89 @@ PyType_IsSubtype(PyTypeObject *a, PyTypeObject *b)
 
 PyTypeObject PyType_Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
-	/* TO DO */
+	0,					/* ob_size */
+	"type",					/* tp_name */
+	0, //sizeof(PyHeapTypeObject),		/* tp_basicsize */
+	0, //sizeof(PyMemberDef),			/* tp_itemsize */
+	0, //(destructor)type_dealloc,		/* tp_dealloc */
+	0,					/* tp_print */
+	0,			 		/* tp_getattr */
+	0,					/* tp_setattr */
+	0, //type_compare,				/* tp_compare */
+	0, //(reprfunc)type_repr,			/* tp_repr */
+	0,					/* tp_as_number */
+	0,					/* tp_as_sequence */
+	0,					/* tp_as_mapping */
+	0, //(hashfunc)_Py_HashPointer,		/* tp_hash */
+	0, //(ternaryfunc)type_call,			/* tp_call */
+	0,					/* tp_str */
+	0, //(getattrofunc)type_getattro,		/* tp_getattro */
+	0, //(setattrofunc)type_setattro,		/* tp_setattro */
+	0,					/* tp_as_buffer */
+	0, //Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,		/* tp_flags */
+	0, //type_doc,				/* tp_doc */
+	0, //(traverseproc)type_traverse,		/* tp_traverse */
+	0, //(inquiry)type_clear,			/* tp_clear */
+	0,					/* tp_richcompare */
+	0, //offsetof(PyTypeObject, tp_weaklist),	/* tp_weaklistoffset */
+	0,					/* tp_iter */
+	0,					/* tp_iternext */
+	0, //type_methods,				/* tp_methods */
+	0, //type_members,				/* tp_members */
+	0, //type_getsets,				/* tp_getset */
+	0,					/* tp_base */
+	0,					/* tp_dict */
+	0,					/* tp_descr_get */
+	0,					/* tp_descr_set */
+	0, //offsetof(PyTypeObject, tp_dict),	/* tp_dictoffset */
+	0,					/* tp_init */
+	0,					/* tp_alloc */
+	0, //type_new,				/* tp_new */
+	0, //PyObject_GC_Del,        		/* tp_free */
+	0, //(inquiry)type_is_gc,			/* tp_is_gc */
 };
 
 PyTypeObject PyBaseObject_Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
-	/* TO DO */
+	0,
+	"object",				/* tp_name */
+	sizeof(PyObject),			/* tp_basicsize */
+	0,					/* tp_itemsize */
+	0, //(destructor)object_dealloc,		/* tp_dealloc */
+	0,					/* tp_print */
+	0,			 		/* tp_getattr */
+	0,					/* tp_setattr */
+	0,					/* tp_compare */
+	0, //object_repr,				/* tp_repr */
+	0,					/* tp_as_number */
+	0,					/* tp_as_sequence */
+	0,					/* tp_as_mapping */
+	0, //object_hash,				/* tp_hash */
+	0,					/* tp_call */
+	0, //object_str,				/* tp_str */
+	0, //PyObject_GenericGetAttr,		/* tp_getattro */
+	0, //PyObject_GenericSetAttr,		/* tp_setattro */
+	0,					/* tp_as_buffer */
+	0, //Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+	0, //PyDoc_STR("The most base type"),	/* tp_doc */
+	0,					/* tp_traverse */
+	0,					/* tp_clear */
+	0,					/* tp_richcompare */
+	0,					/* tp_weaklistoffset */
+	0,					/* tp_iter */
+	0,					/* tp_iternext */
+	0, //object_methods,				/* tp_methods */
+	0,					/* tp_members */
+	0, //object_getsets,				/* tp_getset */
+	0,					/* tp_base */
+	0,					/* tp_dict */
+	0,					/* tp_descr_get */
+	0,					/* tp_descr_set */
+	0,					/* tp_dictoffset */
+	0, //object_init,				/* tp_init */
+	0, //PyType_GenericAlloc,			/* tp_alloc */
+	0, //object_new,				/* tp_new */
+	0, //PyObject_Del,           		/* tp_free */
 };
 
 static int
