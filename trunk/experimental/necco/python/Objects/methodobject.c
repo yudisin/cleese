@@ -31,7 +31,7 @@ PyCFunction_NewEx(PyMethodDef *ml, PyObject *self, PyObject *module)
 PyObject *
 PyCFunction_Call(PyObject *func, PyObject *arg, PyObject *kw)
 {
-	PyCFunctionObject* f = (PyCFunctionObject*)func;
+  //	PyCFunctionObject* f = (PyCFunctionObject*)func;
 	PyCFunction meth = PyCFunction_GET_FUNCTION(func);
 	PyObject *self = PyCFunction_GET_SELF(func);
 	int size;

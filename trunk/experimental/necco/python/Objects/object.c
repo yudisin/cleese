@@ -519,6 +519,24 @@ get_inprogress_dict(void)
 	return inprogress;
 }
 
+/* Return (new reference to) Py_True or Py_False. */
+static PyObject *
+convert_3way_to_object(int op, int c)
+{
+	PyObject *result;
+	switch (op) {
+	case Py_LT: c = c <  0; break;
+	case Py_LE: c = c <= 0; break;
+	case Py_EQ: c = c == 0; break;
+	case Py_NE: c = c != 0; break;
+	case Py_GT: c = c >  0; break;
+	case Py_GE: c = c >= 0; break;
+	}
+	result = c ? Py_True : Py_False;
+	Py_INCREF(result);
+	return result;
+}
+
 /* We want a rich comparison but don't have one.  Try a 3-way cmp instead.
    Return
    NULL      if error
@@ -555,6 +573,74 @@ do_richcmp(PyObject *v, PyObject *w, int op)
 	Py_DECREF(res);
 
 	return try_3way_to_rich_compare(v, w, op);
+}
+
+/* If the comparison "v op w" is already in progress in this thread, returns
+ * a borrowed reference to Py_None (the caller must not decref).
+ * If it's not already in progress, returns "a token" which must eventually
+ * be passed to delete_token().  The caller must not decref this either
+ * (delete_token decrefs it).  The token must not survive beyond any point
+ * where v or w may die.
+ * If an error occurs (out-of-memory), returns NULL.
+ */
+static PyObject *
+check_recursion(PyObject *v, PyObject *w, int op)
+{
+	PyObject *inprogress;
+	PyObject *token;
+	Py_uintptr_t iv = (Py_uintptr_t)v;
+	Py_uintptr_t iw = (Py_uintptr_t)w;
+	PyObject *x, *y, *z;
+
+	inprogress = get_inprogress_dict();
+	if (inprogress == NULL)
+		return NULL;
+
+	token = PyTuple_New(3);
+	if (token == NULL)
+		return NULL;
+
+	if (iv <= iw) {
+		PyTuple_SET_ITEM(token, 0, x = PyLong_FromVoidPtr((void *)v));
+		PyTuple_SET_ITEM(token, 1, y = PyLong_FromVoidPtr((void *)w));
+		if (op >= 0)
+			op = swapped_op[op];
+	} else {
+		PyTuple_SET_ITEM(token, 0, x = PyLong_FromVoidPtr((void *)w));
+		PyTuple_SET_ITEM(token, 1, y = PyLong_FromVoidPtr((void *)v));
+	}
+	PyTuple_SET_ITEM(token, 2, z = PyInt_FromLong((long)op));
+	if (x == NULL || y == NULL || z == NULL) {
+		Py_DECREF(token);
+		return NULL;
+	}
+
+	if (PyDict_GetItem(inprogress, token) != NULL) {
+		Py_DECREF(token);
+		return Py_None; /* Without INCREF! */
+	}
+
+	if (PyDict_SetItem(inprogress, token, token) < 0) {
+		Py_DECREF(token);
+		return NULL;
+	}
+
+	return token;
+}
+
+static void
+delete_token(PyObject *token)
+{
+	PyObject *inprogress;
+
+	if (token == NULL || token == Py_None)
+		return;
+	inprogress = get_inprogress_dict();
+	if (inprogress == NULL)
+		PyErr_Clear();
+	else
+		PyDict_DelItem(inprogress, token);
+	Py_DECREF(token);
 }
 
 /* Return:
@@ -655,74 +741,6 @@ PyObject_RichCompareBool(PyObject *v, PyObject *w, int op)
 	return ok;
 }
 
-/* If the comparison "v op w" is already in progress in this thread, returns
- * a borrowed reference to Py_None (the caller must not decref).
- * If it's not already in progress, returns "a token" which must eventually
- * be passed to delete_token().  The caller must not decref this either
- * (delete_token decrefs it).  The token must not survive beyond any point
- * where v or w may die.
- * If an error occurs (out-of-memory), returns NULL.
- */
-static PyObject *
-check_recursion(PyObject *v, PyObject *w, int op)
-{
-	PyObject *inprogress;
-	PyObject *token;
-	Py_uintptr_t iv = (Py_uintptr_t)v;
-	Py_uintptr_t iw = (Py_uintptr_t)w;
-	PyObject *x, *y, *z;
-
-	inprogress = get_inprogress_dict();
-	if (inprogress == NULL)
-		return NULL;
-
-	token = PyTuple_New(3);
-	if (token == NULL)
-		return NULL;
-
-	if (iv <= iw) {
-		PyTuple_SET_ITEM(token, 0, x = PyLong_FromVoidPtr((void *)v));
-		PyTuple_SET_ITEM(token, 1, y = PyLong_FromVoidPtr((void *)w));
-		if (op >= 0)
-			op = swapped_op[op];
-	} else {
-		PyTuple_SET_ITEM(token, 0, x = PyLong_FromVoidPtr((void *)w));
-		PyTuple_SET_ITEM(token, 1, y = PyLong_FromVoidPtr((void *)v));
-	}
-	PyTuple_SET_ITEM(token, 2, z = PyInt_FromLong((long)op));
-	if (x == NULL || y == NULL || z == NULL) {
-		Py_DECREF(token);
-		return NULL;
-	}
-
-	if (PyDict_GetItem(inprogress, token) != NULL) {
-		Py_DECREF(token);
-		return Py_None; /* Without INCREF! */
-	}
-
-	if (PyDict_SetItem(inprogress, token, token) < 0) {
-		Py_DECREF(token);
-		return NULL;
-	}
-
-	return token;
-}
-
-static void
-delete_token(PyObject *token)
-{
-	PyObject *inprogress;
-
-	if (token == NULL || token == Py_None)
-		return;
-	inprogress = get_inprogress_dict();
-	if (inprogress == NULL)
-		PyErr_Clear();
-	else
-		PyDict_DelItem(inprogress, token);
-	Py_DECREF(token);
-}
-
 /* Compare v to w.  Return
    -1 if v <  w or exception (PyErr_Occurred() true in latter case).
     0 if v == w.
@@ -775,24 +793,6 @@ PyObject_Compare(PyObject *v, PyObject *w)
 	}
 	compare_nesting--;
 	return result < 0 ? -1 : result;
-}
-
-/* Return (new reference to) Py_True or Py_False. */
-static PyObject *
-convert_3way_to_object(int op, int c)
-{
-	PyObject *result;
-	switch (op) {
-	case Py_LT: c = c <  0; break;
-	case Py_LE: c = c <= 0; break;
-	case Py_EQ: c = c == 0; break;
-	case Py_NE: c = c != 0; break;
-	case Py_GT: c = c >  0; break;
-	case Py_GE: c = c >= 0; break;
-	}
-	result = c ? Py_True : Py_False;
-	Py_INCREF(result);
-	return result;
 }
 
 PyObject *
