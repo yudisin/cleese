@@ -45,6 +45,12 @@ PyTypeObject PyFrame_Type = {
 
 static PyObject *builtin_object;
 
+int _PyFrame_Init()
+{
+  builtin_object = PyString_InternFromString("__builtins__");
+  return (builtin_object != NULL);
+}
+
 PyFrameObject *
 PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals, 
 	    PyObject *locals)
@@ -152,12 +158,6 @@ PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,
 
 	_PyObject_GC_TRACK(f);
 	return f;
-}
-
-int _PyFrame_Init()
-{
-	/* TO DO */
-	return 1;
 }
 
 void
