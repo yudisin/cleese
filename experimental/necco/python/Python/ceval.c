@@ -592,7 +592,7 @@ eval_frame(PyFrameObject *f)
 				if (x == NULL) {
 					x = PyDict_GetItem(f->f_builtins, w);
 					if (x == NULL) {
-						printf("can't find %s", ((PyStringObject *)w)->ob_sval);
+						printf("can't find %s\n", ((PyStringObject *)w)->ob_sval);
 						/* format_exc_check_arg */
 						break;
 					}
@@ -634,7 +634,7 @@ eval_frame(PyFrameObject *f)
 				x = PyDict_GetItem(f->f_builtins, w);
 				if (x == NULL) {
 				  load_global_error:
-					printf("LOAD_GLOBAL ERROR %s", ((PyStringObject *)w)->ob_sval);
+					printf("LOAD_GLOBAL ERROR %s\n", ((PyStringObject *)w)->ob_sval);
 					break;
 				}
 			}
@@ -701,7 +701,7 @@ x = NULL;
 			w = GETITEM(names, oparg);
 			x = PyDict_GetItemString(f->f_builtins, "__import__");
 			if (x == NULL) {
-				printf("__import__ not found");
+				printf("__import__ not found\n");
 				break;
 			}
 			u = TOP();
@@ -908,14 +908,14 @@ PyEval_CallObjectWithKeywords(PyObject *func, PyObject *arg, PyObject *kw)
 	if (arg == NULL)
 		arg = PyTuple_New(0);
 	else if (!PyTuple_Check(arg)) {
-		printf("argument list must be a tuple");
+		printf("argument list must be a tuple\n");
 		return NULL;
 	}
 	else
 		Py_INCREF(arg);
 
 	if (kw != NULL && !PyDict_Check(kw)) {
-		printf("keyword list must be a dictionary");
+		printf("keyword list must be a dictionary\n");
 		Py_DECREF(arg);
 		return NULL;
 	}
