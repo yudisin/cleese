@@ -2,10 +2,10 @@
 #define Py_STRINGOBJECT_H
 
 typedef struct {
-	PyObject_VAR_HEAD
-	long ob_shash;
-	int ob_sstate;
-	char ob_sval[1];
+  PyObject_VAR_HEAD
+  long ob_shash;
+  int ob_sstate;
+  char ob_sval[1];
 } PyStringObject;
 
 #define SSTATE_NOT_INTERNED 0 
