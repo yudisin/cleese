@@ -6,19 +6,11 @@ textbuffer  =vga.textbuffer
 savebuffer  =vga.savebuffer
 splashscreen=vga.splashscreen
 
-def savetext():
-	savebuffer[    :4000] = textbuffer
-	ports.outb(4, 0x3CE)
-	ports.outb(3, 0x3CF)
-	savebuffer[4000:8000] = textbuffer
+def savevga():
+	savebuffer[:0x10000] = framebuffer
 
-def restoretext():
-	ports.outb(2, 0x3C4)
-	ports.outb(0xc, 0x3C5)
-	textbuffer[:4000] = savebuffer[4000:8000]
-	ports.outb(2, 0x3C4)
-	ports.outb(3, 0x3C5)
-	textbuffer[:4000] = savebuffer[    :4000]
+def restorevga():
+	framebuffer[:0x10000] = savebuffer
 
 def set640x480x16():
 	ports.inb(0x3DA)
@@ -120,9 +112,9 @@ def vgadefaultpalette():
 	i = 0
 	while i < 128:	# for i in range(256):
 		ports.outb(i, 0x3C8)
-		ports.outb(ord(r[i]), 0x3C9)
-		ports.outb(ord(g[i]), 0x3C9)
-		ports.outb(ord(b[i]), 0x3C9)
+		ports.outb(r[i], 0x3C9)
+		ports.outb(g[i], 0x3C9)
+		ports.outb(b[i], 0x3C9)
 		i = i + 1
 
 # initialize the palette

@@ -2,27 +2,30 @@
 import pyvga
 
 def splashup():
-	pyvga.savetext()
 	pyvga.set320x200x256()
+	pyvga.savevga()
 	pyvga.framebuffer[:0xFA00] = pyvga.splashscreen[:0xFA00]
 
 splashup()
 
-def decorate():
-	o = 61114	# (320*190) + (320-6)
+def decorate(off):
+	o = off
 	fb = pyvga.framebuffer
 	y = 0
-	while y < 10:
-		if (y & 1):	fb[o:o+6] = '\077\067\077\067\077\067'
-		else:		fb[o:o+6] = '\067\077\067\077\067\077'
+	while y < 12:
+		if (o & 64):	fb[o:o+6] = '\015\067\015\067\015\067'
+		else:		fb[o:o+6] = '\067\015\067\015\067\015'
 		o = o + 320
 		y = y + 1
 
-decorate()
-
 def splashdown():
+	pyvga.restorevga()
 	pyvga.set80x25()
-	pyvga.restoretext()
+
+########################################
+
+#import pyfont
+#pyfont.write('hello, world! \00\01\02#$%')
 
 ########################################
 
@@ -47,12 +50,21 @@ def kbd_isr():
 
 def clk_isr():
 	tb[158] = '/-\|'[isr.ticker & 3]
+	pass
 
 isr.setvec(clk_isr, kbd_isr)
 
 ########################################
 
-while isr.ticker < 60: pass
+o = 314
+t = 0
+while isr.ticker < 60:
+	if isr.ticker > t:
+		if o < 64000:
+			decorate(o)
+			o = o + 2560
+			t = isr.ticker + 1
+
 splashdown()
 
 print 'Press a key'
