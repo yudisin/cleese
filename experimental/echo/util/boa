@@ -1,0 +1,308 @@
+#!/usr/bin/python
+import parser
+import symbol
+import token
+
+################################################################################
+# Basically Obscure Assembler
+################################################################################
+
+opcodes = """
+    add andl cli cld cmp dec inb inc int lea lodsb lodsw movsb movsl movl
+    nop orl outb pop push rep ret shl shr std stosb stosw stosl sub test xor
+    """.split()
+
+################################################################################
+
+toks=[]
+
+def cleartoks():
+	global toks
+        toks=[]
+
+def tokpeek(pat):
+        return toks != [] and toks[-1][0] == pat
+
+def toklist():
+        ret = []
+        if tokpeek(token.RPAR):
+                toks.pop()
+                while 1:
+                        (x, y) = toks.pop()
+                        if x == token.COMMA:    pass
+                        elif x == token.LPAR:   break
+                        else:                   ret.append((x,y))
+        return ret
+
+################################################################################
+
+def arg(t):
+        (x,y) = t
+        if x == 'memref':      
+                if y[2]:        return "%s(%s,%s,%s)" % y
+                elif y[1]:      return "%s(%s)"       % y[:2]
+                else:           return "%s"           % y[:1]
+        elif x == 'reg':        return y
+        else:                   return "$" + y
+
+pseudo = { 'dd':'long','dw':'word','db':'byte','align':'align' }
+
+def gpseudo(y, argl):
+        argl.reverse()
+        for e in argl:
+                print ".%s %s" % (pseudo[y], e[1])
+
+if 'PLUSEQUAL' in dir(token):
+        equals = {
+        token.EQUAL:            'mov',
+        token.PLUSEQUAL:        'add',
+        token.MINEQUAL:         'sub',
+        token.AMPEREQUAL:       'and',
+        token.VBAREQUAL:        'or',
+        token.LEFTSHIFTEQUAL:   'shl',
+        token.RIGHTSHIFTEQUAL:  'shr' }
+else:
+        equals = {token.EQUAL: 'mov'}
+
+def gcode():
+        if tokpeek(token.RPAR): argl = toklist()
+        else:                   argl = []
+        if tokpeek(token.NAME):
+                (_,y) = toks.pop()
+                if y == "pass":         pass
+                elif pseudo.has_key(y): gpseudo(y,argl)
+                elif y in opcodes:
+                        def catargs(str, tok):
+                                if str: return arg(tok) + "," + str
+                                else:   return arg(tok)
+                        print y, reduce(catargs, argl, "")
+                else:
+                        for l in argl:
+                                print "push", arg(l)
+                        print "call", y
+                        if len(argl):
+                                print "lea %d(%%esp),%%esp" % (4 * len(argl))
+        elif tokpeek(token.STRING):
+                (_,y) = toks.pop()
+                pass    # ignore, so we can fake docstrings
+        elif equals.has_key(toks[-1][0]):
+                (x,_) = toks.pop()
+                a = toks.pop()
+                b = toks.pop()
+                print "%s %s,%s" % (equals[x], arg(a), arg(b))
+        else:
+                print toks
+
+def sym(s):
+        return ".globl %s\n%s:" % (s,s)
+
+def cint(s):
+        if s[0] == '0':
+                if len(s) == 1:         return 0
+                elif s[1] == 'x':       return int(s[2:], 16)
+                else:                   return int(s[1:], 8)
+        else:                           return int(s)
+
+res = {'resb':1, 'resw':2, 'resd':4}
+
+def gdata():
+        if tokpeek(token.RPAR): argl = toklist()
+        else:                   argl = []
+        (x,y) = toks.pop()
+        if x == token.EQUAL:
+                if tokpeek(token.RPAR): argl = toklist()
+                else:                   argl = []
+                (x, y) = toks.pop()
+                if x == token.NAME:
+                        if pseudo.has_key(y):
+                                (a, b) = toks.pop()
+                                if y != 'align': print sym(b)
+                                gpseudo(y, argl)
+                                if y == 'align': print sym(b)
+                        elif res.has_key(y):
+                                (a, b) = toks.pop()
+                                n = reduce(lambda v,t: v * cint(t[1]),
+                                                        argl, res[y])
+                                print ".globl %s\n.comm %s,%s" % (b,b,n)
+                        else:
+                                pass
+                elif x == token.STRING:
+                        (a, b) = toks.pop()
+                        print sym(b)
+                        print ".ascii %s" % y
+                elif x == token.NUMBER:
+                        (a, b) = toks.pop()
+                        print sym(b)[:-1] + " = " + y
+        elif x == token.NAME:
+                if pseudo.has_key(y):
+                        gpseudo(y, argl)
+        else:
+                toks.append((x,y))
+                print toks
+
+################################################################################
+
+labc=0
+def nextlab():
+        global labc
+        labc = labc + 1
+        return labc
+
+cmps = {token.LESS:             'b',
+        token.LESSEQUAL:        'be',
+        token.EQEQUAL:          'z',
+        token.NOTEQUAL:         'nz',
+        token.GREATEREQUAL:     'ae',
+        token.GREATER:          'a' }
+
+def cond():
+        (x,flag) = toks.pop()
+        if flag == 'is':
+                (_,flag) = toks.pop()
+                gcode()
+        elif cmps.has_key(x):
+                a = toks.pop()
+                b = toks.pop()
+                print "cmpl %s,%s" % (arg(a),arg(b))
+                flag = cmps[x]
+        cleartoks()
+        return "j" + flag
+
+################################################################################
+
+def mref(tup):
+        (x,y) = tup
+        if x == 'memref':       pass
+        elif x == 'reg':        y = ('', y, '', '1')
+        else:                   y = (y, '', '', '1')
+        return ('memref', y)
+
+def mrewrite(tup):
+        # [base + index + off]
+        if len(tup) == 6:
+                prtup(tup[1], 'memref')
+                prtup(tup[3], 'memref')
+                prtup(tup[5], 'memref')
+                (_,a) = toks.pop()
+                (t,b) = toks.pop()
+                (_,c) = toks.pop()
+                if t != 'memref': b = (a, c, b,   '1'  )
+                else:             b = (a, c, b[2], b[3])
+                toks.append(('memref', b))
+                return 1
+        # index * scale, [base + index], [index + off], [base + off]
+        elif len(tup) == 4:    
+                prtup(tup[1], 'memref')
+                prtup(tup[3], 'memref')
+                prtup(tup[2], 'memref')
+                (_,a) = toks.pop()
+                (t,b) = toks.pop()
+                (u,c) = toks.pop()
+                if a == '*':            y = ('',   '',   c,    b   )
+                elif t == 'memref':     y = (b[0], c,    b[2], b[3])
+                elif u == 'memref':     y = (b,    c[1], c[2], c[3])
+                else:                   y = (b,    c,    '',   '1' )
+                toks.append(('memref', y))
+                return 1
+        else:   return 0
+
+################################################################################
+
+def prtup(tup,c):
+        x = tup[0]
+
+        if not x:
+                return
+        elif token.ISTERMINAL(x):
+                if x == token.NAME and tup[1] in ["eax","ebx","ecx","edx",
+                                                  "ebp","esp","esi","edi",
+                                                  "ax","bx","cx","dx",
+                                                  "al","ah","bl","bh",
+                                                  "cs","ds","es",
+                                                  "fs","gs","ss"]:
+                        tup = ('reg', "%" + tup[1])
+                toks.append(tup)
+                # print "#\t", token.tok_name[x], "\t", tup[1]
+                return
+        else:
+                # print "#.." + symbol.sym_name[x]
+                pass
+
+        def prtups(ts,c):
+                for t in ts:
+                        prtup(t,c)
+
+        if   x == symbol.file_input:
+                print ".text 255"
+                prtups(tup[1:-1],0)
+        elif x == symbol.suite:
+                prtups(tup[3:-1],c)
+        elif x == symbol.funcdef:
+                (_,_,(_,name),_,_,body) = tup
+                if c: print ".text %d\n%s:" % (c%256, name)
+                else: print ".text %d\n%s" % (c, sym(name))
+                prtup(body,c+1)
+                print "ret"
+                print ".text %d" % ((c-1)%256)
+        elif x == symbol.if_stmt:
+                print "#", len(tup)
+                prtup(tup[2],c)
+                test = {'jnz':'jz', 'jz':'jnz',
+                        'jb':'jae', 'jae':'jb',
+                        'ja':'jbe', 'jbe':'ja'}[cond()]
+                l0 = nextlab()
+                print "%s L%d" % (test, l0)
+                prtup(tup[4],c)
+                if len(tup) != 8:
+                        print "L%d:" % l0
+                else:
+                        l1 = nextlab()
+                        print "jmp L%d\nL%d:" % (l1, l0)
+                        prtup(tup[7],c)
+                        print "L%d:" % l1
+        elif x == symbol.while_stmt:
+                l0, l1 = nextlab(), nextlab()
+                print "jmp L%d" % l0
+                print "L%d:" % l1
+                prtup(tup[4],c)
+                print "L%d:" % l0
+                prtup(tup[2],c)
+                print "%s L%d" % (cond(), l1)
+        elif x == symbol.simple_stmt:
+                for t in tup[1:]:
+                        (x,y) = t
+                        if x not in [token.SEMI, token.NEWLINE]:
+                                prtup(t,c)
+                                if c: gcode()
+                                else: gdata()
+                        cleartoks()
+        elif x in [symbol.arglist, symbol.subscriptlist,
+                   symbol.trailer, symbol.power]:
+                prtups(tup[1:],c)
+        elif x == symbol.atom and tup[1][0] == token.LSQB:
+                if c:
+                        prtup(tup[2],'memref')
+                        toks.append(mref(toks.pop()))
+                else:
+                        prtups(tup[1:],c)
+        else:
+                if c == 'memref' and mrewrite(tup):
+                        return
+                prtup(tup[1],c)
+                if len(tup) > 2:
+                        prtup(tup[3],c)
+                        prtup(tup[2],c)
+                        if len(tup) > 4:
+                                prtup(tup[5],c)
+                                prtup(tup[4],c)
+
+################################################################################
+
+import sys
+
+try:
+        prtup(parser.suite(sys.stdin.read()).totuple(),0)
+except parser.ParserError, err:
+        print ".err"
+        sys.stderr.write("parser.suite() gave up.  Where?  Who knows.\n")
+        sys.stderr.write("Is it any more informative in >2.1 Pythons?\n")
