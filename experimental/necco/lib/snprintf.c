@@ -2,6 +2,7 @@
  * snprintf.c
  */
 #include "stdarg.h"
+#include "ctype.h"
 #include "sys/types.h"
 
 static char hexmap[] = {
@@ -31,6 +32,11 @@ void va_snprintf(char *b, int l, const char *fmt, va_list pvar)
 	    fmt++;
 
 	    switch (*fmt) {
+	    case '.':		/* precision modifier */
+		while(isdigit(fmt[1]))
+			fmt++;
+		goto again;
+
 	    case 'l':		/* long modifier */
 		if (!mod_l) {
 		    mod_l = 1;

@@ -36,11 +36,7 @@ def clk_isr():
 	tb[158] = '/-\|'[isr.ticker & 3]
 	fl = py8042.poll_mouse()
 	if fl:
-		# print "mouse: %x %d %d" % (fl, py8042.dx, py8042.dy)
-		print 'mouse'
-		print fl
-		print py8042.dx
-		print py8042.dy
+		print "mouse: %x %d %d" % (fl, py8042.dx, py8042.dy)
 		clk_isr()
 		
 

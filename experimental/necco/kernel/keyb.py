@@ -26,7 +26,7 @@ def break_code(scancode):
     elif scancode == 0x14: _ctl = 1;   return 1
     elif scancode == 0x12: _shift = 1; return 1
     elif scancode == 0x59: _shift = 1; return 1
-    elif scancode == 0x58: _shift = 1; return 1
+    elif scancode == 0x58: _shift = not _shift; return 1
     else:
 	return 0
 
