@@ -1,6 +1,3 @@
-
-#include "stdarg.h"
-
 extern unsigned char inb(unsigned short);
 extern void outb(unsigned short, unsigned char);
 
@@ -94,7 +91,7 @@ clear_to_EOL()
 	}
 }
 
-void
+static void
 print_char(int c)
 {
 	unsigned char *v = (unsigned char *) (VIDMEM + row * NUM_COLS * 2 + col * 2);
@@ -115,7 +112,7 @@ print_char(int c)
 	}
 }
 
-static void
+void
 print_string(const char *s)
 {
 	while (*s != '\0') {
@@ -126,130 +123,4 @@ print_string(const char *s)
 #endif
 	}
 	update_cursor();
-}
-
-static void
-format_d(char* buf, int val)
-{
-	char stack[16];
-	int top = 0;
-	int negative;
-	unsigned uval;
-
-	if (val < 0) {
-		negative = 1;
-		uval = -val;
-	} else {
-		negative = 0;
-		uval = val;
-	}
-
-	do {
-		int digit = uval %10;
-		stack[top++] = digit + '0';
-		uval /= 10;
-	}
-	while (uval > 0);
-
-	if (negative) {
-		*buf++ = '-';
-	}
-
-	do {
-		*buf++ = stack[--top];
-	}
-	while (top > 0);
-
-	*buf = '\0';
-}
-
-static
-void format_x(char* buf, int val)
-{
-	int i;
-	for (i = 28; i >=0; i -= 4) {
-		int x = (val >> i) & 0xf;
-		*buf++ = "0123456789ABCDEF"[x];
-	}
-	*buf = '\0';
-}
-
-#define	SCREEN		((char *)-1)
-
-static
-char *p_string(char *d, const char *s)
-{
-	if(d == SCREEN)	{
-		print_string(s);
-		return SCREEN;
-	}
-	while (*s != '\0') {
-		*d++ = *s++;
-	}
-	return d;
-}
-
-void vsprintf(char *dst, const char *fmt, va_list args)
-{
-	char buf[64];
-	int ival;
-	const char* sval;
-
-	while (*fmt != '\0') {
-		switch (*fmt) {
-		case '%':
-			++fmt;
-			switch (*fmt) {
-			case 'd':
-				ival = va_arg(args, int);
-				format_d(buf, ival);
-				dst = p_string(dst, buf);
-				break;
-			case 'x':
-				ival = va_arg(args, int);
-				format_x(buf, ival);
-				dst = p_string(dst, buf);
-				break;
-			case 's':
-				sval = va_arg(args, char *);
-				dst = p_string(dst, sval);
-				break;
-			default:
-				buf[0] = *fmt;
-				buf[1] = '\0';
-				dst = p_string(dst, buf);
-				break;
-			}
-			break;
-		default:
-			buf[0] = *fmt;
-			buf[1] = '\0';
-			dst = p_string(dst, buf);
-			break;
-		}
-
-		fmt++;
-	}
-	if(dst == SCREEN)
-		update_cursor();
-	else
-		*dst++ = '\0';
-}
-
-void
-sprintf(char *dst, const char *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	vsprintf(dst, fmt, args);
-	va_end(args);
-}
-
-void
-printf(const char* fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	vsprintf(SCREEN, fmt, args);
-	va_end(args);
 }
