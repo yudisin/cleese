@@ -33,7 +33,6 @@ KERNEL_PY = $(ECHOISR_PY)
 #KERNEL_PY = kernel/listtest.py
 
 KERNEL_OBJS =	\
-		kernel/main.o \
 		kernel/kernel_bytecode.o \
 		kernel/blitmodule.o \
 		kernel/bufmodule.o
@@ -87,7 +86,8 @@ PYTHON_OBJS +=	\
 		python/Objects/enumobject.o
 
 PYTHON_OBJS +=	\
-		python/Modules/gcmodule.o
+		python/Modules/gcmodule.o \
+		python/Modules/main.o
 
 LDSCRIPT =	lib/bochs/cleese.ld
 CRT0	 =	lib/bochs/crt0.o
