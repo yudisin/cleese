@@ -13,7 +13,6 @@ OBJECT_OBJS =	\
 		Objects/typeobject.o \
 		Objects/object.o \
 		Objects/tupleobject.o \
-		Objects/classobject.o \
 		Objects/moduleobject.o
 
 PYTHON_OBJS =	\
