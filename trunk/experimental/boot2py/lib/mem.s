@@ -1,7 +1,9 @@
-	.globl	_bcopy
+	.globl	bcopy
+	.globl  _bcopy
 	.align	4
 
-_bcopy:
+bcopy:
+_bcopy:	
 	pushl	%esi
 	pushl	%edi
 	movl	0xC(%esp),%esi
