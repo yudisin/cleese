@@ -386,6 +386,26 @@ eval_frame(PyFrameObject *f)
 			STACKADJ(-1);
 			break;
 
+		case BINARY_MULTIPLY:
+			w = POP();
+			v = TOP();
+			x = PyNumber_Multiply(v, w);
+			Py_DECREF(v);
+			Py_DECREF(w);
+			SET_TOP(x);
+			if (x != NULL) continue;
+			break;
+
+		case BINARY_DIVIDE:
+			w = POP();
+			v = TOP();
+			x = PyNumber_Divide(v, w);
+			Py_DECREF(v);
+			Py_DECREF(w);
+			SET_TOP(x);
+			if (x != NULL) continue;
+			break;
+
 		case BINARY_MODULO:
 			w = POP();
 			v = TOP();
@@ -578,6 +598,10 @@ eval_frame(PyFrameObject *f)
 		case RETURN_VALUE:
 			retval = POP();
 			why = WHY_RETURN;
+			break;
+
+		case BREAK_LOOP:
+			why = WHY_BREAK;
 			break;
 
 		case POP_BLOCK:
@@ -821,6 +845,73 @@ x = NULL;
 			err = 0;
 		}
 
+		/* Unwind stacks if a (pseudo) exception occurred */
+
+		while (why != WHY_NOT && why != WHY_YIELD && f->f_iblock > 0) {
+			PyTryBlock *b = PyFrame_BlockPop(f);
+
+			if (b->b_type == SETUP_LOOP && why == WHY_CONTINUE) {
+				/* For a continue inside a try block,
+				   don't pop the block for the loop. */
+				PyFrame_BlockSetup(f, b->b_type, b->b_handler,
+						   b->b_level);
+				why = WHY_NOT;
+				JUMPTO(PyInt_AS_LONG(retval));
+				Py_DECREF(retval);
+				break;
+			}
+
+			while (STACK_LEVEL() > b->b_level) {
+				v = POP();
+				Py_XDECREF(v);
+			}
+			if (b->b_type == SETUP_LOOP && why == WHY_BREAK) {
+				why = WHY_NOT;
+				JUMPTO(b->b_handler);
+				break;
+			}
+			if (b->b_type == SETUP_FINALLY ||
+			    (b->b_type == SETUP_EXCEPT &&
+			     why == WHY_EXCEPTION)) {
+				if (why == WHY_EXCEPTION) {
+					PyObject *exc, *val, *tb;
+					PyErr_Fetch(&exc, &val, &tb);
+					if (val == NULL) {
+						val = Py_None;
+						Py_INCREF(val);
+					}
+					/* Make the raw exception data
+					   available to the handler,
+					   so a program can emulate the
+					   Python main loop.  Don't do
+					   this for 'finally'. */
+					if (b->b_type == SETUP_EXCEPT) {
+						PyErr_NormalizeException(
+							&exc, &val, &tb);
+						set_exc_info(tstate,
+							     exc, val, tb);
+					}
+					if (tb == NULL) {
+						Py_INCREF(Py_None);
+						PUSH(Py_None);
+					} else
+						PUSH(tb);
+					PUSH(val);
+					PUSH(exc);
+				}
+				else {
+					if (why == WHY_RETURN ||
+					    why == WHY_CONTINUE)
+						PUSH(retval);
+					v = PyInt_FromLong((long)why);
+					PUSH(v);
+				}
+				why = WHY_NOT;
+				JUMPTO(b->b_handler);
+				break;
+			}
+		} /* unwind stack */
+
 		/* End the loop if we still have an error (or return) */
 
 		if (why != WHY_NOT)
@@ -876,6 +967,54 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
 	Py_DECREF(f);
 	--tstate->recursion_depth;
 	return retval;
+}
+
+
+static void
+set_exc_info(PyThreadState *tstate,
+	     PyObject *type, PyObject *value, PyObject *tb)
+{
+	PyFrameObject *frame;
+	PyObject *tmp_type, *tmp_value, *tmp_tb;
+
+	frame = tstate->frame;
+	if (frame->f_exc_type == NULL) {
+		/* This frame didn't catch an exception before */
+		/* Save previous exception of this thread in this frame */
+		if (tstate->exc_type == NULL) {
+			Py_INCREF(Py_None);
+			tstate->exc_type = Py_None;
+		}
+		tmp_type = frame->f_exc_type;
+		tmp_value = frame->f_exc_value;
+		tmp_tb = frame->f_exc_traceback;
+		Py_XINCREF(tstate->exc_type);
+		Py_XINCREF(tstate->exc_value);
+		Py_XINCREF(tstate->exc_traceback);
+		frame->f_exc_type = tstate->exc_type;
+		frame->f_exc_value = tstate->exc_value;
+		frame->f_exc_traceback = tstate->exc_traceback;
+		Py_XDECREF(tmp_type);
+		Py_XDECREF(tmp_value);
+		Py_XDECREF(tmp_tb);
+	}
+	/* Set new exception for this thread */
+	tmp_type = tstate->exc_type;
+	tmp_value = tstate->exc_value;
+	tmp_tb = tstate->exc_traceback;
+	Py_XINCREF(type);
+	Py_XINCREF(value);
+	Py_XINCREF(tb);
+	tstate->exc_type = type;
+	tstate->exc_value = value;
+	tstate->exc_traceback = tb;
+	Py_XDECREF(tmp_type);
+	Py_XDECREF(tmp_value);
+	Py_XDECREF(tmp_tb);
+	/* For b/w compatibility */
+	//	PySys_SetObject("exc_type", type);
+	//	PySys_SetObject("exc_value", value);
+	//	PySys_SetObject("exc_traceback", tb);
 }
 
 PyFrameObject *
