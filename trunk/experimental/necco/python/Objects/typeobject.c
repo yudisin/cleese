@@ -1,4 +1,43 @@
 #include "Python.h"
+#include "structmember.h"
+
+static PyObject *
+type_call(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+	PyObject *obj;
+
+	if (type->tp_new == NULL) {
+		PyErr_Format(PyExc_TypeError,
+			     "cannot create '%.100s' instances",
+			     type->tp_name);
+		return NULL;
+	}
+
+	obj = type->tp_new(type, args, kwds);
+
+	if (obj != NULL) {
+		/* Ugly exception: when the call was type(something),
+		   don't call tp_init on the result. */
+		if (type == &PyType_Type &&
+		    PyTuple_Check(args) && PyTuple_GET_SIZE(args) == 1 &&
+		    (kwds == NULL ||
+		     (PyDict_Check(kwds) && PyDict_Size(kwds) == 0)))
+			return obj;
+		/* If the returned object is not an instance of type,
+		   it won't be initialized. */
+		if (!PyType_IsSubtype(obj->ob_type, type))
+			return obj;
+		type = obj->ob_type;
+		if (PyType_HasFeature(type, Py_TPFLAGS_HAVE_CLASS) &&
+		    type->tp_init != NULL &&
+		    type->tp_init(obj, args, kwds) < 0) {
+			Py_DECREF(obj);
+			obj = NULL;
+		}
+	}
+
+	return obj;
+}
 
 PyObject *
 PyType_GenericAlloc(PyTypeObject *type, int nitems)
@@ -7,9 +46,9 @@ PyType_GenericAlloc(PyTypeObject *type, int nitems)
 	const size_t size = _PyObject_VAR_SIZE(type, nitems+1);
 	/* note that we need to add one, for the sentinel */
 
-	if (PyType_IS_GC(type))
-		obj = _PyObject_GC_Malloc(size);
-	else
+	//	if (PyType_IS_GC(type))
+	//	obj = _PyObject_GC_Malloc(size);
+	//else
 		obj = PyObject_MALLOC(size);
 
 	if (obj == NULL)
@@ -27,13 +66,15 @@ PyType_GenericAlloc(PyTypeObject *type, int nitems)
 
 	if (PyType_IS_GC(type))
 		_PyObject_GC_TRACK(obj);
+
 	return obj;
 }
 
 PyObject *
 PyType_GenericNew(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-	return type->tp_alloc(type, 0);
+  PyObject *t = type->tp_alloc(type, 0);
+  return t;
 }
 
 
@@ -55,8 +96,8 @@ PyTypeObject PyType_Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,					/* ob_size */
 	"type",					/* tp_name */
-	0, //sizeof(PyHeapTypeObject),		/* tp_basicsize */
-	0, //sizeof(PyMemberDef),			/* tp_itemsize */
+	sizeof(PyHeapTypeObject),		/* tp_basicsize */
+	sizeof(PyMemberDef),			/* tp_itemsize */
 	0, //(destructor)type_dealloc,		/* tp_dealloc */
 	0,					/* tp_print */
 	0,			 		/* tp_getattr */
@@ -67,7 +108,7 @@ PyTypeObject PyType_Type = {
 	0,					/* tp_as_sequence */
 	0,					/* tp_as_mapping */
 	0, //(hashfunc)_Py_HashPointer,		/* tp_hash */
-	0, //(ternaryfunc)type_call,			/* tp_call */
+	(ternaryfunc)type_call,			/* tp_call */
 	0,					/* tp_str */
 	0, //(getattrofunc)type_getattro,		/* tp_getattro */
 	0, //(setattrofunc)type_setattro,		/* tp_setattro */
