@@ -480,6 +480,38 @@ string_hash(PyStringObject *a)
 }
 
 static PyObject *
+string_item(PyStringObject *a, register int i)
+{
+	PyObject *v;
+	char *pchar;
+	if (i < 0 || i >= a->ob_size) {
+		Py_FatalError("string index out of range");
+		return NULL;
+	}
+	pchar = a->ob_sval + i;
+	v = (PyObject *)characters[*pchar & UCHAR_MAX];
+	if (v == NULL)
+		v = PyString_FromStringAndSize(pchar, 1);
+	else {
+		Py_INCREF(v);
+	}
+	return v;
+}
+
+static PyObject*
+string_subscript(PyStringObject* self, PyObject* item)
+{
+	if (PyInt_Check(item)) {
+		long i = PyInt_AS_LONG(item);
+		if (i < 0)
+			i += PyString_GET_SIZE(self);
+		return string_item(self,i);
+	}
+	Py_FatalError("only integer indices supported");
+}
+
+
+static PyObject *
 string_mod(PyObject *v, PyObject *w)
 {
 	if (!PyString_Check(v)) {
@@ -495,6 +527,23 @@ static PyNumberMethods string_as_number = {
 	0,			/*nb_multiply*/
 	0, 			/*nb_divide*/
 	string_mod,		/*nb_remainder*/
+};
+
+static PySequenceMethods string_as_sequence = {
+	0, //(inquiry)string_length, /*sq_length*/
+	0, //(binaryfunc)string_concat, /*sq_concat*/
+	0, //(intargfunc)string_repeat, /*sq_repeat*/
+	0, //(intargfunc)string_item, /*sq_item*/
+	0, //(intintargfunc)string_slice, /*sq_slice*/
+	0,		/*sq_ass_item*/
+	0,		/*sq_ass_slice*/
+	0, //(objobjproc)string_contains /*sq_contains*/
+};
+
+static PyMappingMethods string_as_mapping = {
+	0, //(inquiry)string_length,
+	(binaryfunc)string_subscript,
+	0,
 };
 
 PyTypeObject PyBaseString_Type = {
@@ -553,8 +602,8 @@ PyTypeObject PyString_Type = {
 	0,					/* tp_compare */
 	0, //(reprfunc)string_repr, 			/* tp_repr */
 	&string_as_number,			/* tp_as_number */
-	0, //&string_as_sequence,			/* tp_as_sequence */
-	0, //&string_as_mapping,			/* tp_as_mapping */
+	&string_as_sequence,			/* tp_as_sequence */
+	&string_as_mapping,			/* tp_as_mapping */
 	(hashfunc)string_hash, 			/* tp_hash */
 	0,					/* tp_call */
 	0, //(reprfunc)string_str,			/* tp_str */
