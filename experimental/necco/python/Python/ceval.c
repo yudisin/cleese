@@ -531,6 +531,16 @@ eval_frame(PyFrameObject *f)
 			if (x != NULL) continue;
 			break;
 
+		case BINARY_OR:
+			w = POP();
+			v = TOP();
+			x = PyNumber_Or(v, w);
+			Py_DECREF(v);
+			Py_DECREF(w);
+			SET_TOP(x);
+			if (x != NULL) continue;
+			break;
+
 		case PRINT_ITEM:
 			v = POP();
 

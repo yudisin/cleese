@@ -257,6 +257,15 @@ int_and(PyIntObject *v, PyIntObject *w)
 	return PyInt_FromLong(a & b);
 }
 
+static PyObject *
+int_or(PyIntObject *v, PyIntObject *w)
+{
+	register long a, b;
+	CONVERT_TO_LONG(v, a);
+	CONVERT_TO_LONG(w, b);
+	return PyInt_FromLong(a | b);
+}
+
 static int
 int_print(PyIntObject *v)
 {
@@ -281,7 +290,7 @@ static PyNumberMethods int_as_number = {
 	(binaryfunc)int_rshift,	/*nb_rshift*/
 	(binaryfunc)int_and,	/*nb_and*/
 	0, //(binaryfunc)int_xor,	/*nb_xor*/
-	0, //(binaryfunc)int_or,	/*nb_or*/
+	(binaryfunc)int_or,	/*nb_or*/
 	0, //int_coerce,		/*nb_coerce*/
 	0, //(unaryfunc)int_int,	/*nb_int*/
 	0, //(unaryfunc)int_long,	/*nb_long*/

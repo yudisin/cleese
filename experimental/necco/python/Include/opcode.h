@@ -21,16 +21,18 @@
 #define BINARY_RSHIFT	63
 #define BINARY_AND	64
 
-#define PRINT_ITEM 71
-#define PRINT_NEWLINE 72
+#define BINARY_OR       66
 
-#define RETURN_VALUE 83
+#define PRINT_ITEM      71
+#define PRINT_NEWLINE   72
+
+#define RETURN_VALUE    83
 
 #define POP_BLOCK	87
 
-#define HAVE_ARGUMENT 90
+#define HAVE_ARGUMENT   90
 
-#define STORE_NAME     90
+#define STORE_NAME      90
 #define STORE_GLOBAL	97	/* "" */
 
 #define LOAD_CONST	100	/* Index in const list */
