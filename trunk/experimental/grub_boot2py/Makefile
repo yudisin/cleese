@@ -47,10 +47,10 @@ OBJS =	\
 all: c.img
 
 clean:
-	-rm -f *.o KERNEL.BIN kernel.lst Objects/*.o Python/*.o Modules/*.o lib/*.o mach/*.o
+	-rm -f *.o KERNEL.BIN kernel.lst kernel.map Objects/*.o Python/*.o Modules/*.o lib/*.o mach/*.o
 
 clobber:
-	-rm -f *.o KERNEL.BIN kernel.lst Objects/*.o Python/*.o Modules/*.o lib/*.o mach/*.o
+	-rm -f *.o KERNEL.BIN kernel.lst kernel.map Objects/*.o Python/*.o Modules/*.o lib/*.o mach/*.o
 	-rm -f bochsout.txt c.img grub.img *~ Object/*~ Python/*~ Modules/*~ lib/*~ mach/*~
 
 .asm.o:
