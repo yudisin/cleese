@@ -117,3 +117,21 @@ PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw)
 	}
 	return NULL;
 }
+
+PyObject *
+PyObject_GetItem(PyObject *o, PyObject *key)
+{
+	PyMappingMethods *m;
+
+	if (o == NULL || key == NULL)
+		Py_FatalError("null_error");
+
+	m = o->ob_type->tp_as_mapping;
+	if (m && m->mp_subscript) {
+		return m->mp_subscript(o, key);
+	}
+
+	/* @@@ */
+	Py_FatalError("unsubscriptable object");
+}
+
