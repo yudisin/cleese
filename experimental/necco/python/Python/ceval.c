@@ -332,6 +332,7 @@ eval_frame(PyFrameObject *f)
 			/* ERROR? */
 			break;
 
+		PREDICTED_WITH_ARG(STORE_FAST);
                 case STORE_FAST:
                         v = POP();
                         SETLOCAL(oparg, v);
@@ -626,6 +627,49 @@ eval_frame(PyFrameObject *f)
 			Py_DECREF(v);
 			break;
 
+		PREDICTED_WITH_ARG(UNPACK_SEQUENCE);
+		case UNPACK_SEQUENCE:
+			v = POP();
+			if (PyTuple_CheckExact(v)) {
+				if (PyTuple_Size(v) != oparg) {
+					PyErr_SetString(PyExc_ValueError,
+						 "unpack tuple of wrong size");
+					why = WHY_EXCEPTION;
+				}
+				else {
+					for (; --oparg >= 0; ) {
+						w = PyTuple_GET_ITEM(v, oparg);
+						Py_INCREF(w);
+						PUSH(w);
+					}
+				}
+			}
+			else if (PyList_CheckExact(v)) {
+				if (PyList_Size(v) != oparg) {
+					PyErr_SetString(PyExc_ValueError,
+						  "unpack list of wrong size");
+					why = WHY_EXCEPTION;
+				}
+				else {
+					for (; --oparg >= 0; ) {
+						w = PyList_GET_ITEM(v, oparg);
+						Py_INCREF(w);
+						PUSH(w);
+					}
+				}
+			}
+			else if (unpack_iterable(v, oparg,
+						 stack_pointer + oparg))
+				stack_pointer += oparg;
+			else {
+				if (PyErr_ExceptionMatches(PyExc_TypeError))
+					PyErr_SetString(PyExc_TypeError,
+						"unpack non-sequence");
+				why = WHY_EXCEPTION;
+			}
+			Py_DECREF(v);
+			break;
+
 		case LOAD_NAME:
 			w = GETITEM(names, oparg);
 			if ((x = f->f_locals) == NULL) {
@@ -804,6 +848,39 @@ x = NULL;
 		case JUMP_ABSOLUTE:
 			JUMPTO(oparg);
 			continue;
+
+		case GET_ITER:
+			/* before: [obj]; after [getiter(obj)] */
+			v = TOP();
+			x = PyObject_GetIter(v);
+			Py_DECREF(v);
+			if (x != NULL) {
+				SET_TOP(x);
+				PREDICT(FOR_ITER);
+				continue;
+			}
+			STACKADJ(-1);
+			break;
+
+		PREDICTED_WITH_ARG(FOR_ITER);
+		case FOR_ITER:
+			/* before: [iter]; after: [iter, iter()] *or* [] */
+			v = TOP();
+			x = PyIter_Next(v);
+			if (x != NULL) {
+				PUSH(x);
+				PREDICT(STORE_FAST);
+//				PREDICT(UNPACK_SEQUENCE);
+				continue;
+			}
+			if (!PyErr_Occurred()) {
+				/* iterator ended normally */
+ 				x = v = POP();
+				Py_DECREF(v);
+				JUMPBY(oparg);
+				continue;
+			}
+			break;
 
 		case SETUP_LOOP:
 			PyFrame_BlockSetup(f, opcode, INSTR_OFFSET() + oparg, STACK_LEVEL());
@@ -1340,4 +1417,52 @@ assign_slice(PyObject *u, PyObject *v, PyObject *w, PyObject *x)
 //               return PySequence_DelSlice(u, ilow, ihigh);
 //        else
                 return PySequence_SetSlice(u, ilow, ihigh, x);
+}
+
+/* Iterate v argcnt times and store the results on the stack (via decreasing
+   sp).  Return 1 for success, 0 if error. */
+
+static int
+unpack_iterable(PyObject *v, int argcnt, PyObject **sp)
+{
+	int i = 0;
+	PyObject *it;  /* iter(v) */
+	PyObject *w;
+
+	assert(v != NULL);
+
+	it = PyObject_GetIter(v);
+	if (it == NULL)
+		goto Error;
+
+	for (; i < argcnt; i++) {
+		w = PyIter_Next(it);
+		if (w == NULL) {
+			/* Iterator done, via error or exhaustion. */
+			if (!PyErr_Occurred()) {
+				PyErr_Format(PyExc_ValueError,
+					"need more than %d value%s to unpack",
+					i, i == 1 ? "" : "s");
+			}
+			goto Error;
+		}
+		*--sp = w;
+	}
+
+	/* We better have exhausted the iterator now. */
+	w = PyIter_Next(it);
+	if (w == NULL) {
+		if (PyErr_Occurred())
+			goto Error;
+		Py_DECREF(it);
+		return 1;
+	}
+	Py_DECREF(w);
+	PyErr_SetString(PyExc_ValueError, "too many values to unpack");
+	/* fall through */
+Error:
+	for (; i > 0; i--, sp++)
+		Py_DECREF(*sp);
+	Py_XDECREF(it);
+	return 0;
 }
