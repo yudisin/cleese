@@ -1,0 +1,136 @@
+
+!!!BOA: the Basically Obscure Assembler
+
+!!Using Boa
+
+Boa is currently just a filter: it takes source code in Python syntax
+on its standard input, and writes assembly code in gas syntax on its
+standard output.
+
+WARNING!  I have yet to figure out how to get a decent error report
+out of the Python parsermodule, so if it thinks your source is
+syntactically invalid, there are no clues as to where the problem
+may lie.  There are a few, but not many, more clues when python or
+the assembler decide your source has caused boa to go walkabout.
+                                      
+!!The BOA Language
+
+Boa source code is syntactically pythonesque:
+
+<pre>
+hw = "Hello, world!\n\0"	# initialized data
+
+def main():			# function definition
+	esi = hw		# assignment
+	while nextc is nz:	# control flow
+		putc		# function call
+
+def nextc():
+	lodsb			# opcode
+	test(eax,eax)		# opcode w/ arguments
+</pre>
+
+and is divided into two phases: the suites which are part of function definitions, which we will refer to as the 'code', and the expressions outside of the function definitions, which we will refer to as the 'data'.
+
+!!Code Suites
+
+Code consists of:
+	* opcode calls, such as 'lodsb' or 'test(eax,eax)'
+	* assignments, such as 'esi = hw' (or 'eax += ~[ecx*2 + vec]')
+	* function calls, such as 'nextc' or 'putc'
+	* control flow, such as 'while nextc is nz:'
+
+If a call is not recognized as an opcode, it generates a function call.  (to add more opcodes, edit the table at the top of the boa script)  For convenience in interfacing with foreign code, arguments to functions are passed according to "C" conventions.
+
+'if' and 'while' are currently the only control structures available.  They take the forms
+	* if/while flag:
+	* if/while foo is flag:
+	* if/while foo == bar:
+
+~[Currently: a full set of </<=/==/!=//>=/> is available, and 'z' and 'nz' for flags.  As usual, edit the appropriate tables to add more if desired]
+
+!!Data Expressions
+  
+!Declaring Initialized Data
+
+The three constructors for initialized data are db(), dw(), and dd().  The first takes a list of data to place in successive 8-bit chunks of memory, the middle, 16-bit, and the last assembles successive 32-bit chunks.  If a string is given in the initializer list, its characters will be laid down contiguously, but the next data element will be aligned according to the size declared.
+
+<pre>
+db(1,2,3)
+dw(0xffff,0xff00,0x00ff,0x0000)
+dd(_etext,_edata,_end)
+db('does this ring a bell?',7,10,0)
+</pre>
+
+To associate a symbol with a particular location, simply use an assignment
+
+<pre>
+firstpig  = db(  0, "straw",0)
+secondpig = db(  8, "wood",0)
+thirdpig  = db(255, "stone",0)
+</pre>
+
+As sugar, a bare string will be treated as if it were implicitly in a db().
+	
+<pre>
+hw = "Hello, World!\n"
+</pre>
+
+!Declaring Variables
+
+To reserve space for variables, use resb(), resw(), and resd().  Without any arguments, they will reserve 8, 16, and 32-bits of variable memory.  Given arguments, they will reserve a vector of that size.
+
+<pre>
+onek     = resb(1024)
+anotherk = resd(256)
+athirdk  = resw(4,128)
+</pre>
+
+As an example, here is a linux implementation of putc:
+
+<pre>
+iochar = resd()
+
+def putc():
+	~[iochar] = eax
+	edx = 1
+	ecx = iochar
+	ebx = 1
+	eax = 4
+	int(0x80)
+</pre>
+
+where the resd() allows us to allocate space to use as a buffer for the write() system call.
+    
+!Other Declarations
+
+align(n) will bump the allocation pointer to the next multiple of n bytes.
+Symbols can also be given absolute values, as in:
+
+<pre>
+vmem = 0xB8000
+</pre>
+
+!WARNING!
+
+To keep things simple, there are no initialized variables in boa.  Initialized data is all constant, and assembled read-only with dd() _et.al._  Variables are always zero-initialized, and assembled with resd() _et.al._
+    
+!!Effective Addresses
+  
+Boa uses NASM-like memory references, but is not as smart about rewriting them as NASM.  A memory reference must be of the form ~[base + index*scale + disp]; elements may be left out, but they must occur in that order.
+
+<pre>
+	lea(edi, ~[eax*2 + vmem])
+	eax = ~[eax]
+	eax = ~[ebp + edi + 8]
+	~[iochar] = eax
+</pre>
+   
+!!Constants
+
+Boa constants are either numeric, or character.  Numeric constants follow the Python/C/gas style: 42, 0377, 0x1badb002.  In order to make the sugaring of strings most useful, character constants are denoted by ord(string): ord('%'), ord('\n'), etc.
+
+<pre>
+	if eax < ord(' '):
+		pass
+</pre>

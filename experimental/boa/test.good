@@ -1,0 +1,104 @@
+.text 255
+.byte 1
+.byte 2
+.byte 3
+.word 1
+.ascii "qwe"
+.align 2,0
+.word 2
+.text 1
+l1:
+.ascii "0xf00"
+.align 1,0
+.text 255
+.long 'f'
+.long l1
+.comm l2,12
+.globl a
+a = l2
+.comm l3,24
+.globl b
+b = l3
+.comm l4,48
+.globl c
+c = l4
+.text 1
+.comm l5,4
+.text 255
+.long l5
+.text 0
+.globl opcodes
+opcodes:
+lea (%eax),%eax
+xor $0x55555555,%eax
+nop 
+mov $0,%eax
+mov $0377,%ebx
+.text 2
+l6:
+.ascii "0xdecaf"
+.align 1,0
+.text 0
+.text 2
+l7:
+.long 'd'
+.long l6
+.text 0
+mov $l7,%ecx
+.text 2
+l8:
+.ascii "twas brillig"
+.align 1,0
+.byte 0
+.text 0
+mov $l8,%esi
+add $0x5,%esi
+push $envp
+push $argv
+push $argc
+call main
+lea 12(%esp),%esp
+ret
+.text 255
+.globl conv
+conv = 273
+l9:
+.ascii "degrees C/K"
+.align 1,0
+.byte 0
+.globl units
+units = l9
+.text 0
+.globl control
+control:
+jz L10
+jmp L11
+L12:
+cmpl $' ',%ecx
+jae L13
+inc %ebx
+L13:
+L11:
+test %eax,%eax
+jz L12
+ret 
+jmp L14
+L10:
+mov $0,%eax
+L14:
+ret
+.text 255
+.text 0
+.globl memref
+memref:
+mov (%esi),%eax
+mov (,%ecx,2),%eax
+mov disp,%eax
+mov (%esi,%ecx,2),%eax
+mov disp(%esi),%eax
+mov disp(,%ecx,2),%eax
+mov disp(%esi,%ecx,2),%eax
+mov 0x10(%edi,%ebx,2),%eax
+ret
+.text 255
+# escape sequence
