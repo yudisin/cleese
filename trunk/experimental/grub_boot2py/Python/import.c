@@ -56,6 +56,8 @@ PyImport_ImportFrozenModule(char *name)
 	
 	PyImport_ExecCodeModule(name, co);
 
+	print(" Done ");
+	
 	Py_DECREF(co);
 
 	LOG("< PyImport_ImportFrozenModule\n");
