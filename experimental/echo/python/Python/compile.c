@@ -81,6 +81,7 @@ PyCode_New(int argcount, int nlocals, int stacksize, int flags,
 	    filename == NULL || !PyString_Check(filename) ||
 	    lnotab == NULL || !PyString_Check(lnotab)) {
 		/* ERROR */
+		print("PyCode_New args error");
 		return NULL;
 	}
 	intern_strings(names);
