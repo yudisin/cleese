@@ -5,7 +5,16 @@
 #include "eval.h"
 #include "opcode.h"
 
+/* Forward declarations */
+static PyObject *eval_frame(PyFrameObject *);
+static PyObject *call_function(PyObject ***, int);
+static PyObject *fast_function(PyObject *, PyObject ***, int, int, int);
+static PyObject *do_call(PyObject *, PyObject ***, int, int);
+static PyObject *update_keyword_args(PyObject *, int, PyObject ***,PyObject *);
+static PyObject *load_args(PyObject ***, int);
+
 extern int print(const char *);
+extern int print_hex(long number);
 
 /* The interpreter's recursion limit */
 
@@ -192,14 +201,25 @@ eval_frame(PyFrameObject *f)
 		/* case STOP_CODE: this is an error! */
 
 		case LOAD_CONST:
-			print(" LOAD_CONST ");
+//			print(" LOAD_CONST ");
 			x = GETITEM(consts, oparg);
 			Py_INCREF(x);
 			PUSH(x);
 			goto fast_next_opcode;
 
+		case BINARY_MODULO:
+//			print(" BINARY_MODULO ");
+			w = POP();
+			v = TOP();
+			x = PyNumber_Remainder(v, w);
+			Py_DECREF(v);
+			Py_DECREF(w);
+			SET_TOP(x);
+			if (x != NULL) continue;
+			break;
+			
 		case BINARY_ADD:
-			print(" BINARY_ADD ");
+//			print(" BINARY_ADD ");
 			w = POP();
 			v = TOP();
 			if (PyInt_CheckExact(v) && PyInt_CheckExact(w)) {
@@ -223,7 +243,7 @@ eval_frame(PyFrameObject *f)
 			break;
 
 		case PRINT_ITEM:
-			print(" PRINT_ITEM ");
+//			print(" PRINT_ITEM ");
 			v = POP();
 
 			PyObject_Print(v);
@@ -231,18 +251,18 @@ eval_frame(PyFrameObject *f)
 			break;
 
 		case PRINT_NEWLINE:
-			print(" PRINT_NEWLINE ");
+//			print(" PRINT_NEWLINE ");
 			print("\n");
 			break;
 
 		case RETURN_VALUE:
-			print(" RETURN_VALUE ");
+//			print(" RETURN_VALUE ");
 			retval = POP();
 			why = WHY_RETURN;
 			break;
 
 		case STORE_NAME:
-			print(" STORE_NAME ");
+//			print(" STORE_NAME ");
 			w = GETITEM(names, oparg);
 			v = POP();
 			if ((x = f->f_locals) == NULL) {
@@ -255,7 +275,7 @@ eval_frame(PyFrameObject *f)
 			break;
 
 		case LOAD_NAME:
-			print(" LOAD_NAME ");
+//			print(" LOAD_NAME ");
 			w = GETITEM(names, oparg);
 			if ((x = f->f_locals) == NULL) {
 				/* ERROR */
@@ -280,14 +300,27 @@ eval_frame(PyFrameObject *f)
 			break;
 			
 		case JUMP_FORWARD:
-			print(" JUMP_FORWARD ");
+//			print(" JUMP_FORWARD ");
 			JUMPBY(oparg);
 			goto fast_next_opcode;
 			
+		case JUMP_ABSOLUTE:
+//			print(" JUMP_ABSOLUTE ");
+			JUMPTO(oparg);
+			continue;
+
 		case SETUP_LOOP:
-			print(" SETUP_LOOP ");
+//			print(" SETUP_LOOP ");
 			PyFrame_BlockSetup(f, opcode, INSTR_OFFSET() + oparg, STACK_LEVEL());
 			continue;
+
+		case CALL_FUNCTION:
+//			print(" CALL FUNCTION ");
+			x = call_function(&stack_pointer, oparg);
+			PUSH(x);
+			if (x != NULL)
+				continue;
+			break;
 			
 		default:
 			print_hex(opcode);
@@ -354,4 +387,224 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
 	Py_DECREF(f);
 	--tstate->recursion_depth;
 	return retval;
+}
+
+PyFrameObject *
+PyEval_GetFrame(void)
+{
+	PyThreadState *tstate = PyThreadState_Get();
+	return _PyThreadState_GetFrame(tstate);
+}
+
+PyObject *
+PyEval_GetBuiltins(void)
+{
+	PyFrameObject *current_frame = PyEval_GetFrame();
+	if (current_frame == NULL) {
+		return PyThreadState_Get()->interp->builtins;
+	}
+	else {
+		return current_frame->f_builtins;
+	}
+}
+
+#define EXT_POP(STACK_POINTER) (*--(STACK_POINTER))
+
+static void
+err_args(PyObject *func, int flags, int nargs)
+{
+	/* TO DO */
+}
+
+/* The fast_function() function optimize calls for which no argument
+   tuple is necessary; the objects are passed directly from the stack.
+   For the simplest case -- a function that takes only positional
+   arguments and is called with only positional arguments -- it
+   inlines the most primitive frame setup code from
+   PyEval_EvalCodeEx(), which vastly reduces the checks that must be
+   done before evaluating the frame.
+*/
+
+static PyObject *
+fast_function(PyObject *func, PyObject ***pp_stack, int n, int na, int nk)
+{
+	PyCodeObject *co = (PyCodeObject *)PyFunction_GET_CODE(func);
+	PyObject *globals = PyFunction_GET_GLOBALS(func);
+	PyObject *argdefs = PyFunction_GET_DEFAULTS(func);
+	PyObject **d = NULL;
+	int nd = 0;
+
+	if (argdefs == NULL && co->co_argcount == n && nk==0 &&
+	    co->co_flags == (CO_OPTIMIZED | CO_NEWLOCALS | CO_NOFREE)) {
+		PyFrameObject *f;
+		PyObject *retval = NULL;
+		PyThreadState *tstate = PyThreadState_GET();
+		PyObject **fastlocals, **stack;
+		int i;
+
+		/* XXX Perhaps we should create a specialized
+		   PyFrame_New() that doesn't take locals, but does
+		   take builtins without sanity checking them.
+		*/
+		f = PyFrame_New(tstate, co, globals, NULL);
+		if (f == NULL)
+			return NULL;
+
+		fastlocals = f->f_localsplus;
+		stack = (*pp_stack) - n;
+
+		for (i = 0; i < n; i++) {
+			Py_INCREF(*stack);
+			fastlocals[i] = *stack++;
+		}
+		retval = eval_frame(f);
+		++tstate->recursion_depth;
+		Py_DECREF(f);
+		--tstate->recursion_depth;
+		return retval;
+	}
+	if (argdefs != NULL) {
+		d = &PyTuple_GET_ITEM(argdefs, 0);
+		nd = ((PyTupleObject *)argdefs)->ob_size;
+	}
+	return PyEval_EvalCodeEx(co, globals,
+				 (PyObject *)NULL, (*pp_stack)-n, na,
+				 (*pp_stack)-2*nk, nk, d, nd,
+				 PyFunction_GET_CLOSURE(func));
+}
+
+static PyObject *
+update_keyword_args(PyObject *orig_kwdict, int nk, PyObject ***pp_stack,
+                    PyObject *func)
+{
+	PyObject *kwdict = NULL;
+	if (orig_kwdict == NULL)
+		kwdict = PyDict_New();
+	else {
+		kwdict = PyDict_Copy(orig_kwdict);
+		Py_DECREF(orig_kwdict);
+	}
+	if (kwdict == NULL)
+		return NULL;
+	while (--nk >= 0) {
+		int err;
+		PyObject *value = EXT_POP(*pp_stack);
+		PyObject *key = EXT_POP(*pp_stack);
+		if (PyDict_GetItem(kwdict, key) != NULL) {
+			/* ERROR */
+			Py_DECREF(key);
+			Py_DECREF(value);
+			Py_DECREF(kwdict);
+			return NULL;
+		}
+		err = PyDict_SetItem(kwdict, key, value);
+		Py_DECREF(key);
+		Py_DECREF(value);
+		if (err) {
+			Py_DECREF(kwdict);
+			return NULL;
+		}
+	}
+	return kwdict;
+}
+
+static PyObject *
+load_args(PyObject ***pp_stack, int na)
+{
+	PyObject *args = PyTuple_New(na);
+	PyObject *w;
+
+	if (args == NULL)
+		return NULL;
+	while (--na >= 0) {
+		w = EXT_POP(*pp_stack);
+		PyTuple_SET_ITEM(args, na, w);
+	}
+	return args;
+}
+
+static PyObject *
+do_call(PyObject *func, PyObject ***pp_stack, int na, int nk)
+{
+	PyObject *callargs = NULL;
+	PyObject *kwdict = NULL;
+	PyObject *result = NULL;
+
+	if (nk > 0) {
+		kwdict = update_keyword_args(NULL, nk, pp_stack, func);
+		if (kwdict == NULL)
+			goto call_fail;
+	}
+	callargs = load_args(pp_stack, na);
+	if (callargs == NULL)
+		goto call_fail;
+	result = PyObject_Call(func, callargs, kwdict);
+ call_fail:
+	Py_XDECREF(callargs);
+	Py_XDECREF(kwdict);
+	return result;
+}
+
+static PyObject *
+call_function(PyObject ***pp_stack, int oparg)
+{
+	int na = oparg & 0xff;
+	int nk = (oparg>>8) & 0xff;
+	int n = na + 2 * nk;
+	PyObject **pfunc = (*pp_stack) - n - 1;
+	PyObject *func = *pfunc;
+	PyObject *x, *w;
+
+	/* Always dispatch PyCFunction first, because these are
+	   presumed to be the most frequent callable object.
+	*/
+	if (PyCFunction_Check(func) && nk == 0) {
+		int flags = PyCFunction_GET_FLAGS(func);
+		if (flags & (METH_NOARGS | METH_O)) {
+			PyCFunction meth = PyCFunction_GET_FUNCTION(func);
+			PyObject *self = PyCFunction_GET_SELF(func);
+			if (flags & METH_NOARGS && na == 0) 
+				x = (*meth)(self, NULL);
+			else if (flags & METH_O && na == 1) {
+				PyObject *arg = EXT_POP(*pp_stack);
+				x = (*meth)(self, arg);
+				Py_DECREF(arg);
+			}
+			else {
+				err_args(func, flags, na);
+				x = NULL;
+			}
+		}
+		else {
+			PyObject *callargs;
+			callargs = load_args(pp_stack, na);
+			x = PyCFunction_Call(func, callargs, NULL);
+			Py_XDECREF(callargs); 
+		} 
+	} else {
+		if (PyMethod_Check(func) && PyMethod_GET_SELF(func) != NULL) {
+			/* optimize access to bound methods */
+			PyObject *self = PyMethod_GET_SELF(func);
+			Py_INCREF(self);
+			func = PyMethod_GET_FUNCTION(func);
+			Py_INCREF(func);
+			Py_DECREF(*pfunc);
+			*pfunc = self;
+			na++;
+			n++;
+		} else
+			Py_INCREF(func);
+		if (PyFunction_Check(func))
+			x = fast_function(func, pp_stack, n, na, nk);
+		else 
+			x = do_call(func, pp_stack, na, nk);
+		Py_DECREF(func);
+	}
+	
+	/* What does this do? */
+	while ((*pp_stack) > pfunc) {
+		w = EXT_POP(*pp_stack);
+		Py_DECREF(w);
+	}
+	return x;
 }
