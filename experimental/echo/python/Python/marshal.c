@@ -152,6 +152,7 @@ r_object(RFILE *p)
 	  }
 
 	default:
+		print_hex(type);
 		Py_FatalError("UNKNOWN TYPE MARSHALLING");
 		/* will never get here */
 		return NULL;
