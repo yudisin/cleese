@@ -180,7 +180,7 @@ PyTypeObject PyCallIter_Type = {
 	sizeof(calliterobject),			/* tp_basicsize */
 	0,					/* tp_itemsize */
 	/* methods */
-	0 //(destructor)calliter_dealloc, 		/* tp_dealloc */
+	0, //(destructor)calliter_dealloc, 		/* tp_dealloc */
 	0,					/* tp_print */
 	0,					/* tp_getattr */
 	0,					/* tp_setattr */
