@@ -233,12 +233,59 @@ PyAPI_FUNC(int) PyNumber_CoerceEx(PyObject **, PyObject **);
 
 extern int _PyObject_SlotCompare(PyObject *, PyObject *);
 
+/* PyBufferProcs contains bf_getcharbuffer */
+#define Py_TPFLAGS_HAVE_GETCHARBUFFER  (1L<<0)
+
+/* PySequenceMethods contains sq_contains */
+#define Py_TPFLAGS_HAVE_SEQUENCE_IN (1L<<1)
+
+/* This is here for backwards compatibility.  Extensions that use the old GC
+ * API will still compile but the objects will not be tracked by the GC. */
+#define Py_TPFLAGS_GC 0 /* used to be (1L<<2) */
+
+/* PySequenceMethods and PyNumberMethods contain in-place operators */
+#define Py_TPFLAGS_HAVE_INPLACEOPS (1L<<3)
+
+/* PyNumberMethods do their own coercion */
 #define Py_TPFLAGS_CHECKTYPES (1L<<4)
+
+/* tp_richcompare is defined */
 #define Py_TPFLAGS_HAVE_RICHCOMPARE (1L<<5)
+
+/* Objects which are weakly referencable if their tp_weaklistoffset is >0 */
+#define Py_TPFLAGS_HAVE_WEAKREFS (1L<<6)
+
+/* tp_iter is defined */
+#define Py_TPFLAGS_HAVE_ITER (1L<<7)
+
+/* New members introduced by Python 2.2 exist */
 #define Py_TPFLAGS_HAVE_CLASS (1L<<8)
 
+/* Set if the type object is dynamically allocated */
+#define Py_TPFLAGS_HEAPTYPE (1L<<9)
+
+/* Set if the type allows subclassing */
+#define Py_TPFLAGS_BASETYPE (1L<<10)
+
+/* Set if the type is 'ready' -- fully initialized */
 #define Py_TPFLAGS_READY (1L<<12)
+
+/* Set while the type is being 'readied', to prevent recursive ready calls */
 #define Py_TPFLAGS_READYING (1L<<13)
+
+/* Objects support garbage collection (see objimp.h) */
+#define Py_TPFLAGS_HAVE_GC (1L<<14)
+
+#define Py_TPFLAGS_DEFAULT  ( \
+                             Py_TPFLAGS_HAVE_GETCHARBUFFER | \
+                             Py_TPFLAGS_HAVE_SEQUENCE_IN | \
+                             Py_TPFLAGS_HAVE_INPLACEOPS | \
+                             Py_TPFLAGS_HAVE_RICHCOMPARE | \
+                             Py_TPFLAGS_HAVE_WEAKREFS | \
+                             Py_TPFLAGS_HAVE_ITER | \
+                             Py_TPFLAGS_HAVE_CLASS | \
+                            0)
+
 
 #define PyType_HasFeature(t,f) (((t)->tp_flags & (f)) != 0)
 
