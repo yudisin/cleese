@@ -1093,7 +1093,7 @@ static int
 assign_slice(PyObject *u, PyObject *v, PyObject *w, PyObject *x)
         /* u[v:w] = x */
 {
-        int ilow = 0, ihigh = 1<<31;
+        int ilow = 0, ihigh = INT_MAX;
         if (!_PyEval_SliceIndex(v, &ilow))
                 return -1;
         if (!_PyEval_SliceIndex(w, &ihigh))

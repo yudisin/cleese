@@ -67,7 +67,7 @@ r_object(RFILE *p)
 	          to the 2.3 format; for now I'm lazy and doing it here */
 	if(frozenVersionInfo[0] == 2 &&
 	   frozenVersionInfo[1] == 1)	{
-		r_kludge = r_short;
+		r_kludge = (long (*)(RFILE *))r_short;
 	}
 
 	switch (type) {
