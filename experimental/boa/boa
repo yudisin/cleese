@@ -127,7 +127,8 @@ def gpseudo(op, argl, s, c):
 			l = f.read(16)
 			if not len(l):
 				break
-			print ".ascii \"%s\"" % repr(l)[1:-1]
+			print ".ascii \"%s\"" % \
+				repr(l)[1:-1].replace('"',r'\"')
 		f.close()
 	if nested: section(sect)
 
