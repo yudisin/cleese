@@ -28,10 +28,14 @@ MODULE_OBJS = 	\
 		Modules/M___main__.o \
 		Modules/gcmodule.o
 
+LIB_OBJS = 		\
+		LibC/string.o
+
 OBJS = 		\
 		$(OBJECT_OBJS) \
 		$(PYTHON_OBJS) \
-		$(MODULE_OBJS)
+		$(MODULE_OBJS) \
+		$(LIB_OBJS)
 
 #FLAGS = -fprofile-arcs -ftest-coverage -g 
 
