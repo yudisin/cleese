@@ -115,3 +115,16 @@ memcmp(const void *s1, const void *s2, size_t n)
 {
 	return(bcmp(s1, s2, n));
 }
+
+void *
+memchr(const void *ptr, int c, size_t n)
+{
+    char *p = (char *) ptr;
+
+    if (n++ > 0) {
+	while (--n > 0)
+	    if (*p++ == c)
+		return (--p);
+    }
+    return (NULL);
+}
