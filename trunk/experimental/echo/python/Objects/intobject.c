@@ -52,6 +52,15 @@ PyInt_FromLong(long ival)
 	return (PyObject *) v;
 }
 
+long
+PyInt_AsLong(register PyObject *op)
+{
+	if (op && PyInt_Check(op))
+		return PyInt_AS_LONG((PyIntObject*) op);
+
+	Py_FatalError("PyInt_AsLong not fully supported");
+}
+
 int
 _PyInt_Init(void)
 {
