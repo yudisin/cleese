@@ -40,7 +40,6 @@ PyImport_ImportFrozenModule(char *name)
 	printf("> PyImport_ImportFrozenModule\n");
 	struct _frozen *p = find_frozen(name);
 	PyObject *co;
-	PyObject *m;
 	int size;
 
 	if (p == NULL)
@@ -48,10 +47,8 @@ PyImport_ImportFrozenModule(char *name)
 
 	co = PyMarshal_ReadObjectFromString((char *)p->code, size);
 
-	m = PyImport_ExecCodeModule(name, co);
+	PyImport_ExecCodeModule(name, co);
 	Py_DECREF(co);
-
-	Py_DECREF(m);
 
 	printf("< PyImport_ImportFrozenModule\n");
 	return 1;
@@ -84,7 +81,6 @@ PyImport_ExecCodeModule(char *name, PyObject *co)
 {
 	printf("> PyImport_ExecCodeModule\n");
 
-	PyObject *modules = PyImport_GetModuleDict();
 	PyObject *m, *d, *v;
 
 	m = PyImport_AddModule(name);
@@ -98,13 +94,6 @@ PyImport_ExecCodeModule(char *name, PyObject *co)
 	if (v == NULL)
 		return NULL;
 	Py_DECREF(v);
-
-	if ((m = PyDict_GetItemString(modules, name)) == NULL) {
-		/* TO DO: flag error */
-		return NULL;
-	}
-
-	Py_INCREF(m);
 
 	printf("< PyImport_ExecCodeModule\n");
 	return m;
