@@ -1,0 +1,72 @@
+#===============================================================================
+# spartan interrupt support
+#===============================================================================
+
+def initirqs():
+	""" initialize interrupts """
+	db(0x0f,0x01,0x1d)	# set up vectors (lidt [idt_desc])
+	dd(idt_desc)
+	sti			# enable interrupts
+
+#-------------------------------------------------------------------------------
+
+def ign():
+	""" ignored processor trap """
+	db(0xcf)		# (iret)
+
+def bpt():
+	cli; pusha
+	""" breakpoint """
+	ebx = [esp + 0x24]
+	printf("[%x: eax=%x]\n",ebx,eax)
+	popa; db(0xcf)
+
+#-------------------------------------------------------------------------------
+
+def icoda():
+	""" common interrupt exit code """
+	# clear the interrupt
+	al = 0x20	# EO1
+	outb(0x20,al)	# PIC1
+
+	# restore the state
+	esp += 4
+	popa
+	db(0xcf)	# iret
+
+#-------------------------------------------------------------------------------
+
+def igp():
+	""" ignored PIC interrupt """
+	cli; pusha
+	icoda
+
+ticks = resd()
+
+def clk():
+	""" clock tick """
+	cli; pusha
+	eax = [ticks]
+	inc(eax)
+	[ticks] = eax
+	Py_AddPendingCall(python_isr, 0)
+	icoda
+
+def key():
+	""" keyboard """
+	cli; pusha
+	Py_AddPendingCall(python_isr, 1)
+	icoda
+
+#-------------------------------------------------------------------------------
+# due to the split offsets in the Intel interrupt table,
+# interrupt vectors must reside at 0x10:0x0010XXXX
+#-------------------------------------------------------------------------------
+
+idt_desc = dw(0x7f); dd(
+     dd(ign, 0x00108f00, ign, 0x00108f00, ign, 0x00108f00, bpt, 0x00108f00,
+	ign, 0x00108f00, ign, 0x00108f00, ign, 0x00108f00, ign, 0x00108f00,
+	clk, 0x00108f00, key, 0x00108f00, igp, 0x00108f00, igp, 0x00108f00,
+	igp, 0x00108f00, igp, 0x00108f00, igp, 0x00108f00, igp, 0x00108f00))
+
+#===============================================================================
