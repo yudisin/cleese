@@ -2,6 +2,7 @@ all: 1p1.exe
 
 clean:
 	find . -name '*.o' -exec rm -f {} ';'
+	-rm -f *.da *.bb *.bbg *.gcov
 	-rm -f 1p1.exe
 
 OBJECT_OBJS =	\
@@ -12,26 +13,8 @@ OBJECT_OBJS =	\
 		Objects/typeobject.o \
 		Objects/object.o \
 		Objects/tupleobject.o \
-		Objects/boolobject.o \
 		Objects/classobject.o \
-		Objects/abstract.o \
-		Objects/longobject.o \
-		Objects/moduleobject.o \
-		Objects/cellobject.o
-#		Objects/obmalloc.o \
-#		Objects/bufferobject.o \
-#		Objects/cobject.o \
-#		Objects/descrobject.o \
-#		Objects/enumobject.o \
-#		Objects/floatobject.o \
-#		Objects/funcobject.o \
-#		Objects/iterobject.o \
-#		Objects/listobject.o \
-#		Objects/methodobject.o \
-#		Objects/rangeobject.o \
-#		Objects/sliceobject.o \
-#		Objects/structseq.o \
-#		Objects/weakrefobject.o
+		Objects/moduleobject.o
 
 PYTHON_OBJS =	\
 		Python/pythonrun.o \
@@ -51,8 +34,10 @@ OBJS = 		\
 		$(PYTHON_OBJS) \
 		$(MODULE_OBJS)
 
+FLAGS = -fprofile-arcs -ftest-coverage -g 
+
 1p1.exe: Modules/python.o $(OBJS)
-	gcc -g -Wall -o $@ Modules/python.o $(OBJS)
+	gcc $(FLAGS) -Wall -o $@ Modules/python.o $(OBJS)
 
 .c.o:
-	gcc -g -fno-builtin -c -Wall -I. -I./Include -o $@ $<
+	gcc $(FLAGS) -fno-builtin -c -Wall -I. -I./Include -o $@ $<
