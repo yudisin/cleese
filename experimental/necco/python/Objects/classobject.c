@@ -176,6 +176,32 @@ PyTypeObject PyClass_Type = {
 };
 
 
+int
+PyClass_IsSubclass(PyObject *class, PyObject *base)
+{
+	int i, n;
+	PyClassObject *cp;
+	if (class == base)
+		return 1;
+	if (PyTuple_Check(base)) {
+		n = PyTuple_GET_SIZE(base);
+		for (i = 0; i < n; i++) {
+			if (PyClass_IsSubclass(class, PyTuple_GET_ITEM(base, i)))
+				return 1;
+		}
+		return 0;
+	}
+	if (class == NULL || !PyClass_Check(class))
+		return 0;
+	cp = (PyClassObject *)class;
+	n = PyTuple_Size(cp->cl_bases);
+	for (i = 0; i < n; i++) {
+		if (PyClass_IsSubclass(PyTuple_GetItem(cp->cl_bases, i), base))
+			return 1;
+	}
+	return 0;
+}
+
 PyTypeObject PyMethod_Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
