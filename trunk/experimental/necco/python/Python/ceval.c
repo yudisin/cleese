@@ -168,6 +168,7 @@ eval_frame(PyFrameObject *f)
 /* Tuple access macros */
 
 #define GETITEM(v, i) PyTuple_GET_ITEM((PyTupleObject *)(v), (i))
+#define GETNAMEV(i)     Getnamev(f, i)
 
 /* Code access macros */
 
@@ -333,6 +334,13 @@ eval_frame(PyFrameObject *f)
                         SETLOCAL(oparg, v);
                         continue;
 
+                case STORE_GLOBAL:
+                        w = GETNAMEV(oparg);
+                        v = POP();
+                        err = PyDict_SetItem(f->f_globals, w, v);
+                        Py_DECREF(v);
+                        break;
+
 		case LOAD_CONST:
 			x = GETITEM(consts, oparg);
 			Py_INCREF(x);
@@ -395,6 +403,27 @@ eval_frame(PyFrameObject *f)
 			SET_TOP(x);
 			if (x != NULL) continue;
 			break;
+
+                case SLICE+0:
+                case SLICE+1:
+                case SLICE+2:
+                case SLICE+3:
+                        if ((opcode-SLICE) & 2)
+                                w = POP();
+                        else
+                                w = NULL;
+                        if ((opcode-SLICE) & 1)
+                                v = POP();
+                        else
+                                v = NULL;
+                        u = POP();
+                        x = apply_slice(u, v, w);
+                        Py_DECREF(u);
+                        Py_XDECREF(v);
+                        Py_XDECREF(w);
+                        PUSH(x);
+                        if (x != NULL) continue;
+                        break;
 
                 case STORE_SLICE+0:
                 case STORE_SLICE+1:
@@ -993,6 +1022,16 @@ _PyEval_SliceIndex(PyObject *v, int *pi)
         return 1;
 }
 
+static PyObject *
+apply_slice(PyObject *u, PyObject *v, PyObject *w) /* return u[v:w] */
+{
+        int ilow = 0, ihigh = INT_MAX;
+        if (!_PyEval_SliceIndex(v, &ilow))
+                return NULL;
+        if (!_PyEval_SliceIndex(w, &ihigh))
+                return NULL;
+        return PySequence_GetSlice(u, ilow, ihigh);
+}
 
 static int
 assign_slice(PyObject *u, PyObject *v, PyObject *w, PyObject *x)

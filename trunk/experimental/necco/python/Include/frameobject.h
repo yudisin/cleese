@@ -37,4 +37,6 @@ PyAPI_FUNC(PyFrameObject *) PyFrame_New(PyThreadState *, PyCodeObject *,
 PyAPI_FUNC(void) PyFrame_BlockSetup(PyFrameObject *, int, int, int);
 PyAPI_FUNC(PyTryBlock *) PyFrame_BlockPop(PyFrameObject *);
 
+#define Getnamev(f, i)	(GETITEM((f)->f_code->co_names, (i)))
+
 #endif /* !Py_FRAMEOBJECT_H */
