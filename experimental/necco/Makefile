@@ -83,7 +83,8 @@ PYTHON_OBJS +=	\
 		python/Objects/sliceobject.o \
 		python/Objects/cellobject.o \
 		python/Objects/descrobject.o \
-		python/Objects/weakrefobject.o
+		python/Objects/weakrefobject.o \
+		python/Objects/enumobject.o
 
 PYTHON_OBJS +=	\
 		python/Modules/gcmodule.o

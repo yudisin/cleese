@@ -49,6 +49,43 @@ _PyLong_Copy(PyLongObject *src)
 	return (PyObject *)result;
 }
 
+/* Create a new long int object from a C long int */
+
+PyObject *
+PyLong_FromLong(long ival)
+{
+	PyLongObject *v;
+	unsigned long t;  /* unsigned so >> doesn't propagate sign bit */
+	int ndigits = 0;
+	int negative = 0;
+
+	if (ival < 0) {
+		ival = -ival;
+		negative = 1;
+	}
+
+	/* Count the number of Python digits.
+	   We used to pick 5 ("big enough for anything"), but that's a
+	   waste of time and space given that 5*15 = 75 bits are rarely
+	   needed. */
+	t = (unsigned long)ival;
+	while (t) {
+		++ndigits;
+		t >>= SHIFT;
+	}
+	v = _PyLong_New(ndigits);
+	if (v != NULL) {
+		digit *p = v->ob_digit;
+		v->ob_size = negative ? -ndigits : ndigits;
+		t = (unsigned long)ival;
+		while (t) {
+			*p++ = (digit)(t & MASK);
+			t >>= SHIFT;
+		}
+	}
+	return (PyObject *)v;
+}
+
 /* Get a C long int from a long int object.
    Returns -1 and sets an error condition if overflow occurs. */
 
