@@ -88,7 +88,7 @@ PyTypeObject PyFunction_Type = {
 	0,					/* tp_hash */
 	0, //function_call,				/* tp_call */
 	0,					/* tp_str */
-	0, //PyObject_GenericGetAttr,		/* tp_getattro */
+	PyObject_GenericGetAttr,		/* tp_getattro */
 	0, //PyObject_GenericSetAttr,		/* tp_setattro */
 	0,					/* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,/* tp_flags */
@@ -96,7 +96,7 @@ PyTypeObject PyFunction_Type = {
 	0, //(traverseproc)func_traverse,		/* tp_traverse */
 	0,					/* tp_clear */
 	0,					/* tp_richcompare */
-	0, //offsetof(PyFunctionObject, func_weakreflist), /* tp_weaklistoffset */
+	offsetof(PyFunctionObject, func_weakreflist), /* tp_weaklistoffset */
 	0,					/* tp_iter */
 	0,					/* tp_iternext */
 	0,					/* tp_methods */

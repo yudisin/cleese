@@ -99,10 +99,10 @@ PyTypeObject PyCFunction_Type = {
 	0, //(hashfunc)meth_hash,			/* tp_hash */
 	PyCFunction_Call,			/* tp_call */
 	0,					/* tp_str */
-	0, //PyObject_GenericGetAttr,		/* tp_getattro */
+	PyObject_GenericGetAttr,		/* tp_getattro */
 	0,					/* tp_setattro */
 	0,					/* tp_as_buffer */
-	0, //Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,/* tp_flags */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,/* tp_flags */
  	0,					/* tp_doc */
  	0, //(traverseproc)meth_traverse,		/* tp_traverse */
 	0,					/* tp_clear */

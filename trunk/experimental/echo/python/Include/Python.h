@@ -40,6 +40,7 @@ PyAPI_FUNC(void) Py_FatalError(const char *message);
 #include "moduleobject.h"
 #include "funcobject.h"
 #include "classobject.h"
+#include "descrobject.h"
 
 #include "pystate.h"
 

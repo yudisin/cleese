@@ -35,12 +35,12 @@ PyTypeObject PyType_Type = {
 	0, //(getattrofunc)type_getattro,		/* tp_getattro */
 	0, //(setattrofunc)type_setattro,		/* tp_setattro */
 	0,					/* tp_as_buffer */
-	0, //Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,		/* tp_flags */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,		/* tp_flags */
 	0, //type_doc,				/* tp_doc */
 	0, //(traverseproc)type_traverse,		/* tp_traverse */
 	0, //(inquiry)type_clear,			/* tp_clear */
 	0,					/* tp_richcompare */
-	0, //offsetof(PyTypeObject, tp_weaklist),	/* tp_weaklistoffset */
+	offsetof(PyTypeObject, tp_weaklist),	/* tp_weaklistoffset */
 	0,					/* tp_iter */
 	0,					/* tp_iternext */
 	0, //type_methods,				/* tp_methods */
@@ -76,10 +76,10 @@ PyTypeObject PyBaseObject_Type = {
 	0, //object_hash,				/* tp_hash */
 	0,					/* tp_call */
 	0, //object_str,				/* tp_str */
-	0, //PyObject_GenericGetAttr,		/* tp_getattro */
+	PyObject_GenericGetAttr,		/* tp_getattro */
 	0, //PyObject_GenericSetAttr,		/* tp_setattro */
 	0,					/* tp_as_buffer */
-	0, //Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
 	0, //PyDoc_STR("The most base type"),	/* tp_doc */
 	0,					/* tp_traverse */
 	0,					/* tp_clear */
