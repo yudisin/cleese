@@ -520,6 +520,7 @@ string_item(PyStringObject *a, register int i)
 {
 	PyObject *v;
 	char *pchar;
+
 	if (i < 0 || i >= a->ob_size) {
 		Py_FatalError("string index out of range");
 		return NULL;
@@ -704,7 +705,7 @@ static PySequenceMethods string_as_sequence = {
 	(inquiry)string_length, /*sq_length*/
 	(binaryfunc)string_concat, /*sq_concat*/
 	0, //(intargfunc)string_repeat, /*sq_repeat*/
-	0, //(intargfunc)string_item, /*sq_item*/
+	(intargfunc)string_item, /*sq_item*/
 	0, //(intintargfunc)string_slice, /*sq_slice*/
 	0,		/*sq_ass_item*/
 	0,		/*sq_ass_slice*/
