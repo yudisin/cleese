@@ -74,8 +74,6 @@ PyInt_Fini(void)
 	/* clean up if small integers pre-created */
 }
 
-extern int print_hex(long);
-
 #define CONVERT_TO_LONG(obj, lng)		\
 	if (PyInt_Check(obj)) {			\
 		lng = PyInt_AS_LONG(obj);	\
@@ -103,7 +101,7 @@ int_and(PyIntObject *v, PyIntObject *w)
 static int
 int_print(PyIntObject *v)
 {
-	print_hex(v->ob_ival);
+	printf("%d", v->ob_ival);
 	return 0;
 }
 
