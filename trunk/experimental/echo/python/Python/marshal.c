@@ -47,9 +47,7 @@ r_object(RFILE *p)
 
 	int type = rs_byte(p);
 #ifdef VERBOSE_MARSHAL
-	print(" marshal got:");
-	print_hex(type);
-	print(" ");
+	print(" marshal got %x", type);
 #endif
 	LOGF("- read %c\n", type);
 
@@ -153,7 +151,7 @@ r_object(RFILE *p)
 	  }}
 
 	default:
-		print_hex(type);
+		printf("%x", type);
 		Py_FatalError("UNKNOWN TYPE MARSHALLING");
 		/* will never get here */
 		return NULL;

@@ -13,9 +13,6 @@ static PyObject *do_call(PyObject *, PyObject ***, int, int);
 static PyObject *update_keyword_args(PyObject *, int, PyObject ***,PyObject *);
 static PyObject *load_args(PyObject ***, int);
 
-extern int print(const char *);
-extern int print_hex(long number);
-
 /* Mechanism whereby asynchronously executing callbacks (e.g. UNIX
    signal handlers or Mac I/O completion routines) can schedule calls
    to a function to be called synchronously.
@@ -608,7 +605,7 @@ eval_frame(PyFrameObject *f)
 			break;
 			
 		default:
-			print_hex(opcode);
+			printf("%x", opcode);
 			Py_FatalError("unknown opcode");
 		} /* switch */
 
