@@ -26,8 +26,6 @@ Py_Main(int argc, char **argv)
 		return 2;
 	}
 
-	_Py_QnewFlag = 1;
-
 	Py_Initialize();
 	sts = PyRun_SimpleFile(fp, filename);
 	Py_Finalize();
