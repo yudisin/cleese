@@ -419,6 +419,29 @@ eval_frame(PyFrameObject *f)
 			if (x != NULL) continue;
 			break;
 
+		case BINARY_SUBTRACT:
+			w = POP();
+			v = TOP();
+			if (PyInt_CheckExact(v) && PyInt_CheckExact(w)) {
+				/* INLINE: int - int */
+				register long a, b, i;
+				a = PyInt_AS_LONG(v);
+				b = PyInt_AS_LONG(w);
+				i = a - b;
+				if ((i^a) < 0 && (i^~b) < 0)
+					goto slow_sub;
+				x = PyInt_FromLong(i);
+			}
+			else {
+			  slow_sub:
+				x = PyNumber_Subtract(v, w);
+			}
+			Py_DECREF(v);
+			Py_DECREF(w);
+			SET_TOP(x);
+			if (x != NULL) continue;
+			break;
+
                 case SLICE+0:
                 case SLICE+1:
                 case SLICE+2:
