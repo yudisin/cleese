@@ -44,98 +44,6 @@ PyDict_New(void)
 }
 
 static dictentry *
-lookdict(dictobject *mp, PyObject *key, register long hash)
-{
-        register int i;
-        register unsigned int perturb;
-        register dictentry *freeslot;
-        register unsigned int mask = mp->ma_mask;
-        dictentry *ep0 = mp->ma_table;
-        register dictentry *ep;
-        register int restore_error;
-        register int checked_error;
-        register int cmp;
-        PyObject *startkey;
-
-        i = hash & mask;
-        ep = &ep0[i];
-        if (ep->me_key == NULL || ep->me_key == key)
-                return ep;
-
-        restore_error = checked_error = 0;
-        if (ep->me_key == dummy)
-                freeslot = ep;
-        else {
-                if (ep->me_hash == hash) {
-                        /* error can't have been checked yet */
-                        checked_error = 1;
-                        startkey = ep->me_key;
-                        cmp = PyObject_RichCompareBool(startkey, key, Py_EQ);
-                        if (cmp < 0)
-                                ; /* ERROR CLEAR */
-                        if (ep0 == mp->ma_table && ep->me_key == startkey) {
-                                if (cmp > 0)
-                                        goto Done;
-                        }
-                        else {
-                                /* The compare did major nasty stuff to the
-                                 * dict:  start over.
-                                 * XXX A clever adversary could prevent this
-                                 * XXX from terminating.
-                                 */
-                                ep = lookdict(mp, key, hash);
-                                goto Done;
-                        }
-                }
-                freeslot = NULL;
-        }
-
-        /* In the loop, me_key == dummy is by far (factor of 100s) the
-           least likely outcome, so test for that last. */
-        for (perturb = hash; ; perturb >>= PERTURB_SHIFT) {
-                i = (i << 2) + i + perturb + 1;
-                ep = &ep0[i & mask];
-                if (ep->me_key == NULL) {
-                        if (freeslot != NULL)
-                                ep = freeslot;
-                        break;
-                }
-                if (ep->me_key == key)
-                        break;
-                if (ep->me_hash == hash && ep->me_key != dummy) {
-                        if (!checked_error) {
-                                checked_error = 1;
-				/* ERROR STUFF */
-                        }
-                        startkey = ep->me_key;
-                        cmp = PyObject_RichCompareBool(startkey, key, Py_EQ);
-                        if (cmp < 0)
-                                ; /* ERROR CLEAR */
-                        if (ep0 == mp->ma_table && ep->me_key == startkey) {
-                                if (cmp > 0)
-                                        break;
-                        }
-                        else {
-                                /* The compare did major nasty stuff to the
-                                 * dict:  start over.
-                                 * XXX A clever adversary could prevent this
-                                 * XXX from terminating.
-                                 */
-                                ep = lookdict(mp, key, hash);
-                                break;
-                        }
-                }
-                else if (ep->me_key == dummy && freeslot == NULL)
-                        freeslot = ep;
-        }
-
-Done:
-        if (restore_error)
-		; /* ERROR RESTORE */
-        return ep;
-}
-
-static dictentry *
 lookdict_string(dictobject *mp, PyObject *key, register long hash)
 {
 	register int i;
@@ -145,10 +53,6 @@ lookdict_string(dictobject *mp, PyObject *key, register long hash)
 	dictentry *ep0 = mp->ma_table;
 	register dictentry *ep;
 
-	if (!PyString_CheckExact(key)) {
-		mp->ma_lookup = lookdict;
-		return lookdict(mp, key, hash);
-	}
 	i = hash & mask;
 	ep = &ep0[i];
 	if (ep->me_key == NULL || ep->me_key == key)

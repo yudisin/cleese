@@ -5,7 +5,6 @@
 #include "opcode.h"
 
 static PyFrameObject *free_list = NULL;
-static int numfree = 0;
 
 PyTypeObject PyFrame_Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
@@ -99,15 +98,7 @@ PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,
 			return NULL;
 	}
 	else {
-		--numfree;
-		f = free_list;
-		free_list = free_list->f_back;
-		if (f->ob_size < extras) {
-			f = PyObject_GC_Resize(PyFrameObject, f, extras);
-			if (f == NULL)
-				return NULL;
-		}
-		_Py_NewReference((PyObject *)f);
+		/* NOT IMPLEMENTED */
 	}
 
 	f->f_builtins = builtins;
