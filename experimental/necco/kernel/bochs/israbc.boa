@@ -56,8 +56,6 @@ def key():
 	Py_AddPendingCall(python_isr, 0)
 	icoda
 
-isr_mask = resd()
-
 def isrs_pending():
 	""" returns (and resets) the pending isr flag vector """
 	cli
@@ -78,8 +76,6 @@ idt_desc = dw(0x7f); dd(
 	igp, 0x00108f00, igp, 0x00108f00, igp, 0x00108f00, igp, 0x00108f00))
 
 #===============================================================================
-
-ticker = resd()
 
 def clickticker():
 	edx = [ticker]

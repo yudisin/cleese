@@ -6,15 +6,15 @@ CC       = gcc -Wall -O2 -nostdinc -fno-builtin
 LD       = ld -nostdlib
 
 KERNEL_PY = \
-		kernel/echoisr.py \
-		kernel/keyb.py \
+		kernel/led.py \
 		kernel/rtc.py
 KERNEL_PY += \
 		kernel/bochs/pyvga.py
 
 KERNEL_OBJS =	\
 		kernel/main.o \
-		kernel/kernel_bytecode.o
+		kernel/kernel_bytecode.o \
+		kernel/blitmodule.o
 
 KERNEL_OBJS +=	\
 		kernel/bochs/init.o \

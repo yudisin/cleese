@@ -1,12 +1,13 @@
 import pyvga
 import vga
+import rtc
 
 ########################################
 
 def decorate():
 	o = 61114	# (320*190) + (320-6)
-	y = 0
 	fb = vga.framebuffer
+	y = 0
 	while y < 10:
 		if (y & 1):	fb[o:o+6] = '\077\067\077\067\077\067'
 		else:		fb[o:o+6] = '\067\077\067\077\067\077'
@@ -16,19 +17,18 @@ def decorate():
 def splashup():
 	pyvga.savetext()
 	pyvga.set320x200x256()
-	# why doesn't framebuffer[:] also work?
-	vga.framebuffer[:0x10000] = vga.splashscreen
+	vga.framebuffer[:0xFA00] = vga.splashscreen[:0xFA00]
 	decorate()
 
+timeout = rtc.seconds() + 2
 splashup()
 
-def pause():
-	timeout = rtc.seconds() + 2
+def pause(n):
 	while rtc.seconds() < timeout:
 		pass
 
 def splashdown():
-	pause()
+	pause(2)
 	pyvga.set80x25()
 	pyvga.restoretext()
 
@@ -36,16 +36,18 @@ def splashdown():
 
 import isr
 import keyb
-import rtc
 
 tb = vga.textbuffer
+
+def prch(ch, fmt):
+	print ch
+	tb[0] = ch; tb[1] = fmt
 
 def kbd_isr():
 	while keyb.more_chars():
 	    ch = keyb.translate_scancode(keyb.get_scancode())
 	    if ch:
-		print ch
-		tb[0] = ch; tb[1] = '\015'
+		prch(ch, '\015')
 
 def clk_isr():
 	tb[158] = '/-\|'[isr.ticker & 3]
