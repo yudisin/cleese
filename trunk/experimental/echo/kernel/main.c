@@ -15,7 +15,7 @@ int
 main(void)
 {
         init_screen();
-        print("Cleese");
+        printf("Cleese\n\n");
         Py_Main();
 	return 0;
 }

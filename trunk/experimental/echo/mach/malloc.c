@@ -7,11 +7,7 @@ void *
 malloc(size_t size)
 {
 #ifdef VERBOSE_MALLOC
-	print("malloc ");
-	print_hex(size);
-	print(" @ ");
-	print_hex(curr);
-	print("   ");
+	printf("malloc %x @ %x\n", size, curr);
 #endif
 
 	void *prev = curr;

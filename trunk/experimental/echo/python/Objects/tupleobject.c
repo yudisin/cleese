@@ -6,7 +6,7 @@ PyTuple_New(register int size)
 	register PyTupleObject *op;
 	if (size < 0) {
 		/* ERROR */
-		print("PyTuple_New ERROR");
+		printf("PyTuple_New ERROR\n");
 		return NULL;
 	}
 	{ int nbytes = size * sizeof(PyObject *);
@@ -30,7 +30,7 @@ PyTuple_Size(register PyObject *op)
 {
 	if (!PyTuple_Check(op)) {
 		/* ERROR */
-		print("PyTuple_Size ERROR");
+		printf("PyTuple_Size ERROR\n");
 		return -1;
 	}
 	else
@@ -42,12 +42,12 @@ PyTuple_GetItem(register PyObject *op, register int i)
 {
 	if (!PyTuple_Check(op)) {
 		/* ERROR */
-		print("PyTuple_GetItem ERROR 1");
+		printf("PyTuple_GetItem ERROR 1\n");
 		return NULL;
 	}
 	if (i < 0 || i >= ((PyTupleObject *)op) -> ob_size) {
 		/* ERROR */
-		print("PyTuple_GetItem ERROR 2");
+		printf("PyTuple_GetItem ERROR 2\n");
 		return NULL;
 	}
 	return ((PyTupleObject *)op) -> ob_item[i];

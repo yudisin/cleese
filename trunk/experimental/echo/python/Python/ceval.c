@@ -329,7 +329,6 @@ eval_frame(PyFrameObject *f)
 			break;
 
 		case LOAD_CONST:
-//			print(" LOAD_CONST ");
 			x = GETITEM(consts, oparg);
 			Py_INCREF(x);
 			PUSH(x);
@@ -360,7 +359,6 @@ eval_frame(PyFrameObject *f)
 			break;
 
 		case BINARY_MODULO:
-//			print(" BINARY_MODULO ");
 			w = POP();
 			v = TOP();
 			x = PyNumber_Remainder(v, w);
@@ -371,7 +369,6 @@ eval_frame(PyFrameObject *f)
 			break;
 			
 		case BINARY_ADD:
-//			print(" BINARY_ADD ");
 			w = POP();
 			v = TOP();
 			if (PyInt_CheckExact(v) && PyInt_CheckExact(w)) {
@@ -405,7 +402,7 @@ eval_frame(PyFrameObject *f)
 				if (i < 0 ||
 				    i >= PyList_GET_SIZE(v)) {
 					/* ERROR */
-					print("list index out of range");
+					printf("list index out of range\n");
 					x = NULL;
 				}
 				else {
@@ -432,7 +429,6 @@ eval_frame(PyFrameObject *f)
 			break;
 
 		case PRINT_ITEM:
-//			print(" PRINT_ITEM ");
 			v = POP();
 
 			PyObject_Print(v);
@@ -440,12 +436,10 @@ eval_frame(PyFrameObject *f)
 			break;
 
 		case PRINT_NEWLINE:
-//			print(" PRINT_NEWLINE ");
-			print("\n");
+			printf("\n");
 			break;
 
 		case RETURN_VALUE:
-//			print(" RETURN_VALUE ");
 			retval = POP();
 			why = WHY_RETURN;
 			break;
@@ -461,12 +455,11 @@ eval_frame(PyFrameObject *f)
 			break;
 
 		case STORE_NAME:
-//			print(" STORE_NAME ");
 			w = GETITEM(names, oparg);
 			v = POP();
 			if ((x = f->f_locals) == NULL) {
 				/* ERROR */
-				print("STORE_NAME ERROR");
+				printf("STORE_NAME ERROR\n");
 				break;
 			}
 			err = PyDict_SetItem(x, w, v);
@@ -474,11 +467,10 @@ eval_frame(PyFrameObject *f)
 			break;
 
 		case LOAD_NAME:
-//			print(" LOAD_NAME ");
 			w = GETITEM(names, oparg);
 			if ((x = f->f_locals) == NULL) {
 				/* ERROR */
-				print("LOAD_NAME ERROR");
+				printf("LOAD_NAME ERROR\n");
 				break;
 			}
 			x = PyDict_GetItem(x, w);
@@ -487,8 +479,7 @@ eval_frame(PyFrameObject *f)
 				if (x == NULL) {
 					x = PyDict_GetItem(f->f_builtins, w);
 					if (x == NULL) {
-						print("can't find:");
-						print(((PyStringObject *)w)->ob_sval);
+						printf("can't find %s", ((PyStringObject *)w)->ob_sval);
 						/* format_exc_check_arg */
 						break;
 					}
@@ -530,8 +521,7 @@ eval_frame(PyFrameObject *f)
 				x = PyDict_GetItem(f->f_builtins, w);
 				if (x == NULL) {
 				  load_global_error:
-					print("LOAD_GLOBAL ERROR:");
-					print(((PyStringObject *)w)->ob_sval);
+					printf("LOAD_GLOBAL ERROR %s", ((PyStringObject *)w)->ob_sval);
 					break;
 				}
 			}
@@ -540,7 +530,6 @@ eval_frame(PyFrameObject *f)
 			break;
 			
 		case JUMP_FORWARD:
-//			print(" JUMP_FORWARD ");
 			JUMPBY(oparg);
 			goto fast_next_opcode;
 
@@ -565,17 +554,14 @@ eval_frame(PyFrameObject *f)
 			continue;
 			
 		case JUMP_ABSOLUTE:
-//			print(" JUMP_ABSOLUTE ");
 			JUMPTO(oparg);
 			continue;
 
 		case SETUP_LOOP:
-//			print(" SETUP_LOOP ");
 			PyFrame_BlockSetup(f, opcode, INSTR_OFFSET() + oparg, STACK_LEVEL());
 			continue;
 
 		case CALL_FUNCTION:
-//			print(" CALL FUNCTION ");
 			x = call_function(&stack_pointer, oparg);
 			PUSH(x);
 			if (x != NULL)
@@ -656,7 +642,7 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
 
 	if (globals == NULL) {
 		/* ERROR */
-		print("PyEval_EvalCodeEx: NULL globals");
+		printf("PyEval_EvalCodeEx: NULL globals\n");
 		return NULL;
 	}
 

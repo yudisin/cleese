@@ -113,8 +113,8 @@ print_char(int c)
 	}
 }
 
-void
-print(const char *s)
+static void
+print_string(const char *s)
 {
 	while (*s != '\0') {
 		print_char(*s++);
@@ -122,8 +122,8 @@ print(const char *s)
 	update_cursor();
 }
 
-static
-void format_d(char* buf, int val)
+static void
+format_d(char* buf, int val)
 {
 	char stack[16];
 	int top = 0;
@@ -186,12 +186,12 @@ printf(const char* fmt, ...)
 			case 'd':
 				ival = va_arg(args, int);
 				format_d(buf, ival);
-				print(buf);
+				print_string(buf);
 				break;
 			case 'x':
 				ival = va_arg(args, int);
 				format_x(buf, ival);
-				print(buf);
+				print_string(buf);
 				break;
 			case 's':
 				sval = va_arg(args, int);

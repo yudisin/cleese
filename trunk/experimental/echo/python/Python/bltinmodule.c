@@ -23,54 +23,8 @@ builtin_inb(PyObject *self, PyObject *args)
 	}
 }
 
-static PyObject *
-builtin_raw_input(PyObject *self, PyObject *args)
-{
-	PyObject *v = NULL;
-	PyObject *po;
-	char *prompt;
-	char *s;
-	PyObject *result;
-
-	if (!PyArg_UnpackTuple(args, "[raw_]input", 0, 1, &v))
-		return NULL;
-
-	if (v != NULL) {
-		po = PyObject_Str(v);
-		if (po == NULL)
-			return NULL;
-		prompt = PyString_AsString(po);
-		if (prompt == NULL)
-			return NULL;
-	}
-	else {
-		po = NULL;
-		prompt = "";
-	}
-
-	print(prompt);
-	s = "Ni!"; /* TO DO - implement gets */
-	
-	Py_XDECREF(po);
-	if (s == NULL) {
-		/* ERROR */
-		return NULL;
-	}
-	if (*s == '\0') {
-		/* ERROR */
-		result = NULL;
-	}
-	else { /* strip trailing '\n' */
-		size_t len = strlen(s);
-		result = PyString_FromStringAndSize(s, (int)(len-1));
-	}
-	PyMem_FREE(s);
-	return result;
-}
-
 static PyMethodDef builtin_methods[] = {
  	{"inb",	        builtin_inb,        METH_VARARGS, NULL/*doc*/},
- 	{"raw_input",   builtin_raw_input,  METH_VARARGS, NULL/*doc*/},
 	{NULL,		NULL},
 };
 

@@ -37,7 +37,7 @@ PyImport_GetModuleDict(void)
 int
 PyImport_ImportFrozenModule(char *name)
 {
-	print(" Importing "); {
+	printf("Importing\n"); {
 	
 	struct _frozen *p = find_frozen(name);
 	PyObject *co;
@@ -47,15 +47,15 @@ PyImport_ImportFrozenModule(char *name)
 		return 0;
 	size = p->size;
 
-	print(" Unmarshalling ");
+	printf("Unmarshalling\n");
 	
 	co = PyMarshal_ReadObjectFromString((char *)p->code, size);
 
-	print(" Executing ");
+	printf("Executing\n");
 	
 	PyImport_ExecCodeModule(name, co);
 
-	print(" Done ");
+	printf("Done\n");
 	
 	Py_DECREF(co);
 
@@ -99,7 +99,6 @@ PyImport_ExecCodeModule(char *name, PyObject *co)
 	d = PyModule_GetDict(m);
 
 	if (PyDict_GetItemString(d, "__builtins__") == NULL) {
-//		print(" builtins not yet in module dict ");
 		if (PyDict_SetItemString(d, "__builtins__", PyEval_GetBuiltins()) != 0) {
 			return NULL;
 		}

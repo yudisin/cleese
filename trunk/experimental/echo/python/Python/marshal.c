@@ -47,7 +47,7 @@ r_object(RFILE *p)
 
 	int type = rs_byte(p);
 #ifdef VERBOSE_MARSHAL
-	print(" marshal got %x", type);
+	printf("marshal got %x", type);
 #endif
 	LOGF("- read %c\n", type);
 
@@ -84,7 +84,7 @@ r_object(RFILE *p)
 		n = r_long(p);
 		if (n < 0) {
 			/* ERROR */
-			print("TYPE_TUPLE error");
+			printf("TYPE_TUPLE error\n");
 			return NULL;
 		}
 		v = PyTuple_New((int)n);

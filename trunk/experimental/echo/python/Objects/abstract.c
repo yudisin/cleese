@@ -77,7 +77,7 @@ static PyObject *
 binop_type_error(PyObject *v, PyObject *w, const char *op_name)
 {
 	/* ERROR */
-	print ("binop_type_error");
+	printf("binop_type_error\n");
 	return NULL;
 }
 
