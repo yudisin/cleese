@@ -32,6 +32,13 @@ SOKO_PY	= \
 		kernel/bochs/pyvga.py \
 		kernel/bochs/py8042.py
 
+MONKEY_PY = \
+		kernel/monkey.py \
+		kernel/keyb.py \
+		kernel/bochs/pyvga.py \
+		kernel/bochs/py8042.py \
+		kernel/bochs/pybeep.py
+
 KERNEL_PY = $(ECHOISR_PY)
 #KERNEL_PY = $(LED_PY)
 #KERNEL_PY = kernel/listtest.py
@@ -41,6 +48,11 @@ KERNEL_PY = $(ECHOISR_PY)
 #SYMTAB    = -defsym symtab=sokosyms
 #RES_OBJS  = kernel/sokores.o
 #kernel/sokores.o: kernel/sokobg.dat
+
+#KERNEL_PY = $(MONKEY_PY)
+#SYMTAB    = -defsym symtab=sokosyms
+#RES_OBJS  = kernel/monkres.o
+#kernel/monkres.o: kernel/sokobg.dat
 
 KERNEL_OBJS =	\
 		kernel/kernel_bytecode.o \
