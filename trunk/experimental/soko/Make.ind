@@ -1,0 +1,70 @@
+.SUFFIXES: .boa
+
+VPATH   = $(SRC)/kernel $(SRC)/kernel/$(PLAT) \
+          $(SRC)/lib    $(SRC)/lib/$(PLAT) \
+          $(SRC)/python/Python \
+          $(SRC)/python/Objects \
+          $(SRC)/python/Modules
+
+KERNEL_OBJS =	\
+		kernel_bytecode.o \
+		blitmodule.o \
+		bufmodule.o
+
+PYTHON_OBJS =	\
+		pythonrun.o \
+		pystate.o \
+		import.o \
+		marshal.o \
+		ceval.o \
+		compile.o \
+		bltinmodule.o \
+		getargs.o \
+		modsupport.o \
+		errors.o \
+		exceptions.o \
+		mysnprintf.o \
+		mystrtoul.o \
+		structmember.o
+
+PYTHON_OBJS +=	\
+		frameobject.o \
+		intobject.o \
+		dictobject.o \
+		stringobject.o \
+		typeobject.o \
+		object.o \
+		tupleobject.o \
+		moduleobject.o \
+		methodobject.o \
+		abstract.o \
+		classobject.o \
+		funcobject.o \
+		boolobject.o \
+		listobject.o \
+		bufferobject.o \
+		longobject.o \
+		floatobject.o \
+		iterobject.o \
+		sliceobject.o \
+		cellobject.o \
+		descrobject.o \
+		weakrefobject.o \
+		enumobject.o
+
+PYTHON_OBJS +=	\
+		gcmodule.o \
+		main.o
+
+LIB_OBJS =	\
+		string.o \
+		malloc.o \
+		ctype.o \
+		snprintf.o \
+		qsort.o
+
+.c.o:
+	$(CC) -c -I$(SRC)/include -I$(SRC)/python/Include -o $@ $<
+
+.boa.o:
+	$(PYTHON) $(SRC)/util/boa < $< | as -o $@
