@@ -27,6 +27,13 @@ PySeqIter_New(PyObject *seq)
 	return (PyObject *)it;
 }
 
+//static void
+//iter_dealloc(seqiterobject *it)
+//{
+//	_PyObject_GC_UNTRACK(it);
+//	Py_XDECREF(it->it_seq);
+//	PyObject_GC_Del(it);
+//}
 
 static int
 iter_traverse(seqiterobject *it, visitproc visit, void *arg)
@@ -125,6 +132,14 @@ PyCallIter_New(PyObject *callable, PyObject *sentinel)
 	_PyObject_GC_TRACK(it);
 	return (PyObject *)it;
 }
+//static void
+//calliter_dealloc(calliterobject *it)
+//{
+//	_PyObject_GC_UNTRACK(it);
+//	Py_XDECREF(it->it_callable);
+//	Py_XDECREF(it->it_sentinel);
+//	PyObject_GC_Del(it);
+//}
 
 static int
 calliter_traverse(calliterobject *it, visitproc visit, void *arg)
