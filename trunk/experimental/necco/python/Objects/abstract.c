@@ -207,6 +207,8 @@ binary_op(PyObject *v, PyObject *w, const int op_slot, const char *op_name)
     }
 
 BINARY_FUNC(PyNumber_And, nb_and, "&")
+BINARY_FUNC(PyNumber_Lshift, nb_lshift, "<<")
+BINARY_FUNC(PyNumber_Rshift, nb_rshift, ">>")
 
 PyObject *
 PyNumber_Remainder(PyObject *v, PyObject *w)
