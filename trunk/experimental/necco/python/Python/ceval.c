@@ -311,6 +311,8 @@ eval_frame(PyFrameObject *f)
 
 		/* Main switch on opcode */
 
+//		printf("opcode %d\n", opcode);
+
 		switch (opcode) {
 
 		/* BEWARE!

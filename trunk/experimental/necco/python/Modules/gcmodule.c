@@ -51,6 +51,23 @@ PyObject_GC_Track(void *op)
 	_PyObject_GC_TRACK(op);
 }
 
+void
+PyObject_GC_UnTrack(void *op)
+{
+	/* Obscure:  the Py_TRASHCAN mechanism requires that we be able to
+	 * call PyObject_GC_UnTrack twice on an object.
+	 */
+	if (IS_TRACKED(op))
+		_PyObject_GC_UNTRACK(op);
+}
+
+/* for binary compatibility with 2.2 */
+void
+_PyObject_GC_UnTrack(PyObject *op)
+{
+    PyObject_GC_UnTrack(op);
+}
+
 PyObject *
 _PyObject_GC_Malloc(size_t basicsize)
 {
