@@ -7,7 +7,6 @@
 static struct _frozen *
 find_frozen(char *name)
 {
-	LOG("> find_frozen\n"); {
 	struct _frozen *p;
 
 	for (p = PyImport_FrozenModules; ; p++) {
@@ -19,9 +18,8 @@ find_frozen(char *name)
 			break;
 	}
 
-	LOG("< find_frozen\n");
 	return p;
-}}
+}
 
 PyObject *
 PyImport_GetModuleDict(void)
@@ -62,6 +60,23 @@ PyImport_ImportFrozenModule(char *name)
 	LOG("< PyImport_ImportFrozenModule\n");
 	return 1;
 }}
+
+PyObject *
+PyImport_ImportModuleEx(char *name)
+{
+	PyObject *modules;
+	PyObject *m;
+
+	PyImport_ImportFrozenModule(name);
+	modules = PyImport_GetModuleDict();
+	m = PyDict_GetItemString(modules, name);
+	if (m == NULL) {
+		printf("module %s not properly initialized\n", name);
+		return NULL;
+	}
+	Py_INCREF(m);
+	return m;
+}
 
 PyObject *
 PyImport_AddModule(char *name)

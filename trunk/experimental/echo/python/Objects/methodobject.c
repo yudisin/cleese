@@ -97,7 +97,7 @@ PyTypeObject PyCFunction_Type = {
 	0,					/* tp_as_sequence */
 	0,					/* tp_as_mapping */
 	0, //(hashfunc)meth_hash,			/* tp_hash */
-	0, //PyCFunction_Call,			/* tp_call */
+	PyCFunction_Call,			/* tp_call */
 	0,					/* tp_str */
 	0, //PyObject_GenericGetAttr,		/* tp_getattro */
 	0,					/* tp_setattro */

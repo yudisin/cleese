@@ -571,12 +571,7 @@ eval_frame(PyFrameObject *f)
 				break;
 			}
 			u = TOP();
-			w = Py_BuildValue("(OOOO)",
-				    w,
-				    f->f_globals,
-				    f->f_locals == NULL ?
-					  Py_None : f->f_locals,
-				    u);
+			w = Py_BuildValue("(O)", w);
 			Py_DECREF(u);
 			if (w == NULL) {
 				u = POP();
