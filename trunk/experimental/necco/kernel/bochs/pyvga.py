@@ -1,21 +1,13 @@
 import ports
 import vga
 
-#saved = None
-#
-#def savetext():
-#	global saved
-#	saved = vga.textbuffer[:4000]
-#
-#def restoretext():
-#	vga.textbuffer[:4000] = saved
+def savetext():
+	vga.savebuffer[:4000] = vga.textbuffer
 
-savetext = vga.savetext
-restoretext = vga.restoretext
+def restoretext():
+	vga.textbuffer[:4000] = vga.savebuffer
 
 def set640x480x16():
-	savetext()
-
 	ports.inb(0x3DA)
 	ports.outb(0, 0x3C0)
 
@@ -76,12 +68,9 @@ def set80x25():
 		0x0C, 0x00, 0x0F, 0x08)
 
 	ports.outb(0x20, 0x3C0)
-	restoretext()
 
 
 def set320x200x256():
-	savetext()
-
 	ports.inb(0x3DA)
 	ports.outb(0, 0x3C0)
 

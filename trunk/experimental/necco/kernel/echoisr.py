@@ -14,6 +14,7 @@ def decorate():
 		y = y + 1
 
 def splashup():
+	pyvga.savetext()
 	pyvga.set320x200x256()
 	# why doesn't framebuffer[:] also work?
 	vga.framebuffer[:0x10000] = vga.splashscreen
@@ -29,6 +30,7 @@ def pause():
 def splashdown():
 	pause()
 	pyvga.set80x25()
+	pyvga.restoretext()
 
 ########################################
 
