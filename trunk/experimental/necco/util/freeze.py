@@ -54,14 +54,13 @@ for filename in sys.argv[2:]:
     outfp.write(bytecode_in_C(module_name, code_string))
     modules.append((module_name, "%s_bytecode" % module_name, len(code_string)))
 
-modules.append((0, 0, 0))
-                
-outfp.write("struct _frozen frozenModules[] = {")
+outfp.write("static struct _frozen pifm[] = {\n")
 
 for module in modules:
-    outfp.write("""\n\t{"%s", %s, %d},""" % module)
+    outfp.write("""\t{"%s", %s, %d},\n""" % module)
 
-outfp.write(" /* sentinel */\n};\n")
-outfp.write("int frozenVersionInfo[] = { %d, %d, %d };" % sys.version_info[:3])
+outfp.write(" { NULL, NULL, 0 } /* sentinel */\n};\n");
+outfp.write("struct _frozen *PyImport_FrozenModules = pifm;\n")
+outfp.write("int frozenVersionInfo[] = {%d,%d,%d};\n" % sys.version_info[:3])
 
 outfp.close()

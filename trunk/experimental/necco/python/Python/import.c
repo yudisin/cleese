@@ -35,7 +35,7 @@ PyImport_GetModuleDict(void)
 int
 PyImport_ImportFrozenModule(char *name)
 {
-	printf("Importing\n"); {
+	LOG("> PyImport_ImportFrozenModule\n"); {
 	
 	struct _frozen *p = find_frozen(name);
 	PyObject *co;
@@ -45,16 +45,10 @@ PyImport_ImportFrozenModule(char *name)
 		return 0;
 	size = p->size;
 
-	printf("Unmarshalling\n");
-	
 	co = PyMarshal_ReadObjectFromString((char *)p->code, size);
 
-	printf("Executing\n");
-	
 	PyImport_ExecCodeModule(name, co);
 
-	printf("Done\n");
-	
 	Py_DECREF(co);
 
 	LOG("< PyImport_ImportFrozenModule\n");
