@@ -4,6 +4,9 @@
 PyAPI_FUNC(PyObject *) PyEval_CallObject(PyObject *, PyObject *);
 
 PyAPI_FUNC(PyObject *) PyEval_GetBuiltins(void);
+PyAPI_FUNC(PyObject *) PyEval_GetGlobals(void);
+PyAPI_FUNC(PyObject *) PyEval_GetLocals(void);
+PyAPI_FUNC(struct _frame *) PyEval_GetFrame(void);
 
 PyAPI_FUNC(int) Py_AddPendingCall(int (*func)(void *), void *arg);
 PyAPI_FUNC(int) Py_MakePendingCalls(void);
