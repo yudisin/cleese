@@ -54,12 +54,17 @@ PyAPI_FUNC(void) Py_FatalError(const char *message);
 #include "dictobject.h"
 #include "methodobject.h"
 #include "moduleobject.h"
+#include "funcobject.h"
+#include "classobject.h"
 
 #include "pystate.h"
 
 #include "modsupport.h"
 #include "pythonrun.h"
+#include "ceval.h"
 
 #include "import.h"
+
+#include "abstract.h"
 
 #endif /* !Py_PYTHON_H */
