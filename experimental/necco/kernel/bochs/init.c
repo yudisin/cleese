@@ -1,8 +1,9 @@
-extern void _VGA_Init(), _ISR_Init();
+extern void _Ports_Init(), _VGA_Init(), _ISR_Init();
 
 void
 Cleese_Initialize()
 {
+	_Ports_Init();
 	_VGA_Init();
 	_ISR_Init();
 }
