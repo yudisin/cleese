@@ -40,6 +40,30 @@ PyObject_Hash(PyObject *v)
 	return -1;
 }
 
+int
+PyObject_IsTrue(PyObject *v)
+{
+	int res;
+	if (v == Py_True)
+		return 1;
+	if (v == Py_False)
+		return 0;
+	if (v == Py_None)
+		return 0;
+	else if (v->ob_type->tp_as_number != NULL &&
+		 v->ob_type->tp_as_number->nb_nonzero != NULL)
+		res = (*v->ob_type->tp_as_number->nb_nonzero)(v);
+	else if (v->ob_type->tp_as_mapping != NULL &&
+		 v->ob_type->tp_as_mapping->mp_length != NULL)
+		res = (*v->ob_type->tp_as_mapping->mp_length)(v);
+	else if (v->ob_type->tp_as_sequence != NULL &&
+		 v->ob_type->tp_as_sequence->sq_length != NULL)
+		res = (*v->ob_type->tp_as_sequence->sq_length)(v);
+	else
+		return 1;
+	return (res > 0) ? 1 : res;
+}
+
 PyObject *
 PyObject_Str(PyObject *v)
 {
