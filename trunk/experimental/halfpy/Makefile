@@ -90,4 +90,4 @@ halfpy.exe: Modules/python.o $(OBJS)
 Objects/unicodectype.o: Objects/unicodectype.c Objects/unicodetype_db.h
 
 .c.o:
-	gcc -c -fno-strict-aliasing -DNDEBUG -g -O3 -Wall -I. -I./Include -DPy_BUILD_CORE -o $@ $<
+	gcc -c -DNDEBUG -O3 -Wall -I. -I./Include -DPy_BUILD_CORE -o $@ $<
