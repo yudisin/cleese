@@ -40,6 +40,34 @@ PyObject_Hash(PyObject *v)
 	return -1;
 }
 
+PyObject *
+PyObject_Str(PyObject *v)
+{
+	PyObject *res;
+
+	if (v == NULL)
+		return PyString_FromString("<NULL>");
+	if (PyString_CheckExact(v)) {
+		Py_INCREF(v);
+		return v;
+	}
+	Py_FatalError("PyObject_Str doesn't support non-strings yet.");
+	if (v->ob_type->tp_str == NULL)
+		; //return PyObject_Repr(v);
+
+	res = (*v->ob_type->tp_str)(v);
+	if (res == NULL)
+		return NULL;
+	if (!PyString_Check(res)) {
+		/* ERROR */
+		Py_DECREF(res);
+		return NULL;
+	}
+	return res;
+}
+
+
+
 /* ... */
 
 static PyTypeObject PyNone_Type = {
