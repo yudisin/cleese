@@ -45,6 +45,8 @@ typedef unsigned int Py_uintptr_t;
 #define LONG_BIT (8 * SIZEOF_LONG)
 #endif
 
+#define SIZEOF_VOID_P 4
+
 /*
  * Hide GCC attributes from compilers that don't support them.
  */
@@ -59,7 +61,7 @@ typedef unsigned int Py_uintptr_t;
 /* end from pyport.h */
 
 
-#define assert(test) /* Nothing */
+#define assert(test) if(!(test)) printf("ASSERT FAILED %s %d\n", __FILE__, __LINE__);
 
 /* from pydebug.h */
 PyAPI_FUNC(void) Py_FatalError(const char *message);
