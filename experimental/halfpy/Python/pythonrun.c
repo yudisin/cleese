@@ -28,7 +28,7 @@ extern void _PyGILState_Init(PyInterpreterState *, PyThreadState *);
 extern void _PyGILState_Fini(void);
 #endif /* WITH_THREAD */
 
-int Py_NoSiteFlag = 0;
+int Py_NoSiteFlag = 1;
 int Py_IgnoreEnvironmentFlag = 0;
 int Py_VerboseFlag = 0;
 int Py_UnicodeFlag = 0;
