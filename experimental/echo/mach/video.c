@@ -1,54 +1,122 @@
 extern unsigned char in(unsigned short);
 extern void out(unsigned short, unsigned char);
 
+#define VIDMEM              0xB8000
+
+#define CRT_CTRL_PORT       0x3D4
+#define CRT_DATA_PORT       0x3D5
+#define CRT_CURSOR_LOC_HIGH 0x0E
+#define CRT_CURSOR_LOC_LOW  0x0F
+
+#define NUM_COLS 80
+#define NUM_ROWS 25
+#define SCREEN_SIZE (NUM_COLS * NUM_ROWS)
+
+#define SCREEN_ATTR 0x0F
+
+static int row, col;
+
 void
-clrscr()
+clear_screen()
 {
-	unsigned char *vidmem = (unsigned char *)0xB8000;
-	const long size = 80*25;
-	long loop;
+	unsigned char *vidmem = (unsigned char *) VIDMEM;
+	int loop;
 
-	// Clear visible video memory
-	for (loop=0; loop<size; loop++) {
-		*vidmem++ = 0;
-		*vidmem++ = 0x0F;
+	for (loop = 0; loop < SCREEN_SIZE; loop++) {
+		*vidmem++ = 0x20;
+		*vidmem++ = SCREEN_ATTR;
 	}
-
-	// Set cursor position to 0,0
-	out(0x3D4, 14);
-	out(0x3D5, 0);
-	out(0x3D4, 15);
-	out(0x3D5, 0);
 }
 
 void
-print(const char *_message)
+init_screen()
+{
+	row = col = 0;
+	clear_screen();
+}
+
+static void
+update_cursor()
 {
 	unsigned short offset;
-	unsigned long i;
-	unsigned char *vidmem = (unsigned char *)0xB8000;
 
-	// Read cursor position
-	out(0x3D4, 14);
-	offset = in(0x3D5) << 8;
-	out(0x3D4, 15);
-	offset |= in(0x3D5);
+	offset = (row * NUM_COLS) + col;
 
-	// Start at writing at cursor position
-	vidmem += offset*2;
+	out(CRT_CTRL_PORT, CRT_CURSOR_LOC_HIGH);
+	out(CRT_DATA_PORT, (offset >> 8) & 0xFF);
 
-	// Continue until we reach null character
-	i = 0;
-	while (_message[i] != 0) {
-		*vidmem = _message[i++];
-		vidmem += 2;
+	out(CRT_CTRL_PORT, CRT_CURSOR_LOC_LOW);
+	out(CRT_DATA_PORT, offset & 0xFF);
+}
+
+static void
+scroll_screen()
+{
+	unsigned short* v;
+	int i;
+	int n = SCREEN_SIZE;
+	
+	for (v = (unsigned short*) VIDMEM, i = 0; i < n; i++ ) {
+		*v = *(v + NUM_COLS);
+		++v;
 	}
 
-	// Set new cursor position
-	offset += i;
-	out(0x3D5, (unsigned char)(offset));
-	out(0x3D4, 14);
-	out(0x3D5, (unsigned char)(offset >> 8));
+	for (v = (unsigned short*) VIDMEM + n, i = 0; i < NUM_COLS; i++) {
+		*v++ = SCREEN_ATTR & (0x20 << 8);
+	}
+}
+
+static void
+new_line()
+{
+	++row;
+	col = 0;
+	if (row == NUM_ROWS) {
+		scroll_screen();
+		row = NUM_ROWS - 1;
+	}
+}
+
+static void
+clear_to_EOL()
+{
+	int loop;
+	unsigned char *v = (unsigned char *) (VIDMEM + row * NUM_COLS * 2 + col * 2);
+
+	for (loop = col; loop < NUM_COLS; loop++) {
+		*v++ = ' ';
+		*v++ = SCREEN_ATTR;
+	}
+}
+
+void
+print_char(int c)
+{
+	unsigned char *v = (unsigned char *) (VIDMEM + row * NUM_COLS * 2 + col * 2);
+
+	switch(c) {
+	case '\n':
+		clear_to_EOL();
+		new_line();
+		break;
+	default:
+		*v++ = (unsigned char) c;
+		*v   = SCREEN_ATTR;
+		
+		if (col < NUM_COLS - 1)
+			++col;
+		else
+			new_line();
+	}
+}
+
+void
+print(const char *s)
+{
+	while (*s != '\0') {
+		print_char(*s++);
+	}
+	update_cursor();
 }
 
 void

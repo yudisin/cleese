@@ -14,7 +14,7 @@ Py_Main()
 int
 main(void)
 {
-        clrscr();
+        init_screen();
         print("Cleese");
         Py_Main();
 	return 0;
