@@ -189,6 +189,11 @@ PyString_Format(PyObject *format, PyObject *args)
 //				len = formatint(pbuf,
 //						sizeof(formatbuf),
 //						flags, prec, c, v);
+/* for now */
+				sprintf(formatbuf, (c=='x'?"%x":"%d"),
+					PyInt_AS_LONG(v));
+				len = strlen(formatbuf);
+/**/
 				if (len < 0)
 					goto error;
 				/* only d conversion is signed */

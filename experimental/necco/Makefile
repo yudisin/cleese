@@ -16,7 +16,10 @@ ECHOISR_PY = \
 		kernel/keyb.py \
 		kernel/rtc.py \
 		kernel/bochs/pyvga.py \
-		kernel/bochs/comport.py
+		kernel/bochs/comport.py \
+		kernel/bochs/pyfont.py \
+		kernel/bochs/py8042.py
+
 
 KERNEL_PY = $(ECHOISR_PY)
 #KERNEL_PY = $(LED_PY)
@@ -125,3 +128,5 @@ bootp: cleese FORCE
 	util/push KERNEL.BIN $@
 
 FORCE:
+
+p:	$(PYTHON_OBJS)
