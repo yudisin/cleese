@@ -1,8 +1,8 @@
 
 #include "stdarg.h"
 
-extern unsigned char in(unsigned short);
-extern void out(unsigned short, unsigned char);
+extern unsigned char inb(unsigned short);
+extern void outb(unsigned short, unsigned char);
 
 #define VIDMEM              0xB8000
 
@@ -38,11 +38,11 @@ update_cursor()
 
 	offset = (row * NUM_COLS) + col;
 
-	out(CRT_CTRL_PORT, CRT_CURSOR_LOC_HIGH);
-	out(CRT_DATA_PORT, (offset >> 8) & 0xFF);
+	outb(CRT_CTRL_PORT, CRT_CURSOR_LOC_HIGH);
+	outb(CRT_DATA_PORT, (offset >> 8) & 0xFF);
 
-	out(CRT_CTRL_PORT, CRT_CURSOR_LOC_LOW);
-	out(CRT_DATA_PORT, offset & 0xFF);
+	outb(CRT_CTRL_PORT, CRT_CURSOR_LOC_LOW);
+	outb(CRT_DATA_PORT, offset & 0xFF);
 }
 
 void
@@ -120,6 +120,10 @@ print_string(const char *s)
 {
 	while (*s != '\0') {
 		print_char(*s++);
+#if 1
+		while(!inb(0x3FD) & 0x20);
+		outb(0x3F8, s[-1]);
+#endif
 	}
 	update_cursor();
 }

@@ -1,11 +1,19 @@
-def outp():
+def outb():
 	eax = [esp + 8]
 	edx = [esp + 4]
 	outb(dx, al)
 
-def inp():
+def inb():
+	xor(eax,eax)
 	edx = [esp + 4]
 	inb(al, dx)
 
-asm(".globl out; out = outp")
-asm(".globl in; in = inp")
+def outw():
+	eax = [esp + 8]
+	edx = [esp + 4]
+	outw(dx, ax)
+
+def inw():
+	xor(eax,eax)
+	edx = [esp + 4]
+	inw(ax, dx)

@@ -1,6 +1,6 @@
 #include "Python.h"
 
-extern int in(int), out(int,int);
+extern int inb(int), outb(int,int), inw(int), outw(int,int);
 
 static PyObject *
 ports_inb(PyObject *self, PyObject *args)
@@ -15,7 +15,7 @@ ports_inb(PyObject *self, PyObject *args)
 		return NULL;
 	} else {
 		unsigned short port = PyInt_AS_LONG(v);
-		unsigned char data = in(port);
+		unsigned char data = inb(port);
 		PyObject *result = PyInt_FromLong(data);
 
 		return result;
@@ -33,9 +33,9 @@ ports_outb(PyObject *self, PyObject *args)
 		return NULL;
 
 	if(PyInt_CheckExact(v))
-		out(PyInt_AS_LONG(a),PyInt_AS_LONG(v));
+		outb(PyInt_AS_LONG(a),PyInt_AS_LONG(v));
 	else if(PyString_Check(v) && PyString_GET_SIZE(v) == 1)
-		out(PyInt_AS_LONG(a), PyString_AS_STRING(v)[0]);
+		outb(PyInt_AS_LONG(a), PyString_AS_STRING(v)[0]);
 	else
 		return NULL;
 	
@@ -53,8 +53,8 @@ ports_querypair(PyObject *self, PyObject *args)
 	if(!PyInt_CheckExact(v) || !PyInt_CheckExact(a))
 		return NULL;
 
-	out(PyInt_AS_LONG(a),PyInt_AS_LONG(v));
-	return PyInt_FromLong(in(PyInt_AS_LONG(a)+1));
+	outb(PyInt_AS_LONG(a),PyInt_AS_LONG(v));
+	return PyInt_FromLong(inb(PyInt_AS_LONG(a)+1));
 }
 
 static PyObject *
@@ -78,8 +78,8 @@ ports_writevec(PyObject *self, PyObject *args)
 
 	for(i = 2; i < l; ++i)	{
 		v = PyTuple_GET_ITEM(args, i);
-		out(aport, i-2);
-		out(wport, PyInt_AS_LONG(v));
+		outb(aport, i-2);
+		outb(wport, PyInt_AS_LONG(v));
 	}
 
 	Py_INCREF(Py_True);
@@ -105,7 +105,7 @@ ports_repinsb(PyObject *self, PyObject *args)
 	list = PyList_New(count);
 
 	for (i = 0; i < count; i++) {
-		unsigned char data = in(port);
+		unsigned char data = inb(port);
 		PyList_SetItem(list, i, PyInt_FromLong(data));
 	}
 
