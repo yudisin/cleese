@@ -52,7 +52,8 @@ blit_fill(PyObject *self, PyObject *args)
 		PyStringObject *pso = (PyStringObject *)ov;
 		void *s = pso->ob_sval;
 		int l = pso->ob_size;
-		int i,j;
+		int i;
+		void *j;
 		for(i = y; i < y + dy; ++i)	{
 			for(j = off; j < off + dx; j = j + l)	{
 				int n = ((j+l < off+dx) ? l : (off+dx-j));

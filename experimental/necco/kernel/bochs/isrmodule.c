@@ -11,6 +11,9 @@ int isr_mask;		/* these are here to mask  */
 void *ticker;		/* a link problem w/ DJGPP */
 /* - - - - - - - - - - - - - - - - - - - - - - - - */
 
+extern int isrs_pending();
+extern int initirqs();
+
 int python_isr(void *arg)
 {
 	PyObject **p = vec;
@@ -20,8 +23,14 @@ int python_isr(void *arg)
 		int n;
 		for(n = 0; n < VLEN; ++n)	{
 			if(*p && (pending & 1))	{
-				Py_DECREF((PyObject *)PyEval_EvalCode(
+#if 0
+				/* hmmm, doesn't quite work yet */
+				Py_DECREF(PyObject_Call(*p, NULL, NULL));
+#else
+				extern PyObject *PyEval_EvalCode();
+				Py_DECREF(PyEval_EvalCode(
 						PyFunction_GET_CODE(*p), d, d));
+#endif
 			}
 			pending >>= 1;
 			p++;

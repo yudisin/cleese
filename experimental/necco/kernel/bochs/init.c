@@ -1,4 +1,4 @@
-extern void _Ports_Init(), _VGA_Init(), _ISR_Init();
+extern void _Ports_Init(), _ISR_Init(), _Blit_Init(), _Buf_Init();
 
 void
 Cleese_Initialize()
