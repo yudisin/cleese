@@ -1,8 +1,9 @@
 .SUFFIXES:	.boa
 
-CC       = gcc -Wall -O2 -nostdinc -fno-builtin -fno-strict-aliasing
+CC       = gcc -Wall -O2 -nostdinc -fno-builtin
+CC	 += -fno-strict-aliasing
 #CC      += -fno-leading-underscore
-#CC	+= -DVERBOSE_MALLOC -DVERBOSE_MEMCPY -DVERBOSE_MARSHAL
+#CC	 += -DVERBOSE_MALLOC -DVERBOSE_MEMCPY -DVERBOSE_MARSHAL
 LD       = ld -nostdlib
 PYTHON	 = python
 
@@ -22,6 +23,7 @@ ECHOISR_PY = \
 
 KERNEL_PY = $(ECHOISR_PY)
 #KERNEL_PY = $(LED_PY)
+#KERNEL_PY = kernel/listtest.py
 
 KERNEL_OBJS =	\
 		kernel/main.o \
@@ -132,3 +134,5 @@ bootp: cleese FORCE
 FORCE:
 
 p:	$(PYTHON_OBJS)
+k:	$(KERNEL_OBJS)
+l:	$(LIB_OBJS)
