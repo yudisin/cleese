@@ -1,6 +1,6 @@
 #include "Python.h"
 
-extern struct _frozen *frozenModules;
+extern struct _frozen frozenModules[];
 
 void
 Py_Main()
