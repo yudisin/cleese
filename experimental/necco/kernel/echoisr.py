@@ -28,7 +28,7 @@ def splashdown():
 
 import isr
 import keyb
-import com1
+import comport
 
 tb = pyvga.textbuffer
 
@@ -37,7 +37,7 @@ def prch(ch, fmt):
 	tb[0] = ch; tb[1] = fmt
 	if ord(ch) == 78:
 		ch = '\n'
-	com1.send(ch)
+	comport.send(ch)
 
 def kbd_isr():
 	while keyb.more_chars():

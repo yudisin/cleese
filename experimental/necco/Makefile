@@ -15,7 +15,7 @@ ECHOISR_PY = \
 		kernel/keyb.py \
 		kernel/rtc.py \
 		kernel/bochs/pyvga.py \
-		kernel/bochs/com1.py
+		kernel/bochs/comport.py
 
 KERNEL_PY = $(ECHOISR_PY)
 #KERNEL_PY = $(LED_PY)
