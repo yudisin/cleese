@@ -13,7 +13,7 @@ Py_Initialize(void)
 
 	PyInterpreterState *interp;
 	PyThreadState *tstate;
-
+	PyObject *bimod;
 	extern void _Py_ReadyTypes(void);
 
 	if (initialized)
@@ -41,10 +41,15 @@ Py_Initialize(void)
 		Py_FatalError("Py_Initialize: can't init ints");
 
 	interp->modules = PyDict_New();
-
 	if (interp->modules == NULL)
-	  Py_FatalError("Py_Initialize: can't make modules dictionary");
+		Py_FatalError("Py_Initialize: can't make modules dictionary");
 
+	bimod = _PyBuiltin_Init();
+	if (bimod == NULL)
+		Py_FatalError("Py_Initialize: can't initialize __builtin__");
+	interp->builtins = PyModule_GetDict(bimod);
+	Py_INCREF(interp->builtins);
+	
 	LOG("< Py_Initialize\n");
 }
 
