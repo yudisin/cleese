@@ -25,6 +25,7 @@
 #define BINARY_AND	64
 
 #define BINARY_OR       66
+#define GET_ITER	68
 
 #define PRINT_ITEM      71
 #define PRINT_NEWLINE   72
@@ -38,6 +39,10 @@
 #define HAVE_ARGUMENT   90
 
 #define STORE_NAME      90
+
+#define UNPACK_SEQUENCE	92	/* Number of sequence items */
+#define FOR_ITER	93
+
 #define STORE_GLOBAL	97	/* "" */
 
 #define LOAD_CONST	100	/* Index in const list */
