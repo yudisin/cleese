@@ -9,17 +9,13 @@ video.o: video.c
 ports.o: ports.c
 	gcc -c ports.c -o ports.o
 
-kernel.test: main.o video.o ports.o
-	ld -e _main -Ttext 0x1000 -o kernel.test main.o video.o ports.o
-
-kernel.o: kernel.test
-	ld -i -e _main -Ttext 0x1000 -o kernel.o main.o video.o ports.o
+kernel.o: main.o video.o ports.o
+	ld -Ttext 0xFF800000 -o kernel.o main.o video.o ports.o
 
 KERNEL.BIN: kernel.o
 	objcopy -R .note -R .comment -S -O binary kernel.o KERNEL.BIN
 
 clean:
 	del *.o
-	del kernel.test
 	del KERNEL.BIN
 
