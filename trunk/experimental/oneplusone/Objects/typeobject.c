@@ -55,6 +55,23 @@ _PyObject_SlotCompare(PyObject *self, PyObject *other)
 int
 PyType_Ready(PyTypeObject *type)
 {
-    /* TO DO */
-	return 1;
+	PyTypeObject *base;
+	
+	if (type->tp_flags & Py_TPFLAGS_READY) {
+		return 0;
+	}
+	
+	type->tp_flags |= Py_TPFLAGS_READYING;
+	
+	/* ... */
+	
+	base = type->tp_base;
+	if (base != NULL) {
+		if (type->tp_as_buffer == NULL)
+			type->tp_as_buffer = base->tp_as_buffer;
+	}
+	
+	type->tp_flags =
+		(type->tp_flags & ~Py_TPFLAGS_READYING) | Py_TPFLAGS_READY;
+	return 0;
 }    
