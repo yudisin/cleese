@@ -156,6 +156,27 @@ static PyBufferProcs string_as_buffer = {
 	0, /* TO DO */
 };
 
+static long
+string_hash(PyStringObject *a)
+{
+	register int len;
+	register unsigned char *p;
+	register long x;
+
+	if (a->ob_shash != -1)
+		return a->ob_shash;
+	len = a->ob_size;
+	p = (unsigned char *) a->ob_sval;
+	x = *p << 7;
+	while (--len >= 0)
+		x = (1000003*x) ^ *p++;
+	x ^= a->ob_size;
+	if (x == -1)
+		x = -2;
+	a->ob_shash = x;
+	return x;
+}
+
 PyTypeObject PyString_Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
@@ -171,7 +192,7 @@ PyTypeObject PyString_Type = {
 	0, //&string_as_number,			/* tp_as_number */
 	0, //&string_as_sequence,			/* tp_as_sequence */
 	0, //&string_as_mapping,			/* tp_as_mapping */
-	0, //(hashfunc)string_hash, 			/* tp_hash */
+	(hashfunc)string_hash, 			/* tp_hash */
 	0,					/* tp_call */
 	0, //(reprfunc)string_str,			/* tp_str */
 	0, //PyObject_GenericGetAttr,		/* tp_getattro */
