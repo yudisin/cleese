@@ -3,20 +3,18 @@ import stack
 
 print '-- test stacks'
 
-def recur(i):
-	if i:
+def foo():
+	i = init
+	while i:
 		print '-- swapped: %d' % i
-		recur(stack.swap(i - 1))
-	else:
-		stack.swap(None)
-
-def worker():
-	recur(8)
+		i = stack.swap(i - 1)
+	stack.swap(None)
 	print '** not reached **'
 
-newstack = buf.bss(0x800)
-stack.init(newstack, worker)
+newstack = buf.bss(1024)
+stack.init(newstack, foo)
 
+init = 8
 i = stack.swap(None, newstack)
 while i:
 	print '-- swapped back: %d' % i
