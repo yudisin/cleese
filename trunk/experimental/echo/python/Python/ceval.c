@@ -47,7 +47,7 @@ PyEval_EvalCode(PyCodeObject *co, PyObject *globals, PyObject *locals)
 static PyObject *
 eval_frame(PyFrameObject *f)
 {
-	LOG("> eval_frame\n");
+	LOG("> eval_frame\n"); {
 	PyObject **stack_pointer; /* Next free slot in value stack */
 	register unsigned char *next_instr;
 	register int opcode=0;	/* Current opcode */
@@ -423,7 +423,7 @@ eval_frame(PyFrameObject *f)
 	tstate->frame = f->f_back;
 
 	return retval;
-}
+}}
 
 PyObject *
 PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,

@@ -66,7 +66,7 @@ PyCode_New(int argcount, int nlocals, int stacksize, int flags,
 	   PyObject *filename, PyObject *name, int firstlineno,
 	   PyObject *lnotab) 
 {
-	LOG("> PyCode_New\n");
+	LOG("> PyCode_New\n"); {
 	PyCodeObject *co;
 	int i;
 	/* Check argument types */
@@ -125,4 +125,4 @@ PyCode_New(int argcount, int nlocals, int stacksize, int flags,
 	}
 	LOG("< PyCode_New\n");
 	return co;
-}
+}}

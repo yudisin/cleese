@@ -56,7 +56,7 @@ PyFrameObject *
 PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals, 
 	    PyObject *locals)
 {
-	LOG("> PyFrame_New\n");
+	LOG("> PyFrame_New\n"); {
 	PyFrameObject *back = tstate->frame;
 	PyFrameObject *f;
 	PyObject *builtins;
@@ -157,7 +157,7 @@ PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,
 
 	LOG("< PyFrame_New\n");
 	return f;
-}
+}}
 
 void
 PyFrame_Fini(void)

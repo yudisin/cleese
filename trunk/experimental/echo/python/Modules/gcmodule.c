@@ -37,7 +37,7 @@ PyObject_GC_Track(void *op)
 PyObject *
 _PyObject_GC_Malloc(size_t basicsize)
 {
-	LOG("> _PyObject_GC_Malloc\n");
+	LOG("> _PyObject_GC_Malloc\n"); {
 	PyObject *op;
 	PyGC_Head *g = PyObject_MALLOC(sizeof(PyGC_Head) + basicsize);
 
@@ -52,18 +52,18 @@ _PyObject_GC_Malloc(size_t basicsize)
 	op = FROM_GC(g);
 	LOG("< _PyObject_GC_Malloc\n");
 	return op;
-}
+}}
 
 PyObject *
 _PyObject_GC_New(PyTypeObject *tp)
 {
-	LOG("> _PyObject_GC_New\n");
+	LOG("> _PyObject_GC_New\n"); {
 	PyObject *op = _PyObject_GC_Malloc(_PyObject_SIZE(tp));
 	if (op != NULL)
 		op = PyObject_INIT(op, tp);
 	LOG("< _PyObject_GC_New\n");
 	return op;
-}
+}}
 
 PyVarObject *
 _PyObject_GC_NewVar(PyTypeObject *tp, int nitems)

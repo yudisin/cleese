@@ -9,7 +9,7 @@ Py_Initialize(void)
 {
 	print(" Initializing ");
 	
-	LOG("> Py_Initialize\n");
+	LOG("> Py_Initialize\n"); {
 
 	PyInterpreterState *interp;
 	PyThreadState *tstate;
@@ -51,12 +51,12 @@ Py_Initialize(void)
 	Py_INCREF(interp->builtins);
 	
 	LOG("< Py_Initialize\n");
-}
+}}
 
 void
 Py_Finalize(void)
 {
-	LOG("> Py_Finalize\n");
+	LOG("> Py_Finalize\n"); {
 	PyInterpreterState *interp;
 	PyThreadState *tstate;
 
@@ -73,7 +73,7 @@ Py_Finalize(void)
 	PyFrame_Fini();
 	PyInt_Fini();
 	LOG("< Py_Finalize\n");
-}
+}}
 
 void
 Py_FatalError(const char *msg)

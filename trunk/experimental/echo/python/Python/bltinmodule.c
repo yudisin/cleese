@@ -14,27 +14,27 @@ builtin_inb(PyObject *self, PyObject *args)
 	if (!PyInt_CheckExact(v)) {
 		/* ERROR */
 		return NULL;
+	} else {
+		unsigned short port = PyInt_AS_LONG(v);
+		unsigned char data = in(port);
+		PyObject *result = PyInt_FromLong(data);
+
+		return result;
 	}
-
-	unsigned short port = PyInt_AS_LONG(v);
-	unsigned char data = in(port);
-	PyObject *result = PyInt_FromLong(data);
-
-	return result;
 }
 
 static PyObject *
 builtin_raw_input(PyObject *self, PyObject *args)
 {
 	PyObject *v = NULL;
-
-	if (!PyArg_UnpackTuple(args, "[raw_]input", 0, 1, &v))
-		return NULL;
-
 	PyObject *po;
 	char *prompt;
 	char *s;
 	PyObject *result;
+
+	if (!PyArg_UnpackTuple(args, "[raw_]input", 0, 1, &v))
+		return NULL;
+
 	if (v != NULL) {
 		po = PyObject_Str(v);
 		if (po == NULL)

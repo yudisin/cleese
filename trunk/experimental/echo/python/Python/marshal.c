@@ -105,7 +105,7 @@ r_object(RFILE *p)
 
 	case TYPE_CODE:
 	  {
-		LOG("-- code\n");
+		LOG("-- code\n"); {
 		int argcount = r_long(p);
 		int nlocals = r_long(p);
 		int stacksize = r_long(p);
@@ -150,7 +150,7 @@ r_object(RFILE *p)
 		Py_XDECREF(lnotab);
 
 		return v;
-	  }
+	  }}
 
 	default:
 		print_hex(type);
@@ -163,14 +163,14 @@ r_object(RFILE *p)
 PyObject *
 PyMarshal_ReadObjectFromString(char *str, int len)
 {
-	LOG("> PyMarshal_ReadObjectFromString\n");
+	LOG("> PyMarshal_ReadObjectFromString\n"); {
 	RFILE rf;
 	rf.str = NULL;
 	rf.ptr = str;
 	rf.end = str + len;
 
-	PyObject *o = r_object(&rf);
+	{ PyObject *o = r_object(&rf);
 	LOG("< PyMarshal_ReadObjectFromString\n");
-	return o;
-}
+	return o; }
+}}
 

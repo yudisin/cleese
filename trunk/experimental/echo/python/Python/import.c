@@ -7,7 +7,7 @@
 static struct _frozen *
 find_frozen(char *name)
 {
-	LOG("> find_frozen\n");
+	LOG("> find_frozen\n"); {
 	struct _frozen *p;
 
 	for (p = PyImport_FrozenModules; ; p++) {
@@ -21,23 +21,23 @@ find_frozen(char *name)
 
 	LOG("< find_frozen\n");
 	return p;
-}
+}}
 
 PyObject *
 PyImport_GetModuleDict(void)
 {
-	LOG("> PyImport_GetModuleDict\n");
+	LOG("> PyImport_GetModuleDict\n"); {
 	PyInterpreterState *interp = PyThreadState_Get()->interp;
 	if (interp->modules == NULL)
 		Py_FatalError("PyImport_GetModuleDict: no module dictionary!");
 	LOG("< PyImport_GetModuleDict\n");
 	return interp->modules;
-}
+}}
 
 int
 PyImport_ImportFrozenModule(char *name)
 {
-	print(" Importing ");
+	print(" Importing "); {
 	
 	struct _frozen *p = find_frozen(name);
 	PyObject *co;
@@ -61,12 +61,12 @@ PyImport_ImportFrozenModule(char *name)
 
 	LOG("< PyImport_ImportFrozenModule\n");
 	return 1;
-}
+}}
 
 PyObject *
 PyImport_AddModule(char *name)
 {
-	LOG("> PyImport_AddModule\n");
+	LOG("> PyImport_AddModule\n"); {
 	PyObject *modules = PyImport_GetModuleDict();
 	PyObject *m;
 
@@ -83,12 +83,12 @@ PyImport_AddModule(char *name)
 	Py_DECREF(m);
 	LOG("< PyImport_AddModule\n");
 	return m;
-}
+}}
 
 PyObject *
 PyImport_ExecCodeModule(char *name, PyObject *co)
 {
-	LOG("> PyImport_ExecCodeModule\n");
+	LOG("> PyImport_ExecCodeModule\n"); {
 
 	PyObject *m, *d, *v;
 
@@ -113,4 +113,4 @@ PyImport_ExecCodeModule(char *name, PyObject *co)
 
 	LOG("< PyImport_ExecCodeModule\n");
 	return m;
-}
+}}

@@ -303,7 +303,7 @@ PyString_Format(PyObject *format, PyObject *args)
 void
 PyString_InternInPlace(PyObject **p)
 {
-	LOG("> PyString_InternInPlace\n");
+	LOG("> PyString_InternInPlace\n"); {
 	register PyStringObject *s = (PyStringObject *)(*p);
 	PyObject *t;
 	if (s == NULL || !PyString_Check(s))
@@ -340,12 +340,12 @@ PyString_InternInPlace(PyObject **p)
 		return;
 	}
 	Py_DECREF(t);
-}
+}}
 
 PyObject *
 PyString_FromStringAndSize(const char *str, int size)
 {
-	LOG("> PyString_FromStringAndSize\n");
+	LOG("> PyString_FromStringAndSize\n"); {
 	register PyStringObject *op;
 	if (size == 0 && (op = nullstring) != NULL) {
 		Py_INCREF(op);
@@ -388,7 +388,7 @@ PyString_FromStringAndSize(const char *str, int size)
 	}
 	LOG("< PyString_FromStringAndSize\n");
 	return (PyObject *) op;
-}
+}}
 
 PyObject *
 PyString_FromString(const char *str)
