@@ -122,6 +122,8 @@ _PyBuiltin_Init(void)
 		return NULL;
 
 	SETBUILTIN("None",		Py_None);
+	SETBUILTIN("framebuffer",
+		PyBuffer_FromReadWriteMemory((void *)0xa0000, 0x10000));
 
 	return mod;
 }
