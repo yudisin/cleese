@@ -328,6 +328,11 @@ eval_frame(PyFrameObject *f)
 			/* ERROR? */
 			break;
 
+                case STORE_FAST:
+                        v = POP();
+                        SETLOCAL(oparg, v);
+                        continue;
+
 		case LOAD_CONST:
 			x = GETITEM(consts, oparg);
 			Py_INCREF(x);

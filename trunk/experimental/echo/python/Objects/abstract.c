@@ -219,6 +219,7 @@ PyObject *
 PyObject_GetItem(PyObject *o, PyObject *key)
 {
 	PyMappingMethods *m;
+	PySequenceMethods *s;
 
 	if (o == NULL || key == NULL)
 		Py_FatalError("null_error");
@@ -226,6 +227,11 @@ PyObject_GetItem(PyObject *o, PyObject *key)
 	m = o->ob_type->tp_as_mapping;
 	if (m && m->mp_subscript) {
 		return m->mp_subscript(o, key);
+	}
+
+	s = o->ob_type->tp_as_sequence;
+	if (s && s->sq_item) {
+		return s->sq_item(o, key);
 	}
 
 	/* @@@ */
