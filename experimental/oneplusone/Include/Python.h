@@ -11,8 +11,6 @@ typedef long unsigned int size_t;
 
 /* from stdlib.h */
 void *malloc(size_t __size);
-void free(void *);
-void *realloc(void * __r, size_t __size);
 
 /* from string.h */
 int strcmp(const char *, const char *);
