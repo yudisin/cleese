@@ -1,5 +1,19 @@
 #include "Python.h"
 
+#include "ctype.h"
+
+/* Return 1 if exception raised, 0 if caller should retry using longs */
+static int
+err_ovf(char *msg)
+{
+	if (PyErr_Warn(PyExc_OverflowWarning, msg) < 0) {
+		if (PyErr_ExceptionMatches(PyExc_OverflowWarning))
+			PyErr_SetString(PyExc_OverflowError, msg);
+		return 1;
+	}
+	else
+		return 0;
+}
 
 #define BLOCK_SIZE	1000	/* 1K less typical malloc overhead */
 #define BHEAD_SIZE	8	/* Enough for a 64-bit pointer */
@@ -33,6 +47,56 @@ fill_free_list(void)
 		q->ob_type = (struct _typeobject *)(q-1);
 	q->ob_type = NULL;
 	return p + N_INTOBJECTS - 1;
+}
+
+PyObject *
+PyInt_FromString(char *s, char **pend, int base)
+{
+	char *end;
+	long x;
+	char buffer[256]; /* For errors */
+	int warn = 0;
+
+	if ((base != 0 && base < 2) || base > 36) {
+		PyErr_SetString(PyExc_ValueError,
+				"int() base must be >= 2 and <= 36");
+		return NULL;
+	}
+
+	while (*s && isspace(Py_CHARMASK(*s)))
+		s++;
+	errno = 0;
+	if (base == 0 && s[0] == '0') {
+		x = (long) PyOS_strtoul(s, &end, base);
+		if (x < 0)
+			warn = 1;
+	}
+	else
+		x = PyOS_strtol(s, &end, base);
+	if (end == s || !isalnum(Py_CHARMASK(end[-1])))
+		goto bad;
+	while (*end && isspace(Py_CHARMASK(*end)))
+		end++;
+	if (*end != '\0') {
+  bad:
+		PyOS_snprintf(buffer, sizeof(buffer),
+			      "invalid literal for int(): %.200s", s);
+		PyErr_SetString(PyExc_ValueError, buffer);
+		return NULL;
+	}
+	else if (errno != 0) {
+		if (err_ovf("string/unicode conversion"))
+			return NULL;
+		return PyLong_FromString(s, pend, base);
+	}
+	if (warn) {
+		if (PyErr_Warn(PyExc_FutureWarning,
+			"int('0...', 0): sign will change in Python 2.4") < 0)
+			return NULL;
+	}
+	if (pend)
+		*pend = end;
+	return PyInt_FromLong(x);
 }
 
 PyObject *

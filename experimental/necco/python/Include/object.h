@@ -228,15 +228,18 @@ typedef struct _heaptypeobject {
 	/* here are optional user slots, followed by the members. */
 } PyHeapTypeObject;
 
-
+/* access macro to the members which are floating "behind" the object */
+#define PyHeapType_GET_MEMBERS(etype) \
+    ((PyMemberDef *)(((char *)etype) + (etype)->type.ob_type->tp_basicsize))
 
 
 PyAPI_FUNC(int) PyType_IsSubtype(PyTypeObject *, PyTypeObject *);
 #define PyObject_TypeCheck(ob, tp) \
 	((ob)->ob_type == (tp) || PyType_IsSubtype((ob)->ob_type, (tp)))
 
-PyAPI_DATA(PyTypeObject) PyType_Type;
-PyAPI_DATA(PyTypeObject) PyBaseObject_Type;
+PyAPI_DATA(PyTypeObject) PyType_Type; /* built-in 'type' */
+PyAPI_DATA(PyTypeObject) PyBaseObject_Type; /* built-in 'object' */
+PyAPI_DATA(PyTypeObject) PySuper_Type; /* built-in 'super' */
 
 #define PyType_Check(op) PyObject_TypeCheck(op, &PyType_Type)
 #define PyType_CheckExact(op) ((op)->ob_type == &PyType_Type)
@@ -263,6 +266,8 @@ PyAPI_FUNC(int) PyObject_SetAttr(PyObject *, PyObject *, PyObject *);
 
 PyAPI_FUNC(PyObject *) PyObject_SelfIter(PyObject *);
 PyAPI_FUNC(PyObject *) PyObject_GenericGetAttr(PyObject *, PyObject *);
+PyAPI_FUNC(int) PyObject_GenericSetAttr(PyObject *,
+					      PyObject *, PyObject *);
 
 PyAPI_FUNC(long) PyObject_Hash(PyObject *);
 PyAPI_FUNC(int) PyObject_IsTrue(PyObject *);
@@ -276,6 +281,10 @@ extern int _PyObject_SlotCompare(PyObject *, PyObject *);
 PyAPI_FUNC(int) Py_ReprEnter(PyObject *);
 PyAPI_FUNC(void) Py_ReprLeave(PyObject *);
 
+
+/* Helpers for hash functions */
+PyAPI_FUNC(long) _Py_HashDouble(double);
+PyAPI_FUNC(long) _Py_HashPointer(void*);
 
 /* PyBufferProcs contains bf_getcharbuffer */
 #define Py_TPFLAGS_HAVE_GETCHARBUFFER  (1L<<0)

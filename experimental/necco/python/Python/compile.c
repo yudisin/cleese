@@ -126,3 +126,31 @@ PyCode_New(int argcount, int nlocals, int stacksize, int flags,
 	LOG("< PyCode_New\n");
 	return co;
 }}
+
+int
+_Py_Mangle(char *p, char *name, char *buffer, size_t maxlen)
+{
+	/* Name mangling: __private becomes _classname__private.
+	   This is independent from how the name is used. */
+	size_t nlen, plen;
+	if (p == NULL || name == NULL || name[0] != '_' || name[1] != '_')
+		return 0;
+	nlen = strlen(name);
+	if (nlen+2 >= maxlen)
+		return 0; /* Don't mangle __extremely_long_names */
+	if (name[nlen-1] == '_' && name[nlen-2] == '_')
+		return 0; /* Don't mangle __whatever__ */
+	/* Strip leading underscores from class name */
+	while (*p == '_')
+		p++;
+	if (*p == '\0')
+		return 0; /* Don't mangle if class is just underscores */
+	plen = strlen(p);
+	if (plen + nlen >= maxlen)
+		plen = maxlen-nlen-2; /* Truncate class name if too long */
+	/* buffer = "_" + p[:plen] + name # i.e. 1+plen+nlen bytes */
+	buffer[0] = '_';
+	strncpy(buffer+1, p, plen);
+	strcpy(buffer+1+plen, name);
+	return 1;
+}

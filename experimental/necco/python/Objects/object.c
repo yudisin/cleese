@@ -903,10 +903,12 @@ PyObject_GetAttr(PyObject *v, PyObject *name)
 			return NULL;
 		}
 	}
-	if (tp->tp_getattro != NULL)
+	if (tp->tp_getattro != NULL) {
 		return (*tp->tp_getattro)(v, name);
-	if (tp->tp_getattr != NULL)
+	}
+	if (tp->tp_getattr != NULL) {
 		return (*tp->tp_getattr)(v, PyString_AS_STRING(name));
+	}
 	PyErr_Format(PyExc_AttributeError,
 		     "'%.50s' object has no attribute '%.400s'",
 		     tp->tp_name, PyString_AS_STRING(name));

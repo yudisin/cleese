@@ -46,6 +46,7 @@ typedef unsigned int Py_uintptr_t;
 #endif
 
 #define SIZEOF_VOID_P 4
+#define SIZEOF_INT 4
 
 /*
  * Hide GCC attributes from compilers that don't support them.
@@ -98,6 +99,7 @@ int errno;
 #include "cellobject.h"
 #include "iterobject.h"
 #include "descrobject.h"
+#include "weakrefobject.h"
 
 #include "pyerrors.h"
 

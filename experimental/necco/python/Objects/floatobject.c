@@ -2,6 +2,80 @@
 
 #include "ctype.h"
 
+/* Special free list -- see comments for same code in intobject.c. */
+#define BLOCK_SIZE	1000	/* 1K less typical malloc overhead */
+#define BHEAD_SIZE	8	/* Enough for a 64-bit pointer */
+#define N_FLOATOBJECTS	((BLOCK_SIZE - BHEAD_SIZE) / sizeof(PyFloatObject))
+
+struct _floatblock {
+	struct _floatblock *next;
+	PyFloatObject objects[N_FLOATOBJECTS];
+};
+
+typedef struct _floatblock PyFloatBlock;
+
+static PyFloatBlock *block_list = NULL;
+static PyFloatObject *free_list = NULL;
+
+static PyFloatObject *
+fill_free_list(void)
+{
+	PyFloatObject *p, *q;
+	/* XXX Float blocks escape the object heap. Use PyObject_MALLOC ??? */
+	p = (PyFloatObject *) PyMem_MALLOC(sizeof(PyFloatBlock));
+	if (p == NULL)
+		return (PyFloatObject *) PyErr_NoMemory();
+	((PyFloatBlock *)p)->next = block_list;
+	block_list = (PyFloatBlock *)p;
+	p = &((PyFloatBlock *)p)->objects[0];
+	q = p + N_FLOATOBJECTS;
+	while (--q > p)
+		q->ob_type = (struct _typeobject *)(q-1);
+	q->ob_type = NULL;
+	return p + N_FLOATOBJECTS - 1;
+}
+
+PyObject *
+PyFloat_FromDouble(double fval)
+{
+	register PyFloatObject *op;
+	if (free_list == NULL) {
+		if ((free_list = fill_free_list()) == NULL)
+			return NULL;
+	}
+	/* Inline PyObject_New */
+	op = free_list;
+	free_list = (PyFloatObject *)op->ob_type;
+	PyObject_INIT(op, &PyFloat_Type);
+	op->ob_fval = fval;
+	return (PyObject *) op;
+}
+
+/**************************************************************************
+RED_FLAG 22-Sep-2000 tim
+PyFloat_FromString's pend argument is braindead.  Prior to this RED_FLAG,
+
+1.  If v was a regular string, *pend was set to point to its terminating
+    null byte.  That's useless (the caller can find that without any
+    help from this function!).
+
+2.  If v was a Unicode string, or an object convertible to a character
+    buffer, *pend was set to point into stack trash (the auto temp
+    vector holding the character buffer).  That was downright dangerous.
+
+Since we can't change the interface of a public API function, pend is
+still supported but now *officially* useless:  if pend is not NULL,
+*pend is set to NULL.
+**************************************************************************/
+PyObject *
+PyFloat_FromString(PyObject *v, char **pend)
+{
+  Py_FatalError("PyFloat_FromString not yet implemented");
+
+  /* won't get here */
+  return NULL;
+}
+
 double
 PyFloat_AsDouble(PyObject *op)
 {

@@ -3,6 +3,8 @@
 
 #include "Python.h"
 
+typedef double va_double;
+
 PyObject *
 Py_InitModule4(char *name, PyMethodDef *methods, char *doc,
 	       PyObject *passthrough, int module_api_version)
@@ -70,7 +72,79 @@ countformat(char *format, int endchar)
 }
 
 /* forward reference */
+static PyObject *do_mklist(char**, va_list *, int, int);
+static PyObject *do_mkdict(char**, va_list *, int, int);
 static PyObject *do_mkvalue(char**, va_list *);
+
+static PyObject *
+do_mkdict(char **p_format, va_list *p_va, int endchar, int n)
+{
+	PyObject *d;
+	int i;
+	if (n < 0)
+		return NULL;
+	if ((d = PyDict_New()) == NULL)
+		return NULL;
+	for (i = 0; i < n; i+= 2) {
+		PyObject *k, *v;
+		int err;
+		k = do_mkvalue(p_format, p_va);
+		if (k == NULL) {
+			Py_DECREF(d);
+			return NULL;
+		}
+		v = do_mkvalue(p_format, p_va);
+		if (v == NULL) {
+			Py_DECREF(k);
+			Py_DECREF(d);
+			return NULL;
+		}
+		err = PyDict_SetItem(d, k, v);
+		Py_DECREF(k);
+		Py_DECREF(v);
+		if (err < 0) {
+			Py_DECREF(d);
+			return NULL;
+		}
+	}
+	if (d != NULL && **p_format != endchar) {
+		Py_DECREF(d);
+		d = NULL;
+		PyErr_SetString(PyExc_SystemError,
+				"Unmatched paren in format");
+	}
+	else if (endchar)
+		++*p_format;
+	return d;
+}
+
+static PyObject *
+do_mklist(char **p_format, va_list *p_va, int endchar, int n)
+{
+	PyObject *v;
+	int i;
+	if (n < 0)
+		return NULL;
+	if ((v = PyList_New(n)) == NULL)
+		return NULL;
+	for (i = 0; i < n; i++) {
+		PyObject *w = do_mkvalue(p_format, p_va);
+		if (w == NULL) {
+			Py_DECREF(v);
+			return NULL;
+		}
+		PyList_SetItem(v, i, w);
+	}
+	if (v != NULL && **p_format != endchar) {
+		Py_DECREF(v);
+		v = NULL;
+		PyErr_SetString(PyExc_SystemError,
+				"Unmatched paren in format");
+	}
+	else if (endchar)
+		++*p_format;
+	return v;
+}
 
 static PyObject *
 do_mktuple(char **p_format, va_list *p_va, int endchar, int n)
@@ -108,14 +182,14 @@ do_mkvalue(char **p_format, va_list *p_va)
 			return do_mktuple(p_format, p_va, ')',
 					  countformat(*p_format, ')'));
 
-//		case '[':
-//			return do_mklist(p_format, p_va, ']',
-//					 countformat(*p_format, ']'));
-//
-//		case '{':
-//			return do_mkdict(p_format, p_va, '}',
-//					 countformat(*p_format, '}'));
-//
+		case '[':
+			return do_mklist(p_format, p_va, ']',
+					 countformat(*p_format, ']'));
+
+		case '{':
+			return do_mkdict(p_format, p_va, '}',
+					 countformat(*p_format, '}'));
+
 		case 'b':
 		case 'B':
 		case 'h':
@@ -132,9 +206,9 @@ do_mkvalue(char **p_format, va_list *p_va)
 			return PyInt_FromLong((long)va_arg(*p_va, unsigned long));
 
 		case 'f':
-//		case 'd':
-//			return PyFloat_FromDouble(
-//				(double)va_arg(*p_va, va_double));
+		case 'd':
+			return PyFloat_FromDouble(
+				(double)va_arg(*p_va, va_double));
 
 		case 'c':
 		{
@@ -202,7 +276,7 @@ do_mkvalue(char **p_format, va_list *p_va)
 			break;
 
 		default:
-			printf("bad format char passed to Py_BuildValue");
+			printf("bad format char passed to Py_BuildValue\n");
 			return NULL;
 
 		}
@@ -240,3 +314,92 @@ Py_BuildValue(char *format, ...)
 	return retval;
 }
 
+PyObject *
+PyEval_CallFunction(PyObject *obj, char *format, ...)
+{
+	va_list vargs;
+	PyObject *args;
+	PyObject *res;
+
+	va_start(vargs, format);
+
+	args = Py_VaBuildValue(format, vargs);
+	va_end(vargs);
+
+	if (args == NULL)
+		return NULL;
+
+	res = PyEval_CallObject(obj, args);
+	Py_DECREF(args);
+
+	return res;
+}
+
+PyObject *
+PyEval_CallMethod(PyObject *obj, char *methodname, char *format, ...)
+{
+	va_list vargs;
+	PyObject *meth;
+	PyObject *args;
+	PyObject *res;
+
+	meth = PyObject_GetAttrString(obj, methodname);
+	if (meth == NULL)
+		return NULL;
+
+	va_start(vargs, format);
+
+	args = Py_VaBuildValue(format, vargs);
+	va_end(vargs);
+
+	if (args == NULL) {
+		Py_DECREF(meth);
+		return NULL;
+	}
+
+	res = PyEval_CallObject(meth, args);
+	Py_DECREF(meth);
+	Py_DECREF(args);
+
+	return res;
+}
+
+int
+PyModule_AddObject(PyObject *m, char *name, PyObject *o)
+{
+	PyObject *dict;
+	if (!PyModule_Check(m)) {
+		PyErr_SetString(PyExc_TypeError,
+			    "PyModule_AddObject() needs module as first arg");
+		return -1;
+	}
+	if (!o) {
+		PyErr_SetString(PyExc_TypeError,
+				"PyModule_AddObject() needs non-NULL value");
+		return -1;
+	}
+
+	dict = PyModule_GetDict(m);
+	if (dict == NULL) {
+		/* Internal error -- modules must have a dict! */
+		PyErr_Format(PyExc_SystemError, "module '%s' has no __dict__",
+			     PyModule_GetName(m));
+		return -1;
+	}
+	if (PyDict_SetItemString(dict, name, o))
+		return -1;
+	Py_DECREF(o);
+	return 0;
+}
+
+int 
+PyModule_AddIntConstant(PyObject *m, char *name, long value)
+{
+	return PyModule_AddObject(m, name, PyInt_FromLong(value));
+}
+
+int 
+PyModule_AddStringConstant(PyObject *m, char *name, char *value)
+{
+	return PyModule_AddObject(m, name, PyString_FromString(value));
+}

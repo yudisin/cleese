@@ -58,7 +58,8 @@ PYTHON_OBJS =	\
 		python/Python/errors.o \
 		python/Python/exceptions.o \
 		python/Python/mysnprintf.o \
-		python/Python/mystrtoul.o
+		python/Python/mystrtoul.o \
+		python/Python/structmember.o
 
 PYTHON_OBJS +=	\
 		python/Objects/frameobject.o \
@@ -80,7 +81,9 @@ PYTHON_OBJS +=	\
 		python/Objects/floatobject.o \
 		python/Objects/iterobject.o \
 		python/Objects/sliceobject.o \
-		python/Objects/cellobject.o
+		python/Objects/cellobject.o \
+		python/Objects/descrobject.o \
+		python/Objects/weakrefobject.o
 
 PYTHON_OBJS +=	\
 		python/Modules/gcmodule.o
@@ -92,7 +95,8 @@ LIB_OBJS =	\
 		lib/string.o \
 		lib/malloc.o \
 		lib/ctype.o \
-		lib/snprintf.o
+		lib/snprintf.o \
+		lib/qsort.o
 
 LIB_OBJS +=	\
 		lib/bochs/video.o \

@@ -3,6 +3,12 @@
 
 #include "pymem.h"
 
+PyAPI_FUNC(void *) PyObject_Malloc(size_t);
+PyAPI_FUNC(void *) PyObject_Realloc(void *, size_t);
+
+#define PyObject_Free free /* for now */
+//PyAPI_FUNC(void) PyObject_Free(void *);
+
 #define PyObject_MALLOC  PyMem_MALLOC
 #define PyObject_REALLOC	PyMem_REALLOC
 /* This is an odd one!  For backward compatability with old extensions, the
@@ -10,6 +16,11 @@
    free() function.  When pymalloc isn't enabled, that leaves us using
    the platform free(). */
 #define PyObject_FREE		free
+
+#define PyObject_Del PyObject_FREE /* for now */
+#define PyObject_DEL PyObject_FREE
+
+#define _PyObject_Del		PyObject_Free
 
 PyAPI_FUNC(PyObject *) PyObject_Init(PyObject *, PyTypeObject *);
 PyAPI_FUNC(PyVarObject *) PyObject_InitVar(PyVarObject *,
@@ -100,16 +111,28 @@ extern PyGC_Head *_PyGC_generation0;
         _PyGC_generation0->gc.gc_prev = g; \
     } while (0);
 */
-#define _PyObject_GC_TRACK(o)
+#define _PyObject_GC_TRACK(o) /* Nothing */
+#define _PyObject_GC_UNTRACK(o) /* Nothing */
+
 
 PyAPI_FUNC(PyObject *) _PyObject_GC_Malloc(size_t);
 PyAPI_FUNC(PyObject *) _PyObject_GC_New(PyTypeObject *);
 PyAPI_FUNC(PyVarObject *) _PyObject_GC_NewVar(PyTypeObject *, int);
 PyAPI_FUNC(void) PyObject_GC_Track(void *);
+PyAPI_FUNC(void) PyObject_GC_UnTrack(void *);
+PyAPI_FUNC(void) PyObject_GC_Del(void *);
 
 #define PyObject_GC_New(type, typeobj) \
 	( (type *) _PyObject_GC_New(typeobj) )
 #define PyObject_GC_NewVar(type, typeobj, n) \
         ( (type *) _PyObject_GC_NewVar((typeobj), (n)) )
+
+/* Test if a type supports weak references */
+#define PyType_SUPPORTS_WEAKREFS(t) \
+        (PyType_HasFeature((t), Py_TPFLAGS_HAVE_WEAKREFS) \
+         && ((t)->tp_weaklistoffset > 0))
+
+#define PyObject_GET_WEAKREFS_LISTPTR(o) \
+	((PyObject **) (((char *) (o)) + (o)->ob_type->tp_weaklistoffset))
 
 #endif /* !Py_OBJIMPL_H */
