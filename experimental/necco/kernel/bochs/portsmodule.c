@@ -1,5 +1,7 @@
 #include "Python.h"
 
+extern int in(int), out(int,int);
+
 static PyObject *
 ports_inb(PyObject *self, PyObject *args)
 {
@@ -27,10 +29,15 @@ ports_outb(PyObject *self, PyObject *args)
 
 	if(!PyArg_UnpackTuple(args, "outb", 2, 2, &v, &a))
 		return NULL;
-	if(!PyInt_CheckExact(v) || !PyInt_CheckExact(a))
+ 	if(!PyInt_CheckExact(a))
 		return NULL;
 
-	out(PyInt_AS_LONG(a),PyInt_AS_LONG(v));
+	if(PyInt_CheckExact(v))
+		out(PyInt_AS_LONG(a),PyInt_AS_LONG(v));
+	else if(PyString_Check(v) && PyString_GET_SIZE(v) == 1)
+		out(PyInt_AS_LONG(a), PyString_AS_STRING(v)[0]);
+	else
+		return NULL;
 	
 	Py_INCREF(Py_True);
 	return Py_True;
