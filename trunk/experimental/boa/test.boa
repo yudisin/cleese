@@ -1,0 +1,55 @@
+"comment"
+
+db(1,2,3)
+dw(1,"qwe",2)
+dd(ord('f'),db('0xf00'))
+
+a = resb(2,6)
+b = resw(3,0x4)
+c = resd(014)
+
+dd(resd())
+
+def opcodes():
+	lea(eax,[eax])
+	xor(eax,0x55555555)
+	nop
+
+	eax = 0
+	ebx = 0377
+	ecx = dd(ord('d'),db('0xdecaf'))
+	esi = "twas brillig"; esi += 0x5
+
+	main(argc, argv, envp)
+
+	"""lorem
+           ipsum"""
+
+
+conv = 273
+units = "degrees C/K"
+
+def control():
+	if nz:
+		while test(eax,eax) is z:
+			if ecx < ord(' '):
+				inc(ebx)
+		ret
+	else:
+		eax = 0
+
+	pass
+
+def memref():
+	eax = [esi]
+	eax = [ecx*2]
+	eax = [disp]
+
+	eax = [esi + ecx*2]
+	eax = [esi + disp]
+	eax = [ecx*2 + disp]
+
+	eax = [esi + ecx*2 + disp]
+	eax = [edi + ebx*2 + 0x10]
+
+asm('# escape sequence')
