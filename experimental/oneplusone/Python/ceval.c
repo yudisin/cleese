@@ -210,7 +210,7 @@ eval_frame(PyFrameObject *f)
 			}
 			else {
 			  slow_add:
-				x = PyNumber_Add(v, w);
+				Py_FatalError("slow add not supported.");
 			}
 			Py_DECREF(v);
 			Py_DECREF(w);
@@ -281,9 +281,7 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
 
 	register PyFrameObject *f;
 	register PyObject *retval = NULL;
-	register PyObject **fastlocals, **freevars;
 	PyThreadState *tstate = PyThreadState_GET();
-	PyObject *x, *u;
 
 	if (globals == NULL) {
 	  /* ERROR */
@@ -294,181 +292,10 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
 	if (f == NULL)
 		return NULL;
 
-	fastlocals = f->f_localsplus;
-	freevars = f->f_localsplus + f->f_nlocals;
+    retval = eval_frame(f);
 
-	if (co->co_argcount > 0 ||
-	    co->co_flags & (CO_VARARGS | CO_VARKEYWORDS)) {
-		int i;
-		int n = argcount;
-		PyObject *kwdict = NULL;
-		if (co->co_flags & CO_VARKEYWORDS) {
-			kwdict = PyDict_New();
-			if (kwdict == NULL)
-				goto fail;
-			i = co->co_argcount;
-			if (co->co_flags & CO_VARARGS)
-				i++;
-			SETLOCAL(i, kwdict);
-		}
-		if (argcount > co->co_argcount) {
-			if (!(co->co_flags & CO_VARARGS)) {
-			  /* ERROR */
-				goto fail;
-			}
-			n = co->co_argcount;
-		}
-		for (i = 0; i < n; i++) {
-			x = args[i];
-			Py_INCREF(x);
-			SETLOCAL(i, x);
-		}
-		if (co->co_flags & CO_VARARGS) {
-			u = PyTuple_New(argcount - n);
-			if (u == NULL)
-				goto fail;
-			SETLOCAL(co->co_argcount, u);
-			for (i = n; i < argcount; i++) {
-				x = args[i];
-				Py_INCREF(x);
-				PyTuple_SET_ITEM(u, i-n, x);
-			}
-		}
-		for (i = 0; i < kwcount; i++) {
-			PyObject *keyword = kws[2*i];
-			PyObject *value = kws[2*i + 1];
-			int j;
-			if (keyword == NULL || !PyString_Check(keyword)) {
-			  /* ERROR */
-				goto fail;
-			}
-			/* XXX slow -- speed up using dictionary? */
-			for (j = 0; j < co->co_argcount; j++) {
-				PyObject *nm = PyTuple_GET_ITEM(
-					co->co_varnames, j);
-				int cmp = PyObject_RichCompareBool(
-					keyword, nm, Py_EQ);
-				if (cmp > 0)
-					break;
-				else if (cmp < 0)
-					goto fail;
-			}
-			/* Check errors from Compare */
-			/* ERROR */
-			if (j >= co->co_argcount) {
-				if (kwdict == NULL) {
-				  /* ERROR */
-					goto fail;
-				}
-				PyDict_SetItem(kwdict, keyword, value);
-			}
-			else {
-				if (GETLOCAL(j) != NULL) {
-				  /* ERROR */
-					goto fail;
-				}
-				Py_INCREF(value);
-				SETLOCAL(j, value);
-			}
-		}
-		if (argcount < co->co_argcount) {
-			int m = co->co_argcount - defcount;
-			for (i = argcount; i < m; i++) {
-				if (GETLOCAL(i) == NULL) {
-				  /* ERROR */
-					goto fail;
-				}
-			}
-			if (n > m)
-				i = n - m;
-			else
-				i = 0;
-			for (; i < defcount; i++) {
-				if (GETLOCAL(m+i) == NULL) {
-					PyObject *def = defs[i];
-					Py_INCREF(def);
-					SETLOCAL(m+i, def);
-				}
-			}
-		}
-	}
-	else {
-		if (argcount > 0 || kwcount > 0) {
-		  /* ERROR */
-			goto fail;
-		}
-	}
-
-	/* Allocate and initialize storage for cell vars, and copy free
-	   vars into frame.  This isn't too efficient right now. */
-	if (f->f_ncells) {
-		int i = 0, j = 0, nargs, found;
-		char *cellname, *argname;
-		PyObject *c;
-
-		nargs = co->co_argcount;
-		if (co->co_flags & CO_VARARGS)
-			nargs++;
-		if (co->co_flags & CO_VARKEYWORDS)
-			nargs++;
-
-		/* Check for cells that shadow args */
-		for (i = 0; i < f->f_ncells && j < nargs; ++i) {
-			cellname = PyString_AS_STRING(
-				PyTuple_GET_ITEM(co->co_cellvars, i));
-			found = 0;
-			while (j < nargs) {
-				argname = PyString_AS_STRING(
-					PyTuple_GET_ITEM(co->co_varnames, j));
-				if (strcmp(cellname, argname) == 0) {
-					c = PyCell_New(GETLOCAL(j));
-					if (c == NULL)
-						goto fail;
-					GETLOCAL(f->f_nlocals + i) = c;
-					found = 1;
-					break;
-				}
-				j++;
-			}
-			if (found == 0) {
-				c = PyCell_New(NULL);
-				if (c == NULL)
-					goto fail;
-				SETLOCAL(f->f_nlocals + i, c);
-			}
-		}
-		/* Initialize any that are left */
-		while (i < f->f_ncells) {
-			c = PyCell_New(NULL);
-			if (c == NULL)
-				goto fail;
-			SETLOCAL(f->f_nlocals + i, c);
-			i++;
-		}
-	}
-
-	if (f->f_nfreevars) {
-		int i;
-		for (i = 0; i < f->f_nfreevars; ++i) {
-			PyObject *o = PyTuple_GET_ITEM(closure, i);
-			Py_INCREF(o);
-			freevars[f->f_ncells + i] = o;
-		}
-	}
-
-	/* generator support elided */
-
-        retval = eval_frame(f);
-
-  fail: /* Jump here from prelude on failure */
-
-	/* decref'ing the frame can cause __del__ methods to get invoked,
-	   which can call back into Python.  While we're done with the
-	   current Python frame (f), the associated C stack is still in use,
-	   so recursion_depth must be boosted for the duration.
-	*/
 	++tstate->recursion_depth;
-        Py_DECREF(f);
+    Py_DECREF(f);
 	--tstate->recursion_depth;
 	printf("< PyEval_EvalCodeEx\n");
 	return retval;

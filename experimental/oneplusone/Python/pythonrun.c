@@ -10,7 +10,7 @@ Py_Initialize(void)
 	PyInterpreterState *interp;
 	PyThreadState *tstate;
 
-    extern void _Py_ReadTypes(void);
+    extern void _Py_ReadyTypes(void);
 
 	if (initialized)
 		return;
