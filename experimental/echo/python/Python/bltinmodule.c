@@ -77,9 +77,18 @@ static PyMethodDef builtin_methods[] = {
 PyObject *
 _PyBuiltin_Init(void)
 {
-	PyObject *mod;
+	PyObject *mod, *dict;
 	mod = Py_InitModule4("__builtin__", builtin_methods,
 			     NULL/*doc*/, (PyObject *)NULL,
 			     PYTHON_API_VERSION);
+
+	dict = PyModule_GetDict(mod);
+
+	#define SETBUILTIN(NAME, OBJECT) \
+	if (PyDict_SetItemString(dict, NAME, (PyObject *)OBJECT) < 0)	\
+		return NULL;
+
+	SETBUILTIN("None",		Py_None);
+
 	return mod;
 }
