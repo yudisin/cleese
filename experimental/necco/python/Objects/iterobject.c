@@ -71,7 +71,7 @@ PyTypeObject PySeqIter_Type = {
 	sizeof(seqiterobject),			/* tp_basicsize */
 	0,					/* tp_itemsize */
 	/* methods */
-	//(destructor)iter_dealloc, 		/* tp_dealloc */
+	0, //(destructor)iter_dealloc, 		/* tp_dealloc */
 	0,					/* tp_print */
 	0,					/* tp_getattr */
 	0,					/* tp_setattr */
