@@ -12,6 +12,12 @@ PyAPI_FUNC(void) PyErr_Clear(void);
 PyAPI_FUNC(void) PyErr_Fetch(PyObject **, PyObject **, PyObject **);
 PyAPI_FUNC(void) PyErr_Restore(PyObject *, PyObject *, PyObject *);
 
+/* Error testing and normalization */
+PyAPI_FUNC(int) PyErr_GivenExceptionMatches(PyObject *, PyObject *);
+PyAPI_FUNC(int) PyErr_ExceptionMatches(PyObject *);
+PyAPI_FUNC(void) PyErr_NormalizeException(PyObject**, PyObject**, PyObject**);
+
+
 /* Predefined exceptions */
 
 PyAPI_DATA(PyObject *) PyExc_Exception;

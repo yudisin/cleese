@@ -421,9 +421,9 @@ PyObject *
 PySequence_GetSlice(PyObject *s, int i1, int i2)
 {
         PySequenceMethods *m;
-        PyMappingMethods *mp;
+//        PyMappingMethods *mp;
 
-//        if (!s) return null_error();
+        if (!s) return null_error();
 
         m = s->ob_type->tp_as_sequence;
         if (m && m->sq_slice) {
@@ -449,15 +449,14 @@ PySequence_GetSlice(PyObject *s, int i1, int i2)
 //                return res;
         }
 
-//        type_error("unsliceable object");
-	return -1;
+        return type_error("unsliceable object");
 }
 
 int
 PySequence_SetSlice(PyObject *s, int i1, int i2, PyObject *o)
 {
         PySequenceMethods *m;
-        PyMappingMethods *mp;
+//        PyMappingMethods *mp;
 
         if (s == NULL) {
 //                null_error();
@@ -532,7 +531,7 @@ PyObject *
 PyObject_GetItem(PyObject *o, PyObject *key)
 {
 	PyMappingMethods *m;
-	PySequenceMethods *s;
+//	PySequenceMethods *s;
 
 	if (o == NULL || key == NULL)
 		Py_FatalError("null_error");
@@ -556,8 +555,7 @@ PyObject_GetItem(PyObject *o, PyObject *key)
 //		return NULL;
         }
 
-	/* @@@ */
-	Py_FatalError("unsubscriptable object");
+	return type_error("unsubscriptable object");
 }
 
 PyObject *
