@@ -453,6 +453,25 @@ PyObject _Py_NotImplementedStruct = {
 	PyObject_HEAD_INIT(&PyNotImplemented_Type)
 };
 
+void
+_Py_ReadyTypes(void)
+{
+	if (PyType_Ready(&PyType_Type) < 0)
+		Py_FatalError("Can't initialize 'type'");
+
+	if (PyType_Ready(&PyBool_Type) < 0)
+		Py_FatalError("Can't initialize 'bool'");
+
+	if (PyType_Ready(&PyString_Type) < 0)
+		Py_FatalError("Can't initialize 'str'");
+
+	if (PyType_Ready(&PyNone_Type) < 0)
+		Py_FatalError("Can't initialize type(None)");
+
+	if (PyType_Ready(&PyNotImplemented_Type) < 0)
+		Py_FatalError("Can't initialize type(NotImplemented)");
+}
+
 int
 PyObject_IsTrue(PyObject *v)
 {
