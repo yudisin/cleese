@@ -26,7 +26,7 @@ lookdict_string(dictobject *mp, PyObject *key, long hash);
 PyObject *
 PyDict_New(void)
 {
-	LOG("> PyDict_New\n");
+	LOG("> PyDict_New\n"); {
 
 	register dictobject *mp;
 	if (dummy == NULL) {
@@ -43,7 +43,7 @@ PyDict_New(void)
 
 	LOG("< PyDict_New\n");
 	return (PyObject *)mp;
-}
+}}
 
 static dictentry *
 lookdict_string(dictobject *mp, PyObject *key, register long hash)
@@ -186,8 +186,8 @@ PyDict_GetItem(PyObject *op, PyObject *key)
 			return NULL;
 		}
 	}
-	PyObject *ret = (mp->ma_lookup)(mp, key, hash)->me_value;
-	return ret;
+	{ PyObject *ret = (mp->ma_lookup)(mp, key, hash)->me_value;
+	return ret; }
 }
 
 int
@@ -302,7 +302,7 @@ PyTypeObject PyDict_Type = {
 PyObject *
 PyDict_GetItemString(PyObject *v, const char *key)
 {
-	LOG("> PyDict_GetItemString\n");
+	LOG("> PyDict_GetItemString\n"); {
 	PyObject *kv, *rv;
 	kv = PyString_FromString(key);
 	if (kv == NULL)
@@ -311,7 +311,7 @@ PyDict_GetItemString(PyObject *v, const char *key)
 	Py_DECREF(kv);
 	LOG("< PyDict_GetItemString\n");
 	return rv;
-}
+}}
 
 int
 PyDict_SetItemString(PyObject *v, const char *key, PyObject *item)
