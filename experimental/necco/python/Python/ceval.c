@@ -789,6 +789,18 @@ x = NULL;
 				break;
 			continue;
 			
+                case JUMP_IF_TRUE:
+                        err = PyObject_IsTrue(TOP());
+                        if (err > 0) {
+                                err = 0;
+                                JUMPBY(oparg);
+                        }
+                        else if (err == 0)
+                                ;
+                        else
+                                break;
+                        continue;
+
 		case JUMP_ABSOLUTE:
 			JUMPTO(oparg);
 			continue;

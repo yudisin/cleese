@@ -52,6 +52,7 @@
 
 #define JUMP_FORWARD	110	/* Number of bytes to skip */
 #define JUMP_IF_FALSE	111	/* "" */
+#define JUMP_IF_TRUE	112	/* "" */
 
 #define JUMP_ABSOLUTE	113	/* Target byte offset from beginning of code */
 
