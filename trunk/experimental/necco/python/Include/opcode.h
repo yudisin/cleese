@@ -3,6 +3,7 @@
 
 #define POP_TOP		1
 
+#define UNARY_NEGATIVE	11
 #define UNARY_NOT	12
 
 #define BINARY_MODULO	22

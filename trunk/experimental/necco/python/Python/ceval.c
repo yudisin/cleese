@@ -353,6 +353,18 @@ eval_frame(PyFrameObject *f)
 			Py_DECREF(v);
 			goto fast_next_opcode;
 
+                case UNARY_NEGATIVE:
+                        v = POP();
+// FIXME:		x = PyNumber_Negative(v);
+/**/
+			x = PyInt_FromLong(-PyInt_AS_LONG(v));
+/**/
+                        Py_DECREF(v);
+                        PUSH(x);
+                        if (x != NULL) continue;
+                        break;
+
+
 		case UNARY_NOT:
 			v = TOP();
 			err = PyObject_IsTrue(v);
