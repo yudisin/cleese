@@ -6,6 +6,11 @@ static PyObject *d = NULL;
 static PyObject *t = NULL;
 static PyObject *vec[VLEN];
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - */
+int isr_mask;		/* these are here to mask  */
+void *ticker;		/* a link problem w/ DJGPP */
+/* - - - - - - - - - - - - - - - - - - - - - - - - */
+
 int python_isr(void *arg)
 {
 	PyObject **p = vec;
@@ -72,10 +77,7 @@ _ISR_Init(void)
 		return NULL;
 
 	t = PyInt_FromLong(0);
-
-	{ extern int *ticker;
-	ticker = &(PyInt_AS_LONG(t)); }
-
+	ticker = &(PyInt_AS_LONG(t));
 	SETBUILTIN("ticker", t);
 
 	return mod;
