@@ -66,6 +66,11 @@ PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,
 	extras = code->co_stacksize + code->co_nlocals + ncells + nfrees;
 
 	if (back == NULL || back->f_globals != globals) {
+
+		/* JKT: how did builtin_object get to be NULL again!?!? */
+		if (builtin_object == NULL)
+			builtin_object = PyString_InternFromString("__builtins__");
+		
 		builtins = PyDict_GetItem(globals, builtin_object);
 		if (builtins) {
 			if (PyModule_Check(builtins)) {
