@@ -41,6 +41,7 @@
 #define SETUP_LOOP	120	/* Target address (absolute) */
 
 #define LOAD_FAST	124	/* Local variable number */
+#define STORE_FAST	125	/* Local variable number */
 
 #define SET_LINENO	127
 
