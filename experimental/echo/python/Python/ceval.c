@@ -567,7 +567,16 @@ eval_frame(PyFrameObject *f)
 			Py_INCREF(x);
 			PUSH(x);
 			break;
-			
+
+		case LOAD_ATTR:
+			w = GETITEM(names, oparg);
+			v = TOP();
+			x = PyObject_GetAttr(v, w);
+			Py_DECREF(v);
+			SET_TOP(x);
+			if (x != NULL) continue;
+			break;
+
 		case IMPORT_NAME:
 			w = GETITEM(names, oparg);
 			x = PyDict_GetItemString(f->f_builtins, "__import__");

@@ -226,6 +226,9 @@ PyAPI_FUNC(PyObject *) PyObject_Str(PyObject *);
 PyAPI_FUNC(PyObject *) PyObject_RichCompare(PyObject *, PyObject *, int);
 PyAPI_FUNC(int) PyObject_RichCompareBool(PyObject *, PyObject *, int);
 
+PyAPI_FUNC(PyObject *) PyObject_GetAttr(PyObject *, PyObject *);
+PyAPI_FUNC(PyObject *) PyObject_GenericGetAttr(PyObject *, PyObject *);
+
 PyAPI_FUNC(long) PyObject_Hash(PyObject *);
 PyAPI_FUNC(int) PyObject_IsTrue(PyObject *);
 

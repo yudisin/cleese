@@ -24,10 +24,10 @@ PyTypeObject PyFrame_Type = {
 	0,					/* tp_hash */
 	0,					/* tp_call */
 	0,					/* tp_str */
-	0, //PyObject_GenericGetAttr,		/* tp_getattro */
+	PyObject_GenericGetAttr,		/* tp_getattro */
 	0, //PyObject_GenericSetAttr,		/* tp_setattro */
 	0,					/* tp_as_buffer */
-	0, //Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,/* tp_flags */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,/* tp_flags */
 	0,             				/* tp_doc */
  	0, //(traverseproc)frame_traverse,		/* tp_traverse */
 	0, //(inquiry)frame_clear,			/* tp_clear */

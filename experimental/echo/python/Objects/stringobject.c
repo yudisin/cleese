@@ -636,7 +636,7 @@ PyTypeObject PyString_Type = {
 	(hashfunc)string_hash, 			/* tp_hash */
 	0,					/* tp_call */
 	0, //(reprfunc)string_str,			/* tp_str */
-	0, //PyObject_GenericGetAttr,		/* tp_getattro */
+	PyObject_GenericGetAttr,		/* tp_getattro */
 	0,					/* tp_setattro */
 	&string_as_buffer,			/* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_CHECKTYPES | Py_TPFLAGS_BASETYPE,		/* tp_flags */
@@ -650,7 +650,7 @@ PyTypeObject PyString_Type = {
 	0, //string_methods,				/* tp_methods */
 	0,					/* tp_members */
 	0,					/* tp_getset */
-	0, //&PyBaseString_Type,			/* tp_base */
+	&PyBaseString_Type,			/* tp_base */
 	0,					/* tp_dict */
 	0,					/* tp_descr_get */
 	0,					/* tp_descr_set */

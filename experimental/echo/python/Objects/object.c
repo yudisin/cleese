@@ -40,6 +40,27 @@ PyObject_Hash(PyObject *v)
 	return -1;
 }
 
+PyObject *
+PyObject_GetAttr(PyObject *v, PyObject *name)
+{
+	PyTypeObject *tp = v->ob_type;
+
+	if (!PyString_Check(name)) {
+		/* ERROR */
+		printf("attribute name must be string\n");
+		return NULL;
+	}
+	if (tp->tp_getattro != NULL)
+		return (*tp->tp_getattro)(v, name);
+	if (tp->tp_getattr != NULL)
+		return (*tp->tp_getattr)(v, PyString_AS_STRING(name));
+	/* ERROR */
+	printf("'%s' object has no attribute '%s'", 
+	       tp->tp_name, PyString_AS_STRING(name));
+	return NULL;
+}
+
+
 int
 PyObject_IsTrue(PyObject *v)
 {
@@ -125,6 +146,103 @@ PyNumber_CoerceEx(PyObject **pv, PyObject **pw)
 	}
 	return 1;
 }
+
+PyObject *
+PyObject_GenericGetAttr(PyObject *obj, PyObject *name)
+{
+	PyTypeObject *tp = obj->ob_type;
+	PyObject *descr = NULL;
+	PyObject *res = NULL;
+	descrgetfunc f;
+	long dictoffset;
+	PyObject **dictptr;
+
+	if (!PyString_Check(name)){
+		printf("attribute name must be string");
+		return NULL;
+	}
+	else
+		Py_INCREF(name);
+
+	if (tp->tp_dict == NULL) {
+		if (PyType_Ready(tp) < 0)
+			goto done;
+	}
+
+	/* Inline _PyType_Lookup */
+	{
+		int i, n;
+		PyObject *mro, *base, *dict;
+
+		/* Look in tp_dict of types in MRO */
+		mro = tp->tp_mro;
+		n = PyTuple_GET_SIZE(mro);
+		for (i = 0; i < n; i++) {
+			base = PyTuple_GET_ITEM(mro, i);
+//			if (PyClass_Check(base))
+//				dict = ((PyClassObject *)base)->cl_dict;
+//			else {
+				dict = ((PyTypeObject *)base)->tp_dict;
+//			}
+			descr = PyDict_GetItem(dict, name);
+			if (descr != NULL)
+				break;
+		}
+	}
+
+	f = NULL;
+	if (descr != NULL &&
+	    PyType_HasFeature(descr->ob_type, Py_TPFLAGS_HAVE_CLASS)) {
+		f = descr->ob_type->tp_descr_get;
+		if (f != NULL && PyDescr_IsData(descr)) {
+			res = f(descr, obj, (PyObject *)obj->ob_type);
+			goto done;
+		}
+	}
+
+	/* Inline _PyObject_GetDictPtr */
+	dictoffset = tp->tp_dictoffset;
+	if (dictoffset != 0) {
+		PyObject *dict;
+		if (dictoffset < 0) {
+			int tsize;
+			size_t size;
+
+			tsize = ((PyVarObject *)obj)->ob_size;
+			if (tsize < 0)
+				tsize = -tsize;
+			size = _PyObject_VAR_SIZE(tp, tsize);
+
+			dictoffset += (long)size;
+		}
+		dictptr = (PyObject **) ((char *)obj + dictoffset);
+		dict = *dictptr;
+		if (dict != NULL) {
+			res = PyDict_GetItem(dict, name);
+			if (res != NULL) {
+				Py_INCREF(res);
+				goto done;
+			}
+		}
+	}
+
+	if (f != NULL) {
+		res = f(descr, obj, (PyObject *)obj->ob_type);
+		goto done;
+	}
+
+	if (descr != NULL) {
+		Py_INCREF(descr);
+		res = descr;
+		goto done;
+	}
+	printf("'%s' object has no attribute '%s'",
+	       tp->tp_name, PyString_AS_STRING(name));
+  done:
+	Py_DECREF(name);
+	return res;
+}
+
 
 
 /* ... */

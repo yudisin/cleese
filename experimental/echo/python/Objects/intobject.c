@@ -164,7 +164,7 @@ PyTypeObject PyInt_Type = {
 	0, //(hashfunc)int_hash,			/* tp_hash */
 	0,					/* tp_call */
 	0, //    (reprfunc)int_repr,			/* tp_str */
-	0, //PyObject_GenericGetAttr,		/* tp_getattro */
+	PyObject_GenericGetAttr,		/* tp_getattro */
 	0,					/* tp_setattro */
 	0,					/* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_CHECKTYPES | Py_TPFLAGS_BASETYPE,		/* tp_flags */
