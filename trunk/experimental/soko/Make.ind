@@ -9,7 +9,8 @@ VPATH   = $(SRC)/kernel $(SRC)/kernel/$(PLAT) \
 KERNEL_OBJS =	\
 		kernel_bytecode.o \
 		blitmodule.o \
-		bufmodule.o
+		bufmodule.o \
+		stackmodule.o 
 
 PYTHON_OBJS =	\
 		pythonrun.o \
@@ -67,4 +68,4 @@ LIB_OBJS =	\
 	$(CC) -c -I$(SRC)/include -I$(SRC)/python/Include -o $@ $<
 
 .boa.o:
-	$(PYTHON) $(SRC)/util/boa < $< | as -o $@
+	$(PYTHON) $(SRC)/util/boa $< | as -o $@
