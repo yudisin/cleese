@@ -176,6 +176,42 @@ PySequence_SetItem(PyObject *s, int i, PyObject *o)
         return -1;
 }
 
+PyObject *
+PySequence_GetSlice(PyObject *s, int i1, int i2)
+{
+        PySequenceMethods *m;
+        PyMappingMethods *mp;
+
+//        if (!s) return null_error();
+
+        m = s->ob_type->tp_as_sequence;
+        if (m && m->sq_slice) {
+                if (i1 < 0 || i2 < 0) {
+                        if (m->sq_length) {
+                                int l = (*m->sq_length)(s);
+                                if (l < 0)
+                                        return NULL;
+                                if (i1 < 0)
+                                        i1 += l;
+                                if (i2 < 0)
+                                        i2 += l;
+                        }
+                }
+                return m->sq_slice(s, i1, i2);
+//        } else if ((mp = s->ob_type->tp_as_mapping) && mp->mp_subscript) {
+//                PyObject *res;
+//                PyObject *slice = sliceobj_from_intint(i1, i2);
+//                if (!slice)
+//                        return NULL;
+//                res = mp->mp_subscript(s, slice);
+//                Py_DECREF(slice);
+//                return res;
+        }
+
+//        type_error("unsliceable object");
+	return -1;
+}
+
 int
 PySequence_SetSlice(PyObject *s, int i1, int i2, PyObject *o)
 {

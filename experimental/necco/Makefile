@@ -9,6 +9,8 @@ KERNEL_PY = \
 		kernel/echoisr.py \
 		kernel/keyb.py \
 		kernel/rtc.py
+KERNEL_PY += \
+		kernel/bochs/pyvga.py
 
 KERNEL_OBJS =	\
 		kernel/main.o \

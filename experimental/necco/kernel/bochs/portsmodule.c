@@ -50,10 +50,40 @@ ports_querypair(PyObject *self, PyObject *args)
 	return PyInt_FromLong(in(PyInt_AS_LONG(a)+1));
 }
 
+static PyObject *
+ports_writevec(PyObject *self, PyObject *args)
+{
+	PyObject *ad, *wr, *v;
+	int aport, wport;
+
+        int i, l = PyTuple_GET_SIZE(args);
+        if (l < 2)
+                return NULL;
+
+	ad = PyTuple_GET_ITEM(args, 0);
+	wr = PyTuple_GET_ITEM(args, 1);
+
+	if(!PyInt_CheckExact(ad) || !PyInt_CheckExact(wr))
+		return NULL;
+
+	aport = PyInt_AS_LONG(ad);
+	wport = PyInt_AS_LONG(wr);
+
+	for(i = 2; i < l; ++i)	{
+		v = PyTuple_GET_ITEM(args, i);
+		out(aport, i-2);
+		out(wport, PyInt_AS_LONG(v));
+	}
+
+	Py_INCREF(Py_True);
+	return Py_True;
+}
+
 static PyMethodDef ports_methods[] = {
  	{"inb",	        ports_inb,		METH_VARARGS, NULL/*doc*/},
 	{"outb",	ports_outb,		METH_VARARGS, NULL/*doc*/},
 	{"querypair",	ports_querypair,	METH_VARARGS, NULL/*doc*/},
+	{"writevec",	ports_writevec,		METH_VARARGS, NULL/*doc*/},
 	{NULL,		NULL},
 };
 

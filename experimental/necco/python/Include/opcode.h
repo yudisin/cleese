@@ -9,6 +9,9 @@
 #define BINARY_ADD 23
 #define BINARY_SUBSCR   25
 
+#define SLICE           30
+/* Also uses 31-33 */
+
 #define STORE_SLICE	40
 
 #define STORE_SUBSCR	60
@@ -25,6 +28,7 @@
 #define HAVE_ARGUMENT 90
 
 #define STORE_NAME     90
+#define STORE_GLOBAL	97	/* "" */
 
 #define LOAD_CONST	100	/* Index in const list */
 #define LOAD_NAME	101	/* Index in name list */
