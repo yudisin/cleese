@@ -33,7 +33,10 @@
 #define LOAD_CONST	100	/* Index in const list */
 #define LOAD_NAME	101	/* Index in name list */
 
+#define BUILD_TUPLE	102	/* Number of tuple items */
+
 #define LOAD_ATTR	105	/* Index in name list */
+#define COMPARE_OP	106	/* Comparison operator */
 
 #define IMPORT_NAME	107	/* Index in name list */
 
@@ -56,5 +59,9 @@
 #define MAKE_FUNCTION	132	/* #defaults */
 
 #define HAS_ARG(op) ((op) >= HAVE_ARGUMENT)
+
+/* Comparison operator codes (argument to COMPARE_OP) */
+enum cmp_op {LT=Py_LT, LE=Py_LE, EQ=Py_EQ, NE=Py_NE, GT=Py_GT, GE=Py_GE,
+	     IN, NOT_IN, IS, IS_NOT, EXC_MATCH, BAD};
 
 #endif /* !Py_OPCODE_H */

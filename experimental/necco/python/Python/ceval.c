@@ -597,6 +597,18 @@ eval_frame(PyFrameObject *f)
 			PUSH(x);
 			break;
 
+                case BUILD_TUPLE:
+                        x = PyTuple_New(oparg);
+                        if (x != NULL) {
+                                for (; --oparg >= 0;) {
+                                        w = POP();
+                                        PyTuple_SET_ITEM(x, oparg, w);
+                                }
+                                PUSH(x);
+                                continue;
+                        }
+                        break;
+
 		case LOAD_ATTR:
 			w = GETITEM(names, oparg);
 			v = TOP();
@@ -605,6 +617,40 @@ eval_frame(PyFrameObject *f)
 			SET_TOP(x);
 			if (x != NULL) continue;
 			break;
+
+                case COMPARE_OP:
+                        w = POP();
+                        v = POP();
+                        if (PyInt_Check(v) && PyInt_Check(w)) {
+                                /* INLINE: cmp(int, int) */
+                                register long a, b;
+                                register int res;
+                                a = PyInt_AS_LONG(v);
+                                b = PyInt_AS_LONG(w);
+                                switch (oparg) {
+                                case LT: res = a <  b; break;
+                                case LE: res = a <= b; break;
+                                case EQ: res = a == b; break;
+                                case NE: res = a != b; break;
+                                case GT: res = a >  b; break;
+                                case GE: res = a >= b; break;
+                                case IS: res = v == w; break;
+                                case IS_NOT: res = v != w; break;
+                                default: goto slow_compare;
+                                }
+                                x = res ? Py_True : Py_False;
+                                Py_INCREF(x);
+                        }
+                        else {
+                          slow_compare:
+x = NULL;
+//                                x = cmp_outcome(oparg, v, w);
+                        }
+                        Py_DECREF(v);
+                        Py_DECREF(w);
+                        PUSH(x);
+                        if (x != NULL) continue;
+                        break;
 
 		case IMPORT_NAME:
 			w = GETITEM(names, oparg);

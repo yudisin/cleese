@@ -20,7 +20,7 @@ def entry():
 	xor(ax,ax)
 	fs = ax; gs = ax
 
-	db(0xea)
+	db(0xea)		# load cs (jmp 10h:startC)
 	dd(startC); dw(0x10)
 
 def startC():

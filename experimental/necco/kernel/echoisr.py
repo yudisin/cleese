@@ -1,23 +1,41 @@
-import isr
-import vga
-import keyb
-import rtc
 import pyvga
+import vga
 
 ########################################
 
-def splashscreen():
+def decorate():
+	o = 61114	# (320*190) + (320-6)
+	y = 0
+	fb = vga.framebuffer
+	while y < 10:
+		if (y & 1):	fb[o:o+6] = '\077\067\077\067\077\067'
+		else:		fb[o:o+6] = '\067\077\067\077\067\077'
+		o = o + 320
+		y = y + 1
+
+def splashup():
 	pyvga.set320x200x256()
 	# why doesn't framebuffer[:] also work?
 	vga.framebuffer[:0x10000] = vga.splashscreen
-	while not (rtc.seconds() & 0x4):
+	decorate()
+
+splashup()
+
+def pause():
+	timeout = rtc.seconds() + 2
+	while rtc.seconds() < timeout:
 		pass
+
+def splashdown():
+	pause()
 	pyvga.set80x25()
 
-splashscreen()
-print 'Press a key'
-
 ########################################
+
+import isr
+import keyb
+import rtc
+
 tb = vga.textbuffer
 
 def kbd_isr():
@@ -32,8 +50,9 @@ def clk_isr():
 
 isr.setvec(clk_isr, kbd_isr)
 
-t = 0
+########################################
+
+splashdown()
+print 'Press a key'
 while 1:
 	pass
-	# print vga.splashscreen[t:t+16]
-	# t = t + 16
