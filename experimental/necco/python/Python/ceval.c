@@ -498,6 +498,26 @@ eval_frame(PyFrameObject *f)
                         if (x != NULL) continue;
                         break;
 
+                case BINARY_LSHIFT:
+                        w = POP();
+                        v = POP();
+                        x = PyNumber_Lshift(v, w);
+                        Py_DECREF(v);
+                        Py_DECREF(w);
+                        PUSH(x);
+                        if (x != NULL) continue;
+                        break;
+
+                case BINARY_RSHIFT:
+                        w = POP();
+                        v = POP();
+                        x = PyNumber_Rshift(v, w);
+                        Py_DECREF(v);
+                        Py_DECREF(w);
+                        PUSH(x);
+                        if (x != NULL) continue;
+                        break;
+
 		case BINARY_AND:
 			w = POP();
 			v = TOP();

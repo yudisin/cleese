@@ -26,8 +26,6 @@ static int initialized = 0;
 void
 Py_Initialize(void)
 {
-	printf("Initializing\n");
-	
 	LOG("> Py_Initialize\n"); {
 
 	PyInterpreterState *interp;

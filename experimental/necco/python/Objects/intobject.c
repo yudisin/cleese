@@ -134,6 +134,54 @@ int_nonzero(PyIntObject *v)
 }
 
 static PyObject *
+int_lshift(PyIntObject *v, PyIntObject *w)
+{
+        register long a, b;
+        CONVERT_TO_LONG(v, a);
+        CONVERT_TO_LONG(w, b);
+        if (b < 0) {
+                PyErr_SetString(PyExc_ValueError, "negative shift count");
+                return NULL;
+        }
+        if (a == 0 || b == 0) {
+                Py_INCREF(v);
+                return (PyObject *) v;
+        }
+//        if (b >= LONG_BIT) {
+//               return PyInt_FromLong(0L);
+//        }
+        a = (unsigned long)a << b;
+        return PyInt_FromLong(a);
+}
+
+static PyObject *
+int_rshift(PyIntObject *v, PyIntObject *w)
+{
+        register long a, b;
+        CONVERT_TO_LONG(v, a);
+        CONVERT_TO_LONG(w, b);
+        if (b < 0) {
+                PyErr_SetString(PyExc_ValueError, "negative shift count");
+                return NULL;
+        }
+        if (a == 0 || b == 0) {
+                Py_INCREF(v);
+                return (PyObject *) v;
+        }
+//        if (b >= LONG_BIT) {
+//                if (a < 0)
+//                        a = -1;
+//                else
+//                        a = 0;
+//        }
+//        else {
+//                a = Py_ARITHMETIC_RIGHT_SHIFT(long, a, b);
+//        }
+/**/	a = a >> b;
+        return PyInt_FromLong(a);
+}
+
+static PyObject *
 int_and(PyIntObject *v, PyIntObject *w)
 {
 	register long a, b;
@@ -162,8 +210,8 @@ static PyNumberMethods int_as_number = {
 	0, //(unaryfunc)int_abs,	/*nb_absolute*/
 	(inquiry)int_nonzero,	/*nb_nonzero*/
 	0, //(unaryfunc)int_invert,	/*nb_invert*/
-	0, //(binaryfunc)int_lshift,	/*nb_lshift*/
-	0, //(binaryfunc)int_rshift,	/*nb_rshift*/
+	(binaryfunc)int_lshift,	/*nb_lshift*/
+	(binaryfunc)int_rshift,	/*nb_rshift*/
 	(binaryfunc)int_and,	/*nb_and*/
 	0, //(binaryfunc)int_xor,	/*nb_xor*/
 	0, //(binaryfunc)int_or,	/*nb_or*/

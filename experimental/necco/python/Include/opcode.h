@@ -17,6 +17,8 @@
 
 #define STORE_SUBSCR	60
 
+#define BINARY_LSHIFT	62
+#define BINARY_RSHIFT	63
 #define BINARY_AND	64
 
 #define PRINT_ITEM 71
