@@ -61,7 +61,7 @@ lea 12(%esp),%esp
 ret
 .text 255
 .globl conv
-conv = 273
+conv = 270
 l9:
 .ascii "degrees C/K"
 .align 1,0
@@ -94,7 +94,7 @@ memref:
 mov (%esi),%eax
 mov (,%ecx,2),%eax
 mov disp,%eax
-mov (%esi,%ecx,2),%eax
+mov (%ecx,%esi,1),%eax
 mov disp(%esi),%eax
 mov disp(,%ecx,2),%eax
 mov disp(%esi,%ecx,2),%eax
