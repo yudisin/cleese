@@ -34,7 +34,7 @@ OBJS = 		\
 		$(PYTHON_OBJS) \
 		$(MODULE_OBJS)
 
-FLAGS = -fprofile-arcs -ftest-coverage -g 
+#FLAGS = -fprofile-arcs -ftest-coverage -g 
 
 1p1.exe: Modules/python.o $(OBJS)
 	gcc $(FLAGS) -Wall -o $@ Modules/python.o $(OBJS)
