@@ -98,6 +98,13 @@ PyImport_ExecCodeModule(char *name, PyObject *co)
 		return NULL;
 	d = PyModule_GetDict(m);
 
+	if (PyDict_GetItemString(d, "__builtins__") == NULL) {
+//		print(" builtins not yet in module dict ");
+		if (PyDict_SetItemString(d, "__builtins__", PyEval_GetBuiltins()) != 0) {
+			return NULL;
+		}
+	}
+	
 	v = PyEval_EvalCode((PyCodeObject *)co, d, d);
 
 	if (v == NULL)
