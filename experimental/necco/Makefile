@@ -48,7 +48,8 @@ PYTHON_OBJS =	\
 		python/Python/modsupport.o \
 		python/Python/errors.o \
 		python/Python/exceptions.o \
-		python/Python/mysnprintf.o
+		python/Python/mysnprintf.o \
+		python/Python/mystrtoul.o
 
 PYTHON_OBJS +=	\
 		python/Objects/frameobject.o \
@@ -69,13 +70,15 @@ PYTHON_OBJS +=	\
 		python/Objects/longobject.o \
 		python/Objects/floatobject.o \
 		python/Objects/iterobject.o \
-		python/Objects/sliceobject.o
+		python/Objects/sliceobject.o \
+		python/Objects/cellobject.o
 
 PYTHON_OBJS +=	\
 		python/Modules/gcmodule.o
 
 LDSCRIPT =	lib/bochs/cleese.ld
 CRT0	 =	lib/bochs/crt0.o
+
 LIB_OBJS =	\
 		lib/string.o \
 		lib/malloc.o \

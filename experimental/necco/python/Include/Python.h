@@ -8,6 +8,13 @@
 #include "string.h"
 
 /* from pyport.h */
+#ifdef SIGNED_RIGHT_SHIFT_ZERO_FILLS
+#define Py_ARITHMETIC_RIGHT_SHIFT(TYPE, I, J) \
+	((I) < 0 ? ~((~(unsigned TYPE)(I)) >> (J)) : (I) >> (J))
+#else
+#define Py_ARITHMETIC_RIGHT_SHIFT(TYPE, I, J) ((I) >> (J))
+#endif
+
 #define PyAPI_FUNC(RTYPE) RTYPE
 #define PyAPI_DATA(RTYPE) extern RTYPE
 typedef unsigned int Py_uintptr_t;
@@ -25,6 +32,17 @@ typedef unsigned int Py_uintptr_t;
 #endif
 #ifndef INT_MIN
 #define INT_MIN (-INT_MAX-1)
+#endif
+
+#define SIZEOF_LONG 4
+#define LONG_MAX 0X7FFFFFFFL
+
+#ifndef LONG_MIN
+#define LONG_MIN (-LONG_MAX-1)
+#endif
+
+#ifndef LONG_BIT
+#define LONG_BIT (8 * SIZEOF_LONG)
 #endif
 
 /*
@@ -49,6 +67,10 @@ PyAPI_FUNC(void) Py_FatalError(const char *message);
 /* from ? */
 #define offsetof(type, member) ( (int) & ((type*)0) -> member )
 
+int errno;
+
+/* end of from ? */
+
 #define LOG(msg) //print(msg)
 #define LOGF(format, arg1) //printf(format, arg1)
 
@@ -71,6 +93,7 @@ PyAPI_FUNC(void) Py_FatalError(const char *message);
 #include "funcobject.h"
 #include "classobject.h"
 #include "sliceobject.h"
+#include "cellobject.h"
 #include "iterobject.h"
 #include "descrobject.h"
 
@@ -93,6 +116,9 @@ PyAPI_FUNC(void) Py_FatalError(const char *message);
 #else
 #define Py_CHARMASK(c)		((c) & 0xff)
 #endif
+
+#include "pyfpe.h"
+#define ERANGE 34
 
 /* Define macros for inline documentation. */
 #define PyDoc_VAR(name) static char name[]
