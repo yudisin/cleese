@@ -463,6 +463,46 @@ eval_frame(PyFrameObject *f)
 			Py_INCREF(x);
 			PUSH(x);
 			break;
+
+		case LOAD_GLOBAL:
+			w = GETITEM(names, oparg);
+			if (PyString_CheckExact(w)) {
+				/* Inline the PyDict_GetItem() calls.
+				   WARNING: this is an extreme speed hack.
+				   Do not try this at home. */
+				long hash = ((PyStringObject *)w)->ob_shash;
+				if (hash != -1) {
+					PyDictObject *d;
+					d = (PyDictObject *)(f->f_globals);
+					x = d->ma_lookup(d, w, hash)->me_value;
+					if (x != NULL) {
+						Py_INCREF(x);
+						PUSH(x);
+						continue;
+					}
+					d = (PyDictObject *)(f->f_builtins);
+					x = d->ma_lookup(d, w, hash)->me_value;
+					if (x != NULL) {
+						Py_INCREF(x);
+						PUSH(x);
+						continue;
+					}
+					goto load_global_error;
+				}
+			}
+			/* This is the un-inlined version of the code above */
+			x = PyDict_GetItem(f->f_globals, w);
+			if (x == NULL) {
+				x = PyDict_GetItem(f->f_builtins, w);
+				if (x == NULL) {
+				  load_global_error:
+					/* ERROR */
+					break;
+				}
+			}
+			Py_INCREF(x);
+			PUSH(x);
+			break;
 			
 		case JUMP_FORWARD:
 //			print(" JUMP_FORWARD ");
@@ -505,6 +545,28 @@ eval_frame(PyFrameObject *f)
 			PUSH(x);
 			if (x != NULL)
 				continue;
+			break;
+
+		case MAKE_FUNCTION:
+			v = POP(); /* code object */
+			x = PyFunction_New(v, f->f_globals);
+			Py_DECREF(v);
+			/* XXX Maybe this should be a separate opcode? */
+			if (x != NULL && oparg > 0) {
+				v = PyTuple_New(oparg);
+				if (v == NULL) {
+					Py_DECREF(x);
+					x = NULL;
+					break;
+				}
+				while (--oparg >= 0) {
+					w = POP();
+					PyTuple_SET_ITEM(v, oparg, w);
+				}
+				err = PyFunction_SetDefaults(x, v);
+				Py_DECREF(v);
+			}
+			PUSH(x);
 			break;
 			
 		default:
