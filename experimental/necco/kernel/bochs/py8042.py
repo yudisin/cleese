@@ -5,7 +5,7 @@ outb = ports.outb
 ### KEYBOARD ###################################################################
 
 def more_chars():
-    return (inb(0x64) & 0x01)
+    return (inb(0x64) & 0x21) == 0x01
 
 def get_scancode():
     while not more_chars():
@@ -14,37 +14,21 @@ def get_scancode():
 
 ### MOUSE ######################################################################
 
-squeaks = 0
+def more_squeaks():
+	return (inb(0x64) & 0x21) == 0x21
 
-dx = 0
-dy = 0
+def get_squeak():
+	if not more_squeaks():
+		return (0,0,0)
 
-def poll_mouse():
-	def mouse_ready():
-		return (inb(0x64) & 0x21) == 0x21
-
-	if not mouse_ready():
-		return 0
-
-	global squeaks
-	squeaks = squeaks + 1
-
-	global dx
-	global dy
 	fl = inb(0x60)
-	while not mouse_ready(): pass
+	while not more_squeaks(): pass
 	dx = inb(0x60)
-	while not mouse_ready(): pass
+	while not more_squeaks(): pass
 	dy = inb(0x60)
 	if fl & 0x20: dy = -(256 + -dy)
 	if fl & 0x10: dx = -(256 + -dx)
-	return fl & 0xCF
-
-def clear_mouse():
-	global dx
-	global dy
-	dx = 0
-	dy = 0
+	return (fl & 0xCF, dx, dy)
 
 ### INIT #######################################################################
 

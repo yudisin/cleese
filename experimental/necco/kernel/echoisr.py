@@ -11,11 +11,6 @@ def splashdown():
 splashup()
 
 ########################################
-import pyfont
-pyfont.setctx(pyvga.framebuffer, pyvga.font0)
-pyfont.write(12,12, 'hello, world!')
-########################################
-
 import isr
 import py8042
 import keyb
@@ -32,19 +27,19 @@ def kbd_isr():
 	    if ch:
 		prch(ch, '\015')
 
+squeaks = 0
 def clk_isr():
 	tb[158] = '/-\|'[isr.ticker & 3]
-	fl = py8042.poll_mouse()
-	if fl:
-		print "mouse: %x %d %d" % (fl, py8042.dx, py8042.dy)
-		clk_isr()
+	while py8042.more_squeaks():
+		print "mouse: %x %d %d" % py8042.get_squeak()
+		global squeaks
+		squeaks = squeaks + 1
 		
-
 isr.setvec(clk_isr, kbd_isr)
 
 ########################################
 
-while (isr.ticker < 40) and (py8042.squeaks < 1):
+while (isr.ticker < 40) and (squeaks < 1):
 	pass
 
 splashdown()

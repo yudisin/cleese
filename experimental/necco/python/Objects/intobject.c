@@ -370,6 +370,18 @@ int_classic_div(PyIntObject *x, PyIntObject *y)
 }
 
 static PyObject *
+int_mod(PyIntObject *x, PyIntObject *y)
+{
+        long xi, yi;
+        long d, m;
+        CONVERT_TO_LONG(x, xi);
+        CONVERT_TO_LONG(y, yi);
+        if (i_divmod(xi, yi, &d, &m) < 0)
+                return NULL;
+        return PyInt_FromLong(m);
+}
+
+static PyObject *
 int_true_divide(PyObject *v, PyObject *w)
 {
 	/* If they aren't both ints, give someone else a chance.  In
@@ -466,7 +478,7 @@ static PyNumberMethods int_as_number = {
 	(binaryfunc)int_sub,	/*nb_subtract*/
 	(binaryfunc)int_mul,	/*nb_multiply*/
 	(binaryfunc)int_classic_div, /*nb_divide*/
-	0, //(binaryfunc)int_mod,	/*nb_remainder*/
+	(binaryfunc)int_mod,	/*nb_remainder*/
 	0, //(binaryfunc)int_divmod,	/*nb_divmod*/
 	0, //(ternaryfunc)int_pow,	/*nb_power*/
 	0, //(unaryfunc)int_neg,	/*nb_negative*/
