@@ -85,12 +85,10 @@ blit_paste(PyObject *self, PyObject *args)
 	   !PyInt_CheckExact(obdw) ||
 	   !PyInt_CheckExact(ox) ||
 	   !PyInt_CheckExact(oy) ||
-	   !PyString_Check(obs) ||
 	   !PyInt_CheckExact(obsw))
 		return NULL;
 
 	bd = (PyBufferObject *)obd;
-	bs = (PyStringObject *)obs;
 	if(bd->b_readonly)
 		return NULL;
 
@@ -100,9 +98,18 @@ blit_paste(PyObject *self, PyObject *args)
 	bsw = PyInt_AS_LONG(obsw);
 	
 	dx = bsw;
-	dy = bs->ob_size / dx;
 
-	os = bs->ob_sval;
+	if(PyString_Check(obs))	{
+		PyStringObject *bs = (PyStringObject *)obs;
+		os = bs->ob_sval;
+		dy = bs->ob_size / dx;
+	} else if(PyBuffer_Check(obs)) {
+		PyBufferObject *bs = (PyBufferObject *)obs;
+		os = bs->b_ptr;
+		dy = bs->b_size / dx;
+	} else
+		return NULL;
+
 	od = bd->b_ptr + (bdw * y) + x;
 	for(i = 0; i < dy; ++i)	{
 		memcpy(od,os,dx);
@@ -110,8 +117,6 @@ blit_paste(PyObject *self, PyObject *args)
 		od += bdw;
 	}
 
-	Py_INCREF(Py_True);
-	return Py_True;
 	Py_INCREF(Py_True);
 	return Py_True;
 }

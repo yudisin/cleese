@@ -52,19 +52,19 @@ map = list('     #####               #   #               #$  #             ###  
 #--harder level--
 #map = list('           #######             #  ...#         #####  ...#         #      . .#         #  ##  ...#         ## ##  ...#        ### ########        # $$$ ##        #####  $ $ #####   ##   #$ $   #   #   #@ $  $    $  $ #   ###### $$ $ #####        #      #            ########')
 
+tile_ndx = '@&$*#. '
+tiles = [buf.sym('sokotile'), buf.sym('sokogoal'),
+	buf.sym('stonetile'), buf.sym('stonegoal'),
+	buf.sym('wall'), buf.sym('goal'), buf.sym('floor')]
+
+blit.paste(pyvga.framebuffer,320, 267, 68, tiles[0], 8)
+blit.paste(pyvga.framebuffer,320, 140, 136, tiles[2], 8)
+blit.paste(pyvga.framebuffer,320, 140, 156, tiles[5], 8)
+
 def disptile(off):
-	ch = map[off]
-	if ch == '@':
-	    blit.fill(pyvga.framebuffer, 320,
+	blit.paste(pyvga.framebuffer, 320,
 		(off % 20) << 3, (off / 20) << 3,	# x, y
-		8, 8, 1)
-	else:
-	    blit.fill(pyvga.framebuffer, 320,
-		(off % 20) << 3, (off / 20) << 3,	# x, y
-		8, 8,					# dx, dy
-		{ ' ': 0, '#': 31, '.': 5,		# color
-	          '*': 2, '$': 4,
-	          '@': 1, '&': 1 }[ch])
+		tiles[tile_ndx.find(map[off])], 8)
 
 def dispall():
 	i = len(map)
@@ -75,7 +75,7 @@ def dispall():
 			eol = 0
 		if not eol:
 			disptile(i)
-		if not (i % 20):
+		if (i % 20) == 0:	# 'not i % 20' freezes on hardware?
 			eol = 1
 
 def move(dir):
@@ -131,8 +131,8 @@ while 1:
 		pass
 
 	if   bufchar == 'q':	loop('Thanks for playing')
-	elif bufchar == 'h':	move(-1)
-	elif bufchar == 'j':	move(20)
-	elif bufchar == 'k':	move(-20)
-	elif bufchar == 'l':	move(1)
+	elif bufchar in 'hs':	move(-1)
+	elif bufchar in 'jx':	move(20)
+	elif bufchar in 'ke':	move(-20)
+	elif bufchar in 'ld':	move(1)
 	elif bufchar == 'p':	dispall()
