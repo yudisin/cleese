@@ -164,3 +164,17 @@ PyFrame_Fini(void)
 {
 	/* TO DO */
 }
+
+/* Block management */
+
+void
+PyFrame_BlockSetup(PyFrameObject *f, int type, int handler, int level)
+{
+	PyTryBlock *b;
+	if (f->f_iblock >= CO_MAXBLOCKS)
+		Py_FatalError("XXX block stack overflow");
+	b = &f->f_blockstack[f->f_iblock++];
+	b->b_type = type;
+	b->b_level = level;
+	b->b_handler = handler;
+}
