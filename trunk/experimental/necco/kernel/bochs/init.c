@@ -1,4 +1,5 @@
-extern void _Ports_Init(), _ISR_Init(), _Blit_Init(), _Buf_Init();
+extern void _Ports_Init(), _ISR_Init(), _Blit_Init(),
+	    _Buf_Init(), _Stack_Init();
 
 void
 Cleese_Initialize()
@@ -7,6 +8,7 @@ Cleese_Initialize()
 	_ISR_Init();
 	_Blit_Init();
 	_Buf_Init();
+	_Stack_Init();
 }
 
 void

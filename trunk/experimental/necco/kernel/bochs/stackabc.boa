@@ -1,0 +1,13 @@
+def swapandeval():
+	eax = [esp + 4]		# new stack top
+	edx = [esp + 8]		# PyFunction_Get_CODE(f)
+	ecx = [esp + 12]	# locals/globals
+	
+	eax -= 4
+	[eax] = esp		# save our old stack
+	esp = eax		# and switch to the new one
+
+	PyEval_EvalCode(edx, ecx, ecx)
+
+	esp = [esp]		# now switch back
+	ret
