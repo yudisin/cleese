@@ -45,7 +45,6 @@ PyAPI_FUNC(void) Py_FatalError(const char *message);
 #include "tupleobject.h"
 #include "dictobject.h"
 #include "moduleobject.h"
-#include "classobject.h"
 
 #include "pystate.h"
 
