@@ -10,9 +10,21 @@ typedef struct _is {
   struct _ts *tstate_head;
 
   PyObject *modules;
+  PyObject *sysdict; /* not used */
   PyObject *builtins;
 
+  PyObject *codec_search_path; /* not used */
+  PyObject *codec_search_cache; /* not used */
+  PyObject *codec_error_registry; /* not used */
+
 } PyInterpreterState;
+
+/* State unique per thread */
+
+struct _frame; /* Avoid including frameobject.h */
+
+/* Py_tracefunc return -1 when raising an exception, or 0 for success. */
+typedef int (*Py_tracefunc)(PyObject *, struct _frame *, int, PyObject *);
 
 typedef struct _ts {
 	
@@ -21,8 +33,31 @@ typedef struct _ts {
 
   struct _frame *frame;
   int recursion_depth;
+  int tracing;
+  int use_tracing;
+
+  Py_tracefunc c_profilefunc;
+  Py_tracefunc c_tracefunc;
+  PyObject *c_profileobj;
+  PyObject *c_traceobj;
+
+  PyObject *curexc_type;
+  PyObject *curexc_value;
+  PyObject *curexc_traceback;
+
+  PyObject *exc_type;
+  PyObject *exc_value;
+  PyObject *exc_traceback;
 
   PyObject *dict;
+
+  int tick_counter;
+  int gilstate_counter;
+
+  PyObject *async_exc; /* Asynchronous exception to raise */
+  long thread_id; /* Thread id where this tstate was created */
+
+  /* XXX signal handlers should also be here */
 
 } PyThreadState;
 
