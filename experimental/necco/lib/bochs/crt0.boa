@@ -36,7 +36,7 @@ def startC():
         esp = resb(0x1000)      # set up a stack
         esp +=     0x0ffc
 
-        main(ebx)               # and call C code
+        Py_FrozenMain(ebx)               # and call C code
         dw(0xfeeb)              # infinite loop (jmp $-2)
 
 #-------------------------------------------------------------------------------

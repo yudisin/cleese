@@ -3,7 +3,7 @@
 extern void Cleese_Initialize(), Cleese_Finalize();
 
 int
-main(void)
+Py_FrozenMain(void)
 {
 	Py_Initialize();
 	Cleese_Initialize();
