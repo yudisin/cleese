@@ -152,15 +152,16 @@ PyImport_ImportModule(char *name)
 PyObject *
 PyImport_ImportModuleEx(char *name)
 {
-	PyObject *modules;
-	PyObject *m;
+	PyObject *modules = PyImport_GetModuleDict();
+	PyObject *m = PyDict_GetItemString(modules, name);
 
-	PyImport_ImportFrozenModule(name);
-	modules = PyImport_GetModuleDict();
-	m = PyDict_GetItemString(modules, name);
-	if (m == NULL) {
-		printf("module %s not properly initialized\n", name);
-		return NULL;
+	if (m == NULL)	{
+		PyImport_ImportFrozenModule(name);
+		m = PyDict_GetItemString(modules, name);
+		if (m == NULL) {
+			printf("module %s not properly initialized\n", name);
+			return NULL;
+		}
 	}
 	Py_INCREF(m);
 	return m;
