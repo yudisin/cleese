@@ -49,6 +49,7 @@ PyAPI_FUNC(void) Py_FatalError(const char *message);
 #include "objimpl.h"
 
 #include "intobject.h"
+#include "boolobject.h"
 #include "stringobject.h"
 #include "tupleobject.h"
 #include "dictobject.h"
