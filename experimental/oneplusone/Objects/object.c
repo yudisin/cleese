@@ -411,7 +411,20 @@ PyObject_Hash(PyObject *v)
 
 static PyTypeObject PyNone_Type = {
   PyObject_HEAD_INIT(&PyType_Type)
-  /* TO DO */
+  0,
+  "NoneType",
+  0,
+  0,
+  0, //(destructor)none_dealloc,	     /*tp_dealloc*/ /*never called*/
+  0,		/*tp_print*/
+  0,		/*tp_getattr*/
+  0,		/*tp_setattr*/
+  0,		/*tp_compare*/
+  0, //(reprfunc)none_repr, /*tp_repr*/
+  0,		/*tp_as_number*/
+  0,		/*tp_as_sequence*/
+  0,		/*tp_as_mapping*/
+  0,		/*tp_hash */
 };
 
 PyObject _Py_NoneStruct = {
@@ -419,8 +432,21 @@ PyObject _Py_NoneStruct = {
 };
 
 static PyTypeObject PyNotImplemented_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	/* TO DO */
+  PyObject_HEAD_INIT(&PyType_Type)
+  0,
+  "NotImplementedType",
+  0,
+  0,
+  0, //(destructor)none_dealloc,	     /*tp_dealloc*/ /*never called*/
+  0,		/*tp_print*/
+  0,		/*tp_getattr*/
+  0,		/*tp_setattr*/
+  0,		/*tp_compare*/
+  0, //(reprfunc)NotImplemented_repr, /*tp_repr*/
+  0,		/*tp_as_number*/
+  0,		/*tp_as_sequence*/
+  0,		/*tp_as_mapping*/
+  0,		/*tp_hash */
 };
 
 PyObject _Py_NotImplementedStruct = {
