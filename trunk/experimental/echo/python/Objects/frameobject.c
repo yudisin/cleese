@@ -178,3 +178,13 @@ PyFrame_BlockSetup(PyFrameObject *f, int type, int handler, int level)
 	b->b_level = level;
 	b->b_handler = handler;
 }
+
+PyTryBlock *
+PyFrame_BlockPop(PyFrameObject *f)
+{
+	PyTryBlock *b;
+	if (f->f_iblock <= 0)
+		Py_FatalError("XXX block stack underflow");
+	b = &f->f_blockstack[--f->f_iblock];
+	return b;
+}

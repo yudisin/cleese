@@ -35,5 +35,6 @@ PyAPI_FUNC(PyFrameObject *) PyFrame_New(PyThreadState *, PyCodeObject *,
 					PyObject *, PyObject *);
 
 PyAPI_FUNC(void) PyFrame_BlockSetup(PyFrameObject *, int, int, int);
+PyAPI_FUNC(PyTryBlock *) PyFrame_BlockPop(PyFrameObject *);
 
 #endif /* !Py_FRAMEOBJECT_H */
