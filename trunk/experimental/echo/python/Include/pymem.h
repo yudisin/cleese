@@ -5,4 +5,6 @@
 
 #define PyMem_NEW(type, n) ( (type *) PyMem_MALLOC((n) * sizeof(type)) )
 
+#define PyMem_FREE(op) /* Nothing */
+
 #endif /* !Py_PYMEM_H */
