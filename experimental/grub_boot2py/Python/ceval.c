@@ -279,26 +279,25 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
 	   PyObject **args, int argcount, PyObject **kws, int kwcount,
 	   PyObject **defs, int defcount, PyObject *closure)
 {
-	LOG("> PyEval_EvalCodeEx\n");
-
 	register PyFrameObject *f;
 	register PyObject *retval = NULL;
 	PyThreadState *tstate = PyThreadState_GET();
 
 	if (globals == NULL) {
-	  /* ERROR */
+		/* ERROR */
+		print("PyEval_EvalCodeEx: NULL globals");
 		return NULL;
 	}
 
 	f = PyFrame_New(tstate, co, globals, locals);
-	if (f == NULL)
+	if (f == NULL) {
 		return NULL;
+	}
 
-    retval = eval_frame(f);
+	retval = eval_frame(f);
 
 	++tstate->recursion_depth;
-    Py_DECREF(f);
+	Py_DECREF(f);
 	--tstate->recursion_depth;
-	LOG("< PyEval_EvalCodeEx\n");
 	return retval;
 }
