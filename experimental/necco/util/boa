@@ -20,13 +20,13 @@ import token
 #-------------------------------------------------------------------------------
 
 opcodes = """
-    add andl cli cld cmp dec inb inc int lea lodsb lodsw lodsl movsb movsl movl
-    nop orl outb pop popa push pusha rep ret shl shr std sti stosb stosw
-    stosl sub test xlat xor
+    add andl cli cld cmp dec inb inc int inw lea lodsb lodsw lodsl
+    movsb movsl movl nop orl outb outw pop popa push pusha rep ret
+    shl shr std sti stosb stosw stosl sub test xlat xor
 	  """.split()
 
 reversed = """
-    add andl cmp inb lea movl orl outb shl shr sub test xor
+    add andl cmp inb inw lea movl orl outb outw shl shr sub test xor
 	   """.split()
 
 #-------------------------------------------------------------------------------
