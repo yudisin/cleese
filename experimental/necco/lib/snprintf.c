@@ -5,6 +5,10 @@
 #include "ctype.h"
 #include "sys/types.h"
 
+#define MORE_THAN_YOU_WANT	1<<30
+#define MAX_STDOUT_CHARS	255
+extern void print_string(const char *);
+
 static char hexmap[] = {
     '0', '1', '2', '3', '4', '5', '6', '7',
     '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
@@ -176,4 +180,26 @@ void snprintf(char *str, int len, char *fmt, ...)
     va_start(pvar, fmt);
     va_snprintf(str, len, fmt, pvar);
     va_end(pvar);
+}
+
+void
+sprintf(char *dst, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    va_snprintf(dst, MORE_THAN_YOU_WANT, fmt, args);
+    va_end(args);
+}
+
+void
+printf(const char* fmt, ...)
+{
+    static char buf[MAX_STDOUT_CHARS];
+
+    va_list args;
+    va_start(args, fmt);
+    va_snprintf(buf, MAX_STDOUT_CHARS, fmt, args);
+    va_end(args);
+
+    print_string(buf);
 }
