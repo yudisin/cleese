@@ -1,0 +1,65 @@
+#===============================================================================
+# 32-bit boot-agnostic kernel startup code
+#===============================================================================
+# 'ld -T cleese.ld' to generate a grub-bootable executable, then
+# 'objcopy -O binary' that executable to get a bootp-bootable file.
+#===============================================================================
+
+#-------------------------------------------------------------------------------
+# BOOTP entry point - must link at the start of .text
+#-------------------------------------------------------------------------------
+
+stack = resb(0x1000)
+
+def bootp():
+        ax = ds                 # cs and ds are good, so
+        es = ax; ss = ax        # load the other segments
+        xor(ax,ax)
+        fs = ax; gs = ax
+
+        edi = bss               # zero out BSS
+        ecx = end
+        ecx -= edi
+        ecx >>= 2               # (assume sections are word aligned)
+        eax = 0
+        rep
+        stosl
+
+        esp = stack             # set up a stack
+        esp += 0x1000
+
+	push(ebx)
+        main                    # and call C code
+        dw(0xfeeb)              # loop if it returns (jmp $-2)
+
+#-------------------------------------------------------------------------------
+# Multiboot header for GRUB bootloader. This must be in the first 8K
+# of the kernel file.
+#-------------------------------------------------------------------------------
+
+        align(4)
+        dd(0x1BADB002,          # magic
+           0x00010003,          # AOUT_KLUDGE(16)|MEMORY_INFO(1)|PAGE_ALIGN(0)
+           0xe4514ffb,          # checksum: -(magic + flags)
+           bootp, bss, end,
+           entry)
+
+#-------------------------------------------------------------------------------
+# GRUB entry point - should be the executable's entry point
+#-------------------------------------------------------------------------------
+
+gdt = dw(0x20);  dd(gdt);  dw(0,        # overlay: len + address
+         0,     0,     0,     0,
+         0xffff,0,0x9200,  0xcf,        # flat data descriptor
+         0xffff,0,0x9a00,  0xcf)        # flat code descriptor
+
+def entry():
+        db(0x0f,0x01,0x15)      # use our descriptor table (lgdt [gdt])
+        dd(gdt)
+
+        ax = 0x10
+        ds = ax                 # load ds
+
+        db(0xea)                # load cs (jmp 018h:bootp)
+        dd(bootp); dw(0x18)
+#===============================================================================

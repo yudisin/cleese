@@ -1,0 +1,21 @@
+Bootable Python VM running kernel script.
+
+To build:
+	cd disk
+	unzip grub.zip
+	unzip c.zip
+	cd ..
+	make
+
+To run:
+	bochs -f bochs/cleese.bxrc
+
+
+NOTE: The Python interpreter is missing many peices of
+functionality. I have been unable to get modules working properly, so
+the ISR demo uses functions declared in the builtin module, which
+means you can't install a Python handler yet. Seems like some work on
+porting the Python interpreter is needed....
+
+The keyboard interrupt will only fire once as you need to strobe the
+keyboard in the ISR, and we can't register ISR's yet!
