@@ -52,7 +52,7 @@ OBJS = 		\
 		$(MODULE_OBJS)
 
 1p1.exe: Modules/python.o $(OBJS)
-	gcc -Wall -o $@ Modules/python.o $(OBJS)
+	gcc -g -Wall -o $@ Modules/python.o $(OBJS)
 
 .c.o:
-	gcc -fno-builtin -c -Wall -I. -I./Include -o $@ $<
+	gcc -g -fno-builtin -c -Wall -I. -I./Include -o $@ $<
