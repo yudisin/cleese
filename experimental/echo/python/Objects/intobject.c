@@ -76,6 +76,12 @@ extern int print_hex(long);
 		return Py_NotImplemented;	\
 	}
 
+static int
+int_nonzero(PyIntObject *v)
+{
+	return v->ob_ival != 0;
+}
+
 static PyObject *
 int_and(PyIntObject *v, PyIntObject *w)
 {
@@ -103,7 +109,7 @@ static PyNumberMethods int_as_number = {
 	0, //(unaryfunc)int_neg,	/*nb_negative*/
 	0, //(unaryfunc)int_pos,	/*nb_positive*/
 	0, //(unaryfunc)int_abs,	/*nb_absolute*/
-	0, //(inquiry)int_nonzero,	/*nb_nonzero*/
+	(inquiry)int_nonzero,	/*nb_nonzero*/
 	0, //(unaryfunc)int_invert,	/*nb_invert*/
 	0, //(binaryfunc)int_lshift,	/*nb_lshift*/
 	0, //(binaryfunc)int_rshift,	/*nb_rshift*/
