@@ -23,23 +23,17 @@ extern int initstack();
 static void *save_area(PyObject *stack)
 {
 	static void *initspsav;
-	return (stack ? ((PyBufferObject *)stack)->b_ptr
-		      : (void *)&initspsav);
+	PyBufferObject *pbo = (PyBufferObject *)stack;
+
+	return (pbo ? pbo->b_ptr + pbo->b_size - 4
+		    : (void *)&initspsav);
 }
 
 static PyObject *
-stack_swap(PyObject *self, PyObject *args)
+_stack_swap(PyObject *obuf, PyObject *oarg)
 {
 	static PyObject *curstack;
-	PyObject *obuf, *oarg;
 	void *from, *to;
-
-	obuf = NULL;
-	if(!PyArg_UnpackTuple(args, "swap", 1, 2, &oarg, &obuf))
-		return NULL;
-
-	if(!PyBuffer_Check(obuf) && obuf)
-		return NULL;
 
 	from = save_area(curstack);
 	to   = save_area(obuf);
@@ -48,13 +42,27 @@ stack_swap(PyObject *self, PyObject *args)
 	return swapstacks(from, to, oarg);
 }
 
+static PyObject *
+stack_swap(PyObject *self, PyObject *args)
+{
+	PyObject *obuf, *oarg;
+
+	obuf = NULL;
+	if(!PyArg_UnpackTuple(args, "swap", 1, 2, &oarg, &obuf))
+		return NULL;
+
+	if(!PyBuffer_Check(obuf) && obuf)
+		return NULL;
+
+	return _stack_swap(obuf, oarg);
+}
+
 
 static PyObject *
 stack_init(PyObject *self, PyObject *args)
 {
 	PyObject *obuf, *ofunc;
 	PyBufferObject *pbo;
-	extern PyObject *PyEval_EvalCode();
 
 	if(!d)	{ init_dict(); }
 
@@ -65,20 +73,77 @@ stack_init(PyObject *self, PyObject *args)
 		return NULL;
 
 	pbo = (PyBufferObject *)obuf;
-	if(pbo->b_readonly)
+	if(pbo && pbo->b_readonly)
 		return NULL;
 
 	*(int *)save_area(obuf) = initstack(
-			pbo->b_ptr + pbo->b_size,
+			pbo->b_ptr + pbo->b_size - 4,
 			PyFunction_GET_CODE(ofunc), d);
 
 	Py_INCREF(Py_True);
 	return Py_True;
 }
 
+void
+fake_syscall(void *esp)
+{
+	_stack_swap(NULL, PyInt_FromLong((long)esp));
+}
+
+static PyObject *
+stack_linux(PyObject *self, PyObject *args)
+{
+	PyObject *obuf;
+	PyBufferObject *pbo;
+	int *ptr;
+
+	if(!PyArg_UnpackTuple(args, "linux", 1, 1, &obuf))
+		return NULL;
+
+	if(!PyBuffer_Check(obuf))
+		return NULL;
+
+	pbo = (PyBufferObject *)obuf;
+	if(pbo && pbo->b_readonly)
+		return NULL;
+
+	/* this is really platform dependent ---- */
+	ptr = (int *)(pbo->b_ptr + pbo->b_size) - 0xA;
+	memset(ptr, 0, 0x20);	/* zero registers */
+	ptr[8] = pbo->b_ptr;	/* no loader; entry at start of buffer */
+	/* -------------------------------------- */
+
+	*(int *)save_area(obuf) = ptr;
+
+	Py_INCREF(Py_True);
+	return Py_True;
+}
+
+static PyObject *
+stack_linaddr(PyObject *self, PyObject *args)
+{
+	PyObject *obuf, *oaddr;
+	PyBufferObject *pbo;
+	int addr;
+
+	if(!PyArg_UnpackTuple(args, "linaddr", 2, 2, &obuf, &oaddr))
+		return NULL;
+
+	if(!PyBuffer_Check(obuf) ||
+           !PyInt_CheckExact(oaddr))
+		return NULL;
+
+	pbo  = (PyBufferObject *)obuf;
+	addr = PyInt_AS_LONG(oaddr);
+
+	return PyInt_FromLong(*(int *)(addr));
+}
+
 static PyMethodDef stack_methods[] = {
 	{"swap",	stack_swap,     METH_VARARGS, NULL/*doc*/},
 	{"init",	stack_init,	METH_VARARGS, NULL/*doc*/},
+	{"linux",	stack_linux,	METH_VARARGS, NULL/*doc*/},
+	{"linaddr",	stack_linaddr,	METH_VARARGS, NULL/*doc*/},
 	{NULL,		NULL},
 };
 
