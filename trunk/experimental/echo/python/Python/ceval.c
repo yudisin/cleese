@@ -207,6 +207,30 @@ eval_frame(PyFrameObject *f)
 			PUSH(x);
 			goto fast_next_opcode;
 
+		PREDICTED(POP_TOP);
+		case POP_TOP:
+			v = POP();
+			Py_DECREF(v);
+			goto fast_next_opcode;
+
+		case UNARY_NOT:
+			v = TOP();
+			err = PyObject_IsTrue(v);
+			Py_DECREF(v);
+			if (err == 0) {
+				Py_INCREF(Py_True);
+				SET_TOP(Py_True);
+				continue;
+			}
+			else if (err > 0) {
+				Py_INCREF(Py_False);
+				SET_TOP(Py_False);
+				err = 0;
+				continue;
+			}
+			STACKADJ(-1);
+			break;
+
 		case BINARY_MODULO:
 //			print(" BINARY_MODULO ");
 			w = POP();
@@ -242,6 +266,16 @@ eval_frame(PyFrameObject *f)
 			if (x != NULL) continue;
 			break;
 
+		case BINARY_AND:
+			w = POP();
+			v = TOP();
+			x = PyNumber_And(v, w);
+			Py_DECREF(v);
+			Py_DECREF(w);
+			SET_TOP(x);
+			if (x != NULL) continue;
+			break;
+
 		case PRINT_ITEM:
 //			print(" PRINT_ITEM ");
 			v = POP();
@@ -259,6 +293,16 @@ eval_frame(PyFrameObject *f)
 //			print(" RETURN_VALUE ");
 			retval = POP();
 			why = WHY_RETURN;
+			break;
+
+		case POP_BLOCK:
+			{
+				PyTryBlock *b = PyFrame_BlockPop(f);
+				while (STACK_LEVEL() > b->b_level) {
+					v = POP();
+					Py_DECREF(v);
+				}
+			}
 			break;
 
 		case STORE_NAME:
@@ -303,6 +347,26 @@ eval_frame(PyFrameObject *f)
 //			print(" JUMP_FORWARD ");
 			JUMPBY(oparg);
 			goto fast_next_opcode;
+
+		PREDICTED_WITH_ARG(JUMP_IF_FALSE);
+		case JUMP_IF_FALSE:
+			w = TOP();
+			if (w == Py_True) {
+				PREDICT(POP_TOP);
+				goto fast_next_opcode;
+			}
+			if (w == Py_False) {
+				JUMPBY(oparg);
+				goto fast_next_opcode;
+			}
+			err = PyObject_IsTrue(w);
+			if (err > 0)
+				err = 0;
+			else if (err == 0)
+				JUMPBY(oparg);
+			else
+				break;
+			continue;
 			
 		case JUMP_ABSOLUTE:
 //			print(" JUMP_ABSOLUTE ");

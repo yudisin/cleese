@@ -1,13 +1,21 @@
 #ifndef Py_OPCODE_H
 #define Py_OPCODE_H
 
+#define POP_TOP		1
+
+#define UNARY_NOT	12
+
 #define BINARY_MODULO	22
 #define BINARY_ADD 23
+
+#define BINARY_AND	64
 
 #define PRINT_ITEM 71
 #define PRINT_NEWLINE 72
 
 #define RETURN_VALUE 83
+
+#define POP_BLOCK	87
 
 #define HAVE_ARGUMENT 90
 
@@ -17,6 +25,7 @@
 #define LOAD_NAME	101	/* Index in name list */
 
 #define JUMP_FORWARD	110	/* Number of bytes to skip */
+#define JUMP_IF_FALSE	111	/* "" */
 
 #define JUMP_ABSOLUTE	113	/* Target byte offset from beginning of code */
 
