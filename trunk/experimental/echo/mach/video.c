@@ -1,3 +1,6 @@
+
+#include "stdarg.h"
+
 extern unsigned char in(unsigned short);
 extern void out(unsigned short, unsigned char);
 
@@ -119,19 +122,93 @@ print(const char *s)
 	update_cursor();
 }
 
-void
-print_hex(unsigned long number)
+static
+void format_d(char* buf, int val)
 {
-	char buf[] = "0x00000000";
-	char hex[] = "0123456789ABCDEF";
-	unsigned int i, digit;
+	char stack[16];
+	int top = 0;
+	int negative;
+	unsigned uval;
 
-	for (i=9; i > 1; i--) {
-		digit = number % 0x10;
-		buf[i] = hex[digit];
-		number /= 0x10;
-		if (number == 0)
-			break;
+	if (val < 0) {
+		negative = 1;
+		uval = -val;
+	} else {
+		negative = 0;
+		uval = val;
 	}
-	print(buf);
+
+	do {
+		int digit = uval %10;
+		stack[top++] = digit + '0';
+		uval /= 10;
+	}
+	while (uval > 0);
+
+	if (negative) {
+		*buf++ = '-';
+	}
+
+	do {
+		*buf++ = stack[--top];
+	}
+	while (top > 0);
+
+	*buf = '\0';
+}
+
+static
+void format_x(char* buf, int val)
+{
+	int i;
+	for (i = 28; i >=0; i -= 4) {
+		int x = (val >> i) & 0xf;
+		*buf++ = "0123456789ABCDEF"[x];
+	}
+	*buf = '\0';
+}
+
+void
+printf(const char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+
+	char buf[64];
+	int ival;
+	const char* sval;
+	
+	while (*fmt != '\0') {
+		switch (*fmt) {
+		case '%':
+			++fmt;
+			switch (*fmt) {
+			case 'd':
+				ival = va_arg(args, int);
+				format_d(buf, ival);
+				print(buf);
+				break;
+			case 'x':
+				ival = va_arg(args, int);
+				format_x(buf, ival);
+				print(buf);
+				break;
+			case 's':
+				sval = va_arg(args, int);
+				print_char(ival & 0xFF);
+				break;
+			default:
+				print_char(*fmt);
+				break;
+			}
+			break;
+		default:
+			print_char(*fmt);
+			break;
+		}
+
+		fmt++;
+	}
+	update_cursor();
+	va_end(args);
 }
