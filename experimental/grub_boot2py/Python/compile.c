@@ -18,8 +18,45 @@ intern_strings(PyObject *tuple)
 }
 
 PyTypeObject PyCode_Type = {
-  PyObject_HEAD_INIT(&PyType_Type)
-  /* TO DO */
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,
+	"code",
+	sizeof(PyCodeObject),
+	0,
+	0, //(destructor)code_dealloc, 	/* tp_dealloc */
+	0,				/* tp_print */
+	0, 				/* tp_getattr */
+	0,				/* tp_setattr */
+	0, //(cmpfunc)code_compare, 		/* tp_compare */
+	0, //(reprfunc)code_repr,		/* tp_repr */
+	0,				/* tp_as_number */
+	0,				/* tp_as_sequence */
+	0,				/* tp_as_mapping */
+	0, //(hashfunc)code_hash, 		/* tp_hash */
+	0,				/* tp_call */
+	0,				/* tp_str */
+	0, //PyObject_GenericGetAttr,	/* tp_getattro */
+	0,				/* tp_setattro */
+	0,				/* tp_as_buffer */
+	0, //Py_TPFLAGS_DEFAULT,		/* tp_flags */
+	0, //code_doc,			/* tp_doc */
+	0,				/* tp_traverse */
+	0,				/* tp_clear */
+	0,				/* tp_richcompare */
+	0,				/* tp_weaklistoffset */
+	0,				/* tp_iter */
+	0,				/* tp_iternext */
+	0,				/* tp_methods */
+	0, //code_memberlist,		/* tp_members */
+	0,				/* tp_getset */
+	0,				/* tp_base */
+	0,				/* tp_dict */
+	0,				/* tp_descr_get */
+	0,				/* tp_descr_set */
+	0,				/* tp_dictoffset */
+	0,				/* tp_init */
+	0,				/* tp_alloc */
+	0, //code_new,			/* tp_new */
 };
 
 PyCodeObject *
@@ -43,7 +80,7 @@ PyCode_New(int argcount, int nlocals, int stacksize, int flags,
 	    name == NULL || !PyString_Check(name) ||
 	    filename == NULL || !PyString_Check(filename) ||
 	    lnotab == NULL || !PyString_Check(lnotab)) {
-	  /* ERROR */
+		/* ERROR */
 		return NULL;
 	}
 	intern_strings(names);
