@@ -168,16 +168,27 @@ void format_x(char* buf, int val)
 	*buf = '\0';
 }
 
-void
-printf(const char* fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
+#define	SCREEN		((char *)-1)
 
+static
+char *p_string(char *d, const char *s)
+{
+	if(d == SCREEN)	{
+		print_string(s);
+		return SCREEN;
+	}
+	while (*s != '\0') {
+		*d++ = *s++;
+	}
+	return d;
+}
+
+void vsprintf(char *dst, const char *fmt, va_list args)
+{
 	char buf[64];
 	int ival;
 	const char* sval;
-	
+
 	while (*fmt != '\0') {
 		switch (*fmt) {
 		case '%':
@@ -186,29 +197,53 @@ printf(const char* fmt, ...)
 			case 'd':
 				ival = va_arg(args, int);
 				format_d(buf, ival);
-				print_string(buf);
+				dst = p_string(dst, buf);
 				break;
 			case 'x':
 				ival = va_arg(args, int);
 				format_x(buf, ival);
-				print_string(buf);
+				dst = p_string(dst, buf);
 				break;
 			case 's':
-				sval = va_arg(args, int);
-				print_char(ival & 0xFF);
+				sval = va_arg(args, char *);
+				dst = p_string(dst, sval);
 				break;
 			default:
-				print_char(*fmt);
+				buf[0] = *fmt;
+				buf[1] = '\0';
+				dst = p_string(dst, buf);
 				break;
 			}
 			break;
 		default:
-			print_char(*fmt);
+			buf[0] = *fmt;
+			buf[1] = '\0';
+			dst = p_string(dst, buf);
 			break;
 		}
 
 		fmt++;
 	}
-	update_cursor();
+	if(dst == SCREEN)
+		update_cursor();
+	else
+		*dst++ = '\0';
+}
+
+void
+sprintf(char *dst, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	vsprintf(dst, fmt, args);
+	va_end(args);
+}
+
+void
+printf(const char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	vsprintf(SCREEN, fmt, args);
 	va_end(args);
 }
