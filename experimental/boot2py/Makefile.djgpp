@@ -42,15 +42,11 @@ OBJS =	\
 	$(LIB_OBJS) \
 	$(MACH_OBJS)
 
-
 .c.o:
 	gcc -c -I./Include -o $@ $<
 
-kernel.test: Modules/python.o $(OBJS)
-	ld -e _main -Ttext 0x1000 -o kernel.test Modules/python.o $(OBJS)
-
-kernel.o: kernel.test
-	ld -i -e _main -Ttext 0x1000 -o kernel.o Modules/python.o $(OBJS)
+kernel.o: Modules/python.o $(OBJS)
+	ld -Ttext 0xF8000000 -o kernel.o Modules/python.o $(OBJS)
 
 KERNEL.BIN: kernel.o
 	objcopy -R .note -R .comment -S -O binary kernel.o KERNEL.BIN
@@ -62,6 +58,5 @@ clean:
 	del Modules\*.o
 	del lib\*.o
 	del mach\*.o
-	del kernel.test
 	del KERNEL.BIN
 
