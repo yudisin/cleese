@@ -1,5 +1,7 @@
 #include "Python.h"
 
+extern void print(const char *);
+
 static int initialized = 0;
 
 void
