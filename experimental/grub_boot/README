@@ -1,0 +1,21 @@
+This is a simple kernel that boots with GRUB.
+
+kstart.asm and some details of Makefile courtesy of
+Chris Giese <http://my.execpc.com/~geezer/>
+
+TO RUN
+
+- uncompress c.img
+- You'll need Bochs 2.0.2 installed
+- run Bochs from bootp.bxrc
+- this will boot the floppy image grub.img which will, in turn, boot the
+  simple kernel on the hard drive image c.img
+
+TO BUILD
+
+- Uncompress c.zip
+- Map c: to c.img in mtools
+- make
+- mcopy KERNEL.BIN c:
+
+
