@@ -1,10 +1,13 @@
 ################################################################################
 import pyvga
 import blit
+import buf
 
+ss = buf.sym('sokoscreen')
 pyvga.exittext()
-blit.fill(pyvga.framebuffer,320,0,0,320,200,0)
+pyvga.framebuffer[:len(ss)] = ss
 
+# blit.fill(pyvga.framebuffer,320,0,0,320,200,0)
 ################################################################################
 import isr
 import py8042
@@ -50,18 +53,30 @@ map = list('     #####               #   #               #$  #             ###  
 #map = list('           #######             #  ...#         #####  ...#         #      . .#         #  ##  ...#         ## ##  ...#        ### ########        # $$$ ##        #####  $ $ #####   ##   #$ $   #   #   #@ $  $    $  $ #   ###### $$ $ #####        #      #            ########')
 
 def disptile(off):
-	blit.fill(pyvga.framebuffer, 320,
+	ch = map[off]
+	if ch == '@':
+	    blit.fill(pyvga.framebuffer, 320,
+		(off % 20) << 3, (off / 20) << 3,	# x, y
+		8, 8, 1)
+	else:
+	    blit.fill(pyvga.framebuffer, 320,
 		(off % 20) << 3, (off / 20) << 3,	# x, y
 		8, 8,					# dx, dy
 		{ ' ': 0, '#': 31, '.': 5,		# color
 	          '*': 2, '$': 4,
-	          '@': 1, '&': 1 }[map[off]])
+	          '@': 1, '&': 1 }[ch])
 
 def dispall():
 	i = len(map)
+	eol = 0
 	while i > 0:		# no for yet?
 		i = i - 1
-		disptile(i)
+		if eol and map[i] != ' ':
+			eol = 0
+		if not eol:
+			disptile(i)
+		if not (i % 20):
+			eol = 1
 
 def move(dir):
 	if map.count('@'):	soko = map.index('@')

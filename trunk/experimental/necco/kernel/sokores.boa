@@ -1,0 +1,4 @@
+sokosyms = dd(
+	db("splashscreen",0), bootscreen,           0xfa00,
+	db("sokoscreen",0),   incbin('sokobg.dat'), 0xfa00,
+	0, 0, 0)
