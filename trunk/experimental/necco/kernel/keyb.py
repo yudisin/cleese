@@ -1,3 +1,6 @@
+import ports
+inb = ports.inb
+
 def more_chars():
     return (inb(0x64) & 0x01)
 

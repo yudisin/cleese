@@ -1,9 +1,9 @@
 import isr
 import vga
 import keyb
+import rtc
 
 tb = vga.textbuffer
-ticks = 0
 
 def kbd_isr():
 	while keyb.more_chars():
@@ -11,15 +11,12 @@ def kbd_isr():
 	    if ch:
 		print ch
 		tb[0] = ch; tb[1] = '\015'
+	print rtc.seconds()
 
 def clk_isr():
-	tb[158] = '01234567'[ticks & 7]
-	vga.framebuffer[ticks & 0xfff] = '\377'
+	tb[158] = '/-\|'[isr.ticker & 3]
 
-isr.setvec()
+isr.setvec(clk_isr, kbd_isr)
 
 while 1:
-	ticks = ticks + 1
-	if not (ticks & 0xfff):
-		if (ticks & 0x1000): vga.videomode(1)
-		else:		     vga.videomode(0)
+	pass

@@ -41,22 +41,30 @@ def igp():
 	cli; pusha
 	icoda
 
-ticks = resd()
-
 def clk():
 	""" clock tick """
 	cli; pusha
-	eax = [ticks]
-	inc(eax)
-	[ticks] = eax
+	clickticker
+	[isr_mask] |= 1
 	Py_AddPendingCall(python_isr, 0)
 	icoda
 
 def key():
 	""" keyboard """
 	cli; pusha
-	Py_AddPendingCall(python_isr, 1)
+	[isr_mask] |= 2
+	Py_AddPendingCall(python_isr, 0)
 	icoda
+
+isr_mask = resd()
+
+def isrs_pending():
+	""" returns (and resets) the pending isr flag vector """
+	cli
+	eax = [isr_mask]
+	xor(edx,edx)
+	[isr_mask] = edx
+	sti
 
 #-------------------------------------------------------------------------------
 # due to the split offsets in the Intel interrupt table,
@@ -70,3 +78,12 @@ idt_desc = dw(0x7f); dd(
 	igp, 0x00108f00, igp, 0x00108f00, igp, 0x00108f00, igp, 0x00108f00))
 
 #===============================================================================
+
+ticker = resd()
+
+def clickticker():
+	edx = [ticker]
+	if test(edx,edx) is nz:
+		eax = [edx]
+		inc(eax)
+		[edx] = eax
