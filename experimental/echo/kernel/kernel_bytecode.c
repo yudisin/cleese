@@ -15,3 +15,4 @@ unsigned char kernel_bytecode[] = {
 struct _frozen frozenModules[] = {
 	{"__main__", kernel_bytecode, 94},
 	{0, 0, 0} /* sentinel */
+};
