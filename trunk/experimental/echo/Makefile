@@ -29,7 +29,8 @@ OBJECT_OBJS =	\
 		python/Objects/methodobject.o \
 		python/Objects/abstract.o \
 		python/Objects/classobject.o \
-		python/Objects/funcobject.o
+		python/Objects/funcobject.o \
+		python/Objects/boolobject.o
 
 PYTHON_OBJS =	\
 		python/Python/pythonrun.o \
