@@ -40,7 +40,7 @@ KERNEL_PY = $(ECHOISR_PY)
 #KERNEL_PY = $(SOKO_PY)
 #SYMTAB    = -defsym symtab=sokosyms
 #RES_OBJS  = kernel/sokores.o
-
+#kernel/sokores.o: kernel/sokobg.dat
 
 KERNEL_OBJS =	\
 		kernel/kernel_bytecode.o \
