@@ -63,6 +63,21 @@ strrchr(const char *p, int c)
 	return(q ? (q-1) : 0);
 }
 
+char *strncpy(char *dest, const char *src, size_t n)
+{
+    char *d;
+    const char *s;
+
+    if (n > 0) {
+	d = dest;
+	s = src;
+	while (--n >= 0 && (*d++ = *s++));
+	while (--n >= 0)
+	    *d++ = '\0';
+    }
+    return (dest);
+}
+
 /* see mem.s */
 extern void bcopy(const void *, void *, size_t);
 
