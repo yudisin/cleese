@@ -33,6 +33,16 @@ extern void bcopy(const void *, void *, size_t);
 void *
 memcpy(void *dest, const void *src, size_t cnt)
 {
+#ifdef VERBOSE_MEMCPY
+	print("memcpy ");
+	print_hex(cnt);
+	print(" from ");
+	print_hex(src);
+	print(" to ");
+	print_hex(dest);
+	print("   ");
+#endif
+
 	bcopy(src, dest, cnt);
 	return(dest);
 }
