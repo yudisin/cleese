@@ -27,8 +27,8 @@ def prch(ch, fmt):
 	tb[0] = ch; tb[1] = fmt
 
 def kbd_isr():
-	while keyb.more_chars():
-	    ch = keyb.translate_scancode(keyb.get_scancode())
+	while py8042.more_chars():
+	    ch = keyb.translate_scancode(py8042.get_scancode())
 	    if ch:
 		prch(ch, '\015')
 

@@ -13,7 +13,7 @@ bufchar = None
 
 def kbd_isr():
 	global bufchar
-	ch = keyb.translate_scancode(keyb.get_scancode())
+	ch = keyb.translate_scancode(py8042.get_scancode())
 	if ch:
 		bufchar = ch
 
