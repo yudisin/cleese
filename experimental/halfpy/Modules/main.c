@@ -2,7 +2,6 @@
 
 
 #include "Python.h"
-#include "compile.h"
 
 /* Main program */
 
