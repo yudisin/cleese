@@ -21,7 +21,6 @@ KERNEL_OBJS +=	\
 		kernel/bochs/israbc.o \
 		kernel/bochs/isrmodule.o \
 		kernel/bochs/portsmodule.o \
-		kernel/bochs/vgaabc.o \
 		kernel/bochs/vgadata.o \
 		kernel/bochs/vgamodule.o
 

@@ -7,5 +7,5 @@ def inp():
 	edx = [esp + 4]
 	inb(al, dx)
 
-asm(".global out; out = outp")
-asm(".global in; in = inp")
+asm(".globl out; out = outp")
+asm(".globl in; in = inp")

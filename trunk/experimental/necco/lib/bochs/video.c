@@ -31,13 +31,6 @@ clear_screen()
 	}
 }
 
-void
-init_screen()
-{
-	row = col = 0;
-	clear_screen();
-}
-
 static void
 update_cursor()
 {
@@ -51,6 +44,15 @@ update_cursor()
 	out(CRT_CTRL_PORT, CRT_CURSOR_LOC_LOW);
 	out(CRT_DATA_PORT, offset & 0xFF);
 }
+
+void
+init_screen()
+{
+	row = col = 0;
+	update_cursor();
+	clear_screen();
+}
+
 
 static void
 scroll_screen()
