@@ -24,6 +24,6 @@ free(void *mem)
 void *
 realloc(void *mem, size_t newsize)
 {
-  /* @@@ need to new the previous size */
+  /* @@@ need to know the previous size */
   return mem;
 }
