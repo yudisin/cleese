@@ -85,7 +85,8 @@ r_object(RFILE *p)
 	  LOG("-- tuple\n");
 		n = r_long(p);
 		if (n < 0) {
-		  /* ERROR */
+			/* ERROR */
+			print("TYPE_TUPLE error");
 			return NULL;
 		}
 		v = PyTuple_New((int)n);
@@ -129,8 +130,8 @@ r_object(RFILE *p)
 		if (cellvars) filename = r_object(p);
 		if (filename) name = r_object(p);
 		if (name) {
-		  firstlineno = r_long(p);
-		  lnotab = r_object(p);
+			firstlineno = r_long(p);
+			lnotab = r_object(p);
 		}
 		v = (PyObject *) PyCode_New(
 					    argcount, nlocals, stacksize, flags,
