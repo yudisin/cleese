@@ -21,8 +21,15 @@ ECHOISR_PY = \
 		kernel/bochs/pyfont.py \
 		kernel/bochs/py8042.py
 
+SOKO_PY	= \
+		kernel/soko.py \
+		kernel/keyb.py \
+		kernel/bochs/pyvga.py \
+		kernel/bochs/py8042.py
+
 KERNEL_PY = $(ECHOISR_PY)
 #KERNEL_PY = $(LED_PY)
+#KERNEL_PY = $(SOKO_PY)
 #KERNEL_PY = kernel/listtest.py
 
 KERNEL_OBJS =	\

@@ -34,7 +34,15 @@ def kbd_isr():
 
 def clk_isr():
 	tb[158] = '/-\|'[isr.ticker & 3]
-	py8042.poll_mouse()
+	fl = py8042.poll_mouse()
+	if fl:
+		# print "mouse: %x %d %d" % (fl, py8042.dx, py8042.dy)
+		print 'mouse'
+		print fl
+		print py8042.dx
+		print py8042.dy
+		clk_isr()
+		
 
 isr.setvec(clk_isr, kbd_isr)
 

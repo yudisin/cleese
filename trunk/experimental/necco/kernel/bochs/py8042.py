@@ -16,21 +16,35 @@ def get_scancode():
 
 squeaks = 0
 
+dx = 0
+dy = 0
+
 def poll_mouse():
 	def mouse_ready():
 		return (inb(0x64) & 0x21) == 0x21
 
+	if not mouse_ready():
+		return 0
+
 	global squeaks
-	while mouse_ready():
-		fl = inb(0x60)
-		while not mouse_ready(): pass
-		dx = inb(0x60)
-		while not mouse_ready(): pass
-		dy = inb(0x60)
-		if fl & 0x20: dy = -(256 + -dy)
-		if fl & 0x10: dx = -(256 + -dx)
-		print "mouse: %x %d %d" % (fl & 0xCF, dx, dy)
-		squeaks = squeaks + 1
+	squeaks = squeaks + 1
+
+	global dx
+	global dy
+	fl = inb(0x60)
+	while not mouse_ready(): pass
+	dx = inb(0x60)
+	while not mouse_ready(): pass
+	dy = inb(0x60)
+	if fl & 0x20: dy = -(256 + -dy)
+	if fl & 0x10: dx = -(256 + -dx)
+	return fl & 0xCF
+
+def clear_mouse():
+	global dx
+	global dy
+	dx = 0
+	dy = 0
 
 ### INIT #######################################################################
 
