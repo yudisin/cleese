@@ -211,6 +211,26 @@ typedef struct _typeobject {
 	destructor tp_del;
 } PyTypeObject;
 
+/* The *real* layout of a type object when allocated on the heap */
+typedef struct _heaptypeobject {
+	/* Note: there's a dependency on the order of these members
+	   in slotptr() in typeobject.c . */
+	PyTypeObject type;
+	PyNumberMethods as_number;
+	PyMappingMethods as_mapping;
+	PySequenceMethods as_sequence; /* as_sequence comes after as_mapping,
+					  so that the mapping wins when both
+					  the mapping and the sequence define
+					  a given operator (e.g. __getitem__).
+					  see add_operators() in typeobject.c . */
+	PyBufferProcs as_buffer;
+	PyObject *name, *slots;
+	/* here are optional user slots, followed by the members. */
+} PyHeapTypeObject;
+
+
+
+
 PyAPI_FUNC(int) PyType_IsSubtype(PyTypeObject *, PyTypeObject *);
 #define PyObject_TypeCheck(ob, tp) \
 	((ob)->ob_type == (tp) || PyType_IsSubtype((ob)->ob_type, (tp)))
