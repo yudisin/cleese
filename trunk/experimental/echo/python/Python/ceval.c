@@ -192,12 +192,14 @@ eval_frame(PyFrameObject *f)
 		/* case STOP_CODE: this is an error! */
 
 		case LOAD_CONST:
+			print(" LOAD_CONST ");
 			x = GETITEM(consts, oparg);
 			Py_INCREF(x);
 			PUSH(x);
 			goto fast_next_opcode;
 
 		case BINARY_ADD:
+			print(" BINARY_ADD ");
 			w = POP();
 			v = TOP();
 			if (PyInt_CheckExact(v) && PyInt_CheckExact(w)) {
@@ -221,6 +223,7 @@ eval_frame(PyFrameObject *f)
 			break;
 
 		case PRINT_ITEM:
+			print(" PRINT_ITEM ");
 			v = POP();
 
 			PyObject_Print(v);
@@ -228,16 +231,67 @@ eval_frame(PyFrameObject *f)
 			break;
 
 		case PRINT_NEWLINE:
+			print(" PRINT_NEWLINE ");
 			print("\n");
 			break;
 
 		case RETURN_VALUE:
+			print(" RETURN_VALUE ");
 			retval = POP();
 			why = WHY_RETURN;
 			break;
 
+		case STORE_NAME:
+			print(" STORE_NAME ");
+			w = GETITEM(names, oparg);
+			v = POP();
+			if ((x = f->f_locals) == NULL) {
+				/* ERROR */
+				print("STORE_NAME ERROR");
+				break;
+			}
+			err = PyDict_SetItem(x, w, v);
+			Py_DECREF(v);
+			break;
+
+		case LOAD_NAME:
+			print(" LOAD_NAME ");
+			w = GETITEM(names, oparg);
+			if ((x = f->f_locals) == NULL) {
+				/* ERROR */
+				print("LOAD_NAME ERROR");
+				break;
+			}
+			x = PyDict_GetItem(x, w);
+			if (x == NULL) {
+				x = PyDict_GetItem(f->f_globals, w);
+				if (x == NULL) {
+					x = PyDict_GetItem(f->f_builtins, w);
+					if (x == NULL) {
+						print("can't find:");
+						print(((PyStringObject *)w)->ob_sval);
+						/* format_exc_check_arg */
+						break;
+					}
+				}
+			}
+			Py_INCREF(x);
+			PUSH(x);
+			break;
+			
+		case JUMP_FORWARD:
+			print(" JUMP_FORWARD ");
+			JUMPBY(oparg);
+			goto fast_next_opcode;
+			
+		case SETUP_LOOP:
+			print(" SETUP_LOOP ");
+			PyFrame_BlockSetup(f, opcode, INSTR_OFFSET() + oparg, STACK_LEVEL());
+			continue;
+			
 		default:
-		  Py_FatalError("unknown opcode");
+			print_hex(opcode);
+			Py_FatalError("unknown opcode");
 		} /* switch */
 
 		if (why == WHY_NOT) {
