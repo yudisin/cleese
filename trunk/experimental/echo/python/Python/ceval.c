@@ -649,7 +649,7 @@ eval_frame(PyFrameObject *f)
 			break;
 
 		default:
-			printf("%x", opcode);
+			printf("opcode: %d\n", opcode);
 			Py_FatalError("unknown opcode");
 		} /* switch */
 
