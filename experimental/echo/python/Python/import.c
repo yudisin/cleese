@@ -26,11 +26,11 @@ find_frozen(char *name)
 PyObject *
 PyImport_GetModuleDict(void)
 {
-  LOG("> PyImport_GetModuleDict\n");
+	LOG("> PyImport_GetModuleDict\n");
 	PyInterpreterState *interp = PyThreadState_Get()->interp;
 	if (interp->modules == NULL)
 		Py_FatalError("PyImport_GetModuleDict: no module dictionary!");
-  LOG("< PyImport_GetModuleDict\n");
+	LOG("< PyImport_GetModuleDict\n");
 	return interp->modules;
 }
 
@@ -39,7 +39,6 @@ PyImport_ImportFrozenModule(char *name)
 {
 	print(" Importing ");
 	
-	LOG("> PyImport_ImportFrozenModule\n");
 	struct _frozen *p = find_frozen(name);
 	PyObject *co;
 	int size;
