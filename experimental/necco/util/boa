@@ -57,6 +57,12 @@ def arg(t):
 	elif x == 'reg':	return y
 	else:			return "$" + y
 
+def size(t):
+	""" return size byte for at&t """
+	(x,y) = t
+	if x == 'reg':	return ''
+	else:		return 'l'
+
 def cint(s):
 	""" return value of a C-style numeric constant """
 	if s[0] == '0':
@@ -155,7 +161,7 @@ def gcode():
 	elif equals.has_key(x):
 		a = toks.pop()
 		b = toks.pop()
-		print "%s %s,%s" % (equals[x], arg(a), arg(b))
+		print "%s%s %s,%s" % (equals[x], size(b), arg(a), arg(b))
 	elif x == token.STRING:	pass
 	else:
 		toks.append((x,y))
