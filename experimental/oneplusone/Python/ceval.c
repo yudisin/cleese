@@ -36,7 +36,7 @@ PyEval_EvalCode(PyCodeObject *co, PyObject *globals, PyObject *locals)
 static PyObject *
 eval_frame(PyFrameObject *f)
 {
-  printf("> eval_frame\n");
+	LOG("> eval_frame\n");
 	PyObject **stack_pointer; /* Next free slot in value stack */
 	register unsigned char *next_instr;
 	register int opcode=0;	/* Current opcode */
@@ -277,7 +277,7 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
 	   PyObject **args, int argcount, PyObject **kws, int kwcount,
 	   PyObject **defs, int defcount, PyObject *closure)
 {
-  printf("> PyEval_EvalCodeEx\n");
+	LOG("> PyEval_EvalCodeEx\n");
 
 	register PyFrameObject *f;
 	register PyObject *retval = NULL;
@@ -297,6 +297,6 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
 	++tstate->recursion_depth;
     Py_DECREF(f);
 	--tstate->recursion_depth;
-	printf("< PyEval_EvalCodeEx\n");
+	LOG("< PyEval_EvalCodeEx\n");
 	return retval;
 }

@@ -54,7 +54,7 @@ PyFrameObject *
 PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals, 
 	    PyObject *locals)
 {
-  printf("> PyFrame_New\n");
+	LOG("> PyFrame_New\n");
 	PyFrameObject *back = tstate->frame;
 	PyFrameObject *f;
 	PyObject *builtins;
@@ -148,7 +148,7 @@ PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,
 
 	_PyObject_GC_TRACK(f);
 
-  printf("< PyFrame_New\n");
+	LOG("< PyFrame_New\n");
 	return f;
 }
 

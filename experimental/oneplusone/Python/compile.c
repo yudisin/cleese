@@ -29,7 +29,7 @@ PyCode_New(int argcount, int nlocals, int stacksize, int flags,
 	   PyObject *filename, PyObject *name, int firstlineno,
 	   PyObject *lnotab) 
 {
-  printf("> PyCode_New\n");
+	LOG("> PyCode_New\n");
 	PyCodeObject *co;
 	int i;
 	/* Check argument types */
@@ -85,6 +85,6 @@ PyCode_New(int argcount, int nlocals, int stacksize, int flags,
 		    PyTuple_GET_SIZE(cellvars) == 0)
 		    co->co_flags |= CO_NOFREE;
 	}
-	printf("< PyCode_New\n");
+	LOG("< PyCode_New\n");
 	return co;
 }

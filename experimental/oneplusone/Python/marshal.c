@@ -23,7 +23,7 @@ r_string(char *s, int n, RFILE *p)
 		n = p->end - p->ptr;
 	memcpy(s, p->ptr, n);
 	p->ptr += n;
-	printf("--- r_string %s\n", s);
+	LOGF("--- r_string %s\n", s);
 	return n;
 }
 
@@ -35,7 +35,7 @@ r_long(RFILE *p)
 	x |= (long)rs_byte(p) << 8;
 	x |= (long)rs_byte(p) << 16;
 	x |= (long)rs_byte(p) << 24;
-	printf("--- r_long %ld\n", x);
+	LOGF("--- r_long %ld\n", x);
 	return x;
 }
 
@@ -47,21 +47,21 @@ r_object(RFILE *p)
 
 	int type = rs_byte(p);
 	
-	printf("- read %c\n", type);
+	LOGF("- read %c\n", type);
 
 	switch (type) {
 
 	case TYPE_NONE:
-	  printf("-- none\n");
+	  LOG("-- none\n");
 		Py_INCREF(Py_None);
 		return Py_None;
 
 	case TYPE_INT:
-	  printf("-- int\n");
+	  LOG("-- int\n");
 		return PyInt_FromLong(r_long(p));
 
 	case TYPE_STRING:
-	  printf("-- string\n");
+	  LOG("-- string\n");
 		n = r_long(p);
 		if (n < 0) {
 		  /* ERROR */
@@ -78,7 +78,7 @@ r_object(RFILE *p)
 		return v;
 
 	case TYPE_TUPLE:
-	  printf("-- tuple\n");
+	  LOG("-- tuple\n");
 		n = r_long(p);
 		if (n < 0) {
 		  /* ERROR */
@@ -100,7 +100,7 @@ r_object(RFILE *p)
 
 	case TYPE_CODE:
 	  {
-		printf("-- code\n");
+		LOG("-- code\n");
 		int argcount = r_long(p);
 		int nlocals = r_long(p);
 		int stacksize = r_long(p);
@@ -157,14 +157,14 @@ r_object(RFILE *p)
 PyObject *
 PyMarshal_ReadObjectFromString(char *str, int len)
 {
-	printf("> PyMarshal_ReadObjectFromString\n");
+	LOG("> PyMarshal_ReadObjectFromString\n");
 	RFILE rf;
 	rf.str = NULL;
 	rf.ptr = str;
 	rf.end = str + len;
 
 	PyObject *o = r_object(&rf);
-	printf("< PyMarshal_ReadObjectFromString\n");
+	LOG("< PyMarshal_ReadObjectFromString\n");
 	return o;
 }
 

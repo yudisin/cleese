@@ -3,8 +3,8 @@
 int
 main(void)
 {
-	printf("> main\n");
+	LOG("> main\n");
 	Py_Main();
-	printf("< main\n");
+	LOG("< main\n");
 	return 0;
 }
