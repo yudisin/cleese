@@ -1,64 +1,134 @@
 #===============================================================================
-# 32-bit boot-agnostic kernel startup code
+# 32-bit boot-agnostic kernel startup code / interrupt handlers
 #===============================================================================
 # 'ld -T cleese.ld' to generate a grub-bootable executable, then
 # 'objcopy -O binary' that executable to get a bootp-bootable file.
 #===============================================================================
 
 #-------------------------------------------------------------------------------
-# BOOTP entry point - must link at the start of .text
+# 'entry' should be the entry point for a grub kernel, and
+# placed at the start of the text section for a bootp kernel
 #-------------------------------------------------------------------------------
 
-stack = resb(0x1000)
+def entry():
+	""" takes control from the bootloader """
+        db(0x0f,0x01,0x15)      # use our descriptor table (lgdt [gdt])
+        dd(gdt)
 
-def bootp():
-        ax = ds                 # cs and ds are good, so
-        es = ax; ss = ax        # load the other segments
-        xor(ax,ax)
-        fs = ax; gs = ax
+        ax = 0x18		# load ds
+        ds = ax; es = ax; ss = ax           
+	xor(ax,ax)
+	fs = ax; gs = ax
 
+        db(0xea)                # load cs (jmp 010h:startC)
+        dd(startC); dw(0x10)
+
+def startC():
+	""" builds C environment and calls main() """
         edi = bss               # zero out BSS
         ecx = end
         ecx -= edi
         ecx >>= 2               # (assume sections are word aligned)
         eax = 0
-        rep
-        stosl
+        rep; stosl
 
-        esp = stack             # set up a stack
-        esp += 0x1000
+        esp = resb(0x1000)      # set up a stack
+        esp +=     0x0ffc
 
-        main                    # and call C code
-        dw(0xfeeb)              # loop if it returns (jmp $-2)
+        main(ebx)               # and call C code
+	reboot
 
 #-------------------------------------------------------------------------------
 # Multiboot header for GRUB bootloader. This must be in the first 8K
 # of the kernel file.
 #-------------------------------------------------------------------------------
 
-        align(4)
-        dd(0x1BADB002,          # magic
+	align(4)
+	dd(0x1BADB002,          # magic
            0x00010003,          # AOUT_KLUDGE(16)|MEMORY_INFO(1)|PAGE_ALIGN(0)
            0xe4514ffb,          # checksum: -(magic + flags)
-           bootp, bss, end,
+           entry, bss, end,
            entry)
-
-#-------------------------------------------------------------------------------
-# GRUB entry point - should be the executable's entry point
-#-------------------------------------------------------------------------------
 
 gdt = dw(0x20);  dd(gdt);  dw(0,        # overlay: len + address
          0,     0,     0,     0,
-         0xffff,0,0x9200,  0xcf,        # flat data descriptor
-         0xffff,0,0x9a00,  0xcf)        # flat code descriptor
+         0xffff,0,0x9a00,  0xcf,        # flat code descriptor
+         0xffff,0,0x9200,  0xcf)        # flat data descriptor
 
-def entry():
-        db(0x0f,0x01,0x15)      # use our descriptor table (lgdt [gdt])
-        dd(gdt)
+def reboot():
+	al = 0xfe
+	outb(0x64, al)		# if this doesn't reboot,
+        dw(0xfeeb)              # infinite loop (jmp $-2)
 
-        ax = 0x10
-        ds = ax                 # load ds
+#===============================================================================
+# spartan interrupt support
+#===============================================================================
 
-        db(0xea)                # load cs (jmp 018h:bootp)
-        dd(bootp); dw(0x18)
+def initirqs():
+	""" initialize interrupts """
+	db(0x0f,0x01,0x1d)	# set up vectors (lidt [idt_desc])
+	dd(idt_desc)
+	sti			# enable interrupts
+
+#-------------------------------------------------------------------------------
+
+def ign():
+	""" ignored processor trap """
+	db(0xcf)		# (iret)
+
+def bpt():
+	cli; pusha
+	""" breakpoint """
+	ebx = [esp + 0x24]
+	printf("[%x: eax=%x]\n",ebx,eax)
+	popa; db(0xcf)
+
+#-------------------------------------------------------------------------------
+
+def icoda():
+	""" common interrupt exit code """
+	# clear the interrupt
+	al = 0x20	# EO1
+	outb(0x20,al)	# PIC1
+
+	# restore the state
+	esp += 4
+	popa
+	db(0xcf)	# iret
+
+#-------------------------------------------------------------------------------
+
+def igp():
+	""" ignored PIC interrupt """
+	cli; pusha
+	icoda
+
+ticks = resd()
+
+def clk():
+	""" clock tick """
+	cli; pusha
+	eax = [ticks]
+	inc(eax)
+	[ticks] = eax
+	Py_AddPendingCall(python_isr, 0)
+	icoda
+
+def key():
+	""" keyboard """
+	cli; pusha
+	Py_AddPendingCall(python_isr, 1)
+	icoda
+
+#-------------------------------------------------------------------------------
+# due to the split offsets in the Intel interrupt table,
+# interrupt vectors must reside at 0x10:0x0010XXXX
+#-------------------------------------------------------------------------------
+
+idt_desc = dw(0x7f); dd(
+     dd(ign, 0x00108f00, ign, 0x00108f00, ign, 0x00108f00, bpt, 0x00108f00,
+	ign, 0x00108f00, ign, 0x00108f00, ign, 0x00108f00, ign, 0x00108f00,
+	clk, 0x00108f00, key, 0x00108f00, igp, 0x00108f00, igp, 0x00108f00,
+	igp, 0x00108f00, igp, 0x00108f00, igp, 0x00108f00, igp, 0x00108f00))
+
 #===============================================================================
