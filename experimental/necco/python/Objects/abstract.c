@@ -319,6 +319,39 @@ PyObject_CallMethod(PyObject *o, char *name, char *format, ...)
 	return retval;
 }
 
+int PyObject_AsCharBuffer(PyObject *obj,
+			  const char **buffer,
+			  int *buffer_len)
+{
+	PyBufferProcs *pb;
+	const char *pp;
+	int len;
+
+	if (obj == NULL || buffer == NULL || buffer_len == NULL) {
+		null_error();
+		return -1;
+	}
+	pb = obj->ob_type->tp_as_buffer;
+	if (pb == NULL ||
+	     pb->bf_getcharbuffer == NULL ||
+	     pb->bf_getsegcount == NULL) {
+		PyErr_SetString(PyExc_TypeError,
+				"expected a character buffer object");
+		return -1;
+	}
+	if ((*pb->bf_getsegcount)(obj,NULL) != 1) {
+		PyErr_SetString(PyExc_TypeError,
+				"expected a single-segment buffer object");
+		return -1;
+	}
+	len = (*pb->bf_getcharbuffer)(obj, 0, &pp);
+	if (len < 0)
+		return -1;
+	*buffer = pp;
+	*buffer_len = len;
+	return 0;
+}
+
 /* Operations on sequences */
 
 int
