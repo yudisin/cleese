@@ -1,0 +1,19 @@
+Hello World VSTa Server
+
+$Id$
+
+This is a very simple VSTa server that will return "Hello World!" in response to a stat.
+
+To build and install:
+
+  1. Create a directory /src/srv/helloworld under VSTa and put main.c and makefile there.
+  2. Run make.
+  3. Edit /vsta/etc/inittab to include the line:
+       bg:/vsta/boot/helloworld
+  4. Edit /vsta/etc/fstab to include the line:
+       helloworld /helloworld
+  5. Reboot VSTa
+  6. Try typing:
+       stat /helloworld
+
+
