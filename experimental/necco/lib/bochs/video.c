@@ -42,6 +42,21 @@ update_cursor()
 	outb(CRT_DATA_PORT, offset & 0xFF);
 }
 
+static void
+fetch_cursor()
+{
+	unsigned short offset;
+
+	outb(CRT_CTRL_PORT, CRT_CURSOR_LOC_HIGH);
+	offset = inb(CRT_DATA_PORT) << 8;
+
+	outb(CRT_CTRL_PORT, CRT_CURSOR_LOC_LOW);
+	offset |= inb(CRT_DATA_PORT) & 0xff;
+
+	row = offset / NUM_COLS;
+	col = offset % NUM_COLS;
+}
+
 void
 init_screen()
 {
@@ -115,6 +130,7 @@ print_char(int c)
 void
 print_string(const char *s)
 {
+	fetch_cursor();
 	while (*s != '\0') {
 		print_char(*s++);
 #if 1

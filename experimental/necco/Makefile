@@ -31,17 +31,20 @@ KERNEL_PY = $(ECHOISR_PY)
 #KERNEL_PY = $(LED_PY)
 #KERNEL_PY = $(SOKO_PY)
 #KERNEL_PY = kernel/listtest.py
+#KERNEL_PY = kernel/stacktest.py
 
 KERNEL_OBJS =	\
 		kernel/kernel_bytecode.o \
 		kernel/blitmodule.o \
-		kernel/bufmodule.o
+		kernel/bufmodule.o \
+		kernel/stackmodule.o 
 
 KERNEL_OBJS +=	\
 		kernel/bochs/init.o \
 		kernel/bochs/israbc.o \
 		kernel/bochs/isrmodule.o \
 		kernel/bochs/portsmodule.o \
+		kernel/bochs/stackabc.o \
 		kernel/bochs/vgadata.o
 
 PYTHON_OBJS =	\
