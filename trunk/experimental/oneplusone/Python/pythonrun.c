@@ -10,6 +10,8 @@ Py_Initialize(void)
 	PyInterpreterState *interp;
 	PyThreadState *tstate;
 
+    extern void _Py_ReadTypes(void);
+
 	if (initialized)
 		return;
 	initialized = 1;
@@ -24,7 +26,7 @@ Py_Initialize(void)
 
 	(void) PyThreadState_Swap(tstate);
 
-	/* @@@ ready types? */
+	_Py_ReadyTypes();
 
 	if (!_PyFrame_Init())
 		Py_FatalError("Py_Initialize: can't init frames");
