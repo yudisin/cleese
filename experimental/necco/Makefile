@@ -7,6 +7,10 @@ CC	 += -fno-strict-aliasing
 LD       = ld -nostdlib
 PYTHON	 = python
 
+# gcc on cygwin doesn't seem to obey '-fno-leading-underscore'
+#-------------------------------------------------------------
+CYGWIN_KLUDGE = objcopy --remove-leading-char $@ tmp.o; mv tmp.o $@
+
 LED_PY = \
 		kernel/led.py \
 		kernel/rtc.py \
@@ -127,6 +131,7 @@ clobber: clean
 
 .c.o:
 	$(CC) -c -I./include -I./python/Include -o $@ $<
+	$(CYGWIN_KLUDGE)
 
 .boa.o:
 	$(PYTHON) util/boa < $< | as -o $@
