@@ -52,17 +52,18 @@ extern PyGC_Head *_PyGC_generation0;
 
 /* Tell the GC to track this object.  NB: While the object is tracked the
  * collector it must be safe to call the ob_traverse method. */
-//#define _PyObject_GC_TRACK(o) do { \
-//        PyGC_Head *g = _Py_AS_GC(o); \
-//        if (g->gc.gc_refs != _PyGC_REFS_UNTRACKED) \
-//                Py_FatalError("GC object already tracked"); \
-//        g->gc.gc_refs = _PyGC_REFS_REACHABLE; \
-//        g->gc.gc_next = _PyGC_generation0; \
-//        g->gc.gc_prev = _PyGC_generation0->gc.gc_prev; \
-//        g->gc.gc_prev->gc.gc_next = g; \
-//        _PyGC_generation0->gc.gc_prev = g; \
-//    } while (0);
-
+/*
+#define _PyObject_GC_TRACK(o) do { \
+        PyGC_Head *g = _Py_AS_GC(o); \
+        if (g->gc.gc_refs != _PyGC_REFS_UNTRACKED) \
+                Py_FatalError("GC object already tracked"); \
+        g->gc.gc_refs = _PyGC_REFS_REACHABLE; \
+        g->gc.gc_next = _PyGC_generation0; \
+        g->gc.gc_prev = _PyGC_generation0->gc.gc_prev; \
+        g->gc.gc_prev->gc.gc_next = g; \
+        _PyGC_generation0->gc.gc_prev = g; \
+    } while (0);
+*/
 #define _PyObject_GC_TRACK(o)
 
 PyAPI_FUNC(PyObject *) _PyObject_GC_Malloc(size_t);
