@@ -397,6 +397,33 @@ eval_frame(PyFrameObject *f)
 			if (x != NULL) continue;
 			break;
 
+		case BINARY_SUBSCR:
+			w = POP();
+			v = TOP();
+			if (PyList_CheckExact(v) && PyInt_CheckExact(w)) {
+				/* INLINE: list[int] */
+				long i = PyInt_AsLong(w);
+				if (i < 0)
+					i += PyList_GET_SIZE(v);
+				if (i < 0 ||
+				    i >= PyList_GET_SIZE(v)) {
+					/* ERROR */
+					print("list index out of range");
+					x = NULL;
+				}
+				else {
+					x = PyList_GET_ITEM(v, i);
+					Py_INCREF(x);
+				}
+			}
+			else
+				x = PyObject_GetItem(v, w);
+			Py_DECREF(v);
+			Py_DECREF(w);
+			SET_TOP(x);
+			if (x != NULL) continue;
+			break;
+
 		case BINARY_AND:
 			w = POP();
 			v = TOP();

@@ -8,6 +8,8 @@
 #define BINARY_MODULO	22
 #define BINARY_ADD 23
 
+#define BINARY_SUBSCR	25
+
 #define BINARY_AND	64
 
 #define PRINT_ITEM 71
