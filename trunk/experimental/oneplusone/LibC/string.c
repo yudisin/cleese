@@ -48,6 +48,19 @@ memset(void *dst, int c, size_t n)
 }
 
 int
+bcmp(const void *s1, const void *s2, unsigned int n)
+{
+        const char *p = s1, *q = s2;
+
+        while (n-- > 0) {
+                if (*p++ != *q++) {
+                        return((int)p[-1] - (int)q[-1]);
+                }
+        }
+        return(0);
+}
+
+int
 memcmp(const void *s1, const void *s2, size_t n)
 {
 	return(bcmp(s1, s2, n));
