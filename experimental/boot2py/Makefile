@@ -43,7 +43,7 @@ OBJS =	\
 	$(MACH_OBJS)
 
 .c.o:
-	gcc -fno-builtin -c -I./Include -o $@ $<
+	gcc -fno-builtin -Wall -c -I./Include -o $@ $<
 
 kernel.test: Modules/python.o $(OBJS)
 	ld -e _main -Ttext 0x1000 -o kernel.test Modules/python.o $(OBJS)
