@@ -36,7 +36,7 @@ def startC():
         esp +=     0x0ffc
 
         main(ebx)               # and call C code
-	reboot
+        dw(0xfeeb)              # infinite loop (jmp $-2)
 
 #-------------------------------------------------------------------------------
 # Multiboot header for GRUB bootloader. This must be in the first 8K
@@ -54,11 +54,6 @@ gdt = dw(0x20);  dd(gdt);  dw(0,        # overlay: len + address
          0,     0,     0,     0,
          0xffff,0,0x9a00,  0xcf,        # flat code descriptor
          0xffff,0,0x9200,  0xcf)        # flat data descriptor
-
-def reboot():
-	al = 0xfe
-	outb(0x64, al)		# if this doesn't reboot,
-        dw(0xfeeb)              # infinite loop (jmp $-2)
 
 #===============================================================================
 # spartan interrupt support
